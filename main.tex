@@ -1,0 +1,129 @@
+\documentclass{article}
+\usepackage[letterpaper, margin=1in]{geometry}
+\setlength{\parskip}{1em}
+\usepackage{graphicx}
+\setlength\parindent{0pt}
+\usepackage{amssymb}
+\usepackage[table]{xcolor}
+\usepackage{tikz}
+\usepackage{array}
+\usepackage{placeins}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\usepackage{tcolorbox}
+\usepackage{arydshln}
+\usepackage[font=small,skip=2pt]{caption}
+\usepackage{hyperref}
+\usepackage{colortbl}
+\usepackage{enumitem}
+\usepackage{ifthen}
+\usepackage[final]{pdfpages}
+
+\definecolor{myblue}{RGB}{0,0,250}
+\hypersetup{
+    linktoc=all,
+    colorlinks=true,
+    linkcolor=black,
+    filecolor=red,
+    urlcolor=myblue,
+    pdftitle={PhD Confirmation Report},
+    citecolor=myblue,
+}
+
+\newcounter{examplecounter}
+\definecolor{bgexample}{RGB}{240,240,240}
+\newcommand{\example}[2]{
+    \refstepcounter{examplecounter}
+    \begin{tcolorbox}[colback=bgexample,colframe=bgexample,sharp corners=all]
+        \textit{Example \theexamplecounter:}#1
+        #2
+    \end{tcolorbox}
+}
+
+\newcounter{modelcounter}
+\definecolor{bordercolor}{RGB}{255,255,255}
+\newcommand{\model}[2]{
+    \refstepcounter{modelcounter}
+    \small
+    \begin{tcolorbox}[colback=white,colframe=bordercolor,sharp corners=all]
+        \setlength{\tabcolsep}{2pt}
+        \begin{tabular}{l l l}
+            \textit{Model \themodelcounter: } & #1
+        \end{tabular}
+        #2
+    \end{tcolorbox}
+}
+
+\makeatletter
+\newcommand{\wregularform}{$\omega$-regular form\@ifnextchar{,}{}{\@ifnextchar{.}{}{ }}}
+\newcommand{\wregulargames}{$\omega$-regular games\@ifnextchar{,}{}{\@ifnextchar{.}{}{ }}}
+\newcommand{\constraintform}{constraint form\@ifnextchar{,}{}{\@ifnextchar{.}{}{ }}}
+\newcommand{\constraintgames}{constraint games\@ifnextchar{,}{}{\@ifnextchar{.}{}{ }}}
+\newcommand{\git}[1]{\href{#1}{$^{[Git]}$}}
+
+\usepackage{titling}
+\setlength{\droptitle}{-8em}
+
+\title{Generic Constraint Games\\PhD Confirmation Report}
+\author{Gonzalo Hernandez}
+\date{}
+
+\begin{document}
+
+% ----------------------------------------------------------------------
+
+\begin{center}
+  \includegraphics[width=15cm]{images/monash-logo.jpg} \\[0.6cm]
+
+  \textbf{
+    \large Department of Data Science and Artificial Intelligence (DSAI) \\[0.3cm]
+    \large Faculty of Information Technology \\[5.0cm]
+  }
+  \textbf{
+    \LARGE Generic Constraint Games\\[1.0cm]
+    \large Gonzalo Hernandez\\[0.5cm]
+    \large Aug 2025\\[6cm]
+  }
+  \textbf{
+    \large PhD Progress Review Report\\[1.0cm]
+  }
+\end{center}
+
+\thispagestyle{empty}
+\newpage
+
+% ----------------------------------------------------------------------
+
+\tableofcontents
+\newpage
+
+% -----------------------------------------------------------------------------
+
+\section{Introduction}
+
+\section{Progress to Date}
+
+\subsection{RQ1 modelling}
+
+Attractors
+
+Reduction to SAT
+
+\subsubsection{NOC}
+
+\subsubsection{FRA}
+
+\subsection{RQ2 and RQ3 implementation}
+
+\cite{*}
+
+\section{Fucture Plan and Next Steps}
+
+\newpage
+\bibliographystyle{acm}
+\bibliography{main}
+
+% \includepdf[pages={1-1}]{attachments/MDP_Compulsory_Module-Milestone_Report.pdf} \label{appendix:a}
+% \includepdf[pages={1-1}]{attachments/Monash_Doctoral_Program_NEW.pdf} \label{appendix:b}
+
+\end{document}
