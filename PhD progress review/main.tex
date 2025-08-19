@@ -117,7 +117,7 @@ Given an initial vertex $v_0$, a strategy is said to be winning from $v_0$ for p
 
 \subsubsection{Traps, Attractors and ZRA}
 
-Current algorithms are based on this concept. A \emph{trap} for a player $\player \in \{\even,\odd\}$ is a set of vertices in which the opponent $\opponent \in \{\even,\odd\}, \; \player \neq \opponent,$ can force the play to remain forever. Formally, a set $U \subseteq V$ is called a trap for $\player$ if $\forall v \in U \cap V_{\player} : vE \cap U \neq \emptyset$ and $\forall v \in U \cap V_{\opponent} : vE \subseteq U$. \cite{ZielonkaWieslaw1998Igof}
+Current algorithms are based on this concept. A \emph{trap} for a player $\player \in \{\even,\odd\}$ is a set of vertices in which the opponent $\opponent \in \{\even,\odd\}, \; \player \neq \opponent,$ can force the play to remain forever. Formally, a set $U \subseteq V$ is called a trap for $\player$ if $\forall v \in U \cap V_{\player} : vE \cap U \neq \emptyset$ and $\forall v \in U \cap V_{\opponent} : vE \subseteq U$. \cite{Zielonka:1998}
 
 Closely related to traps is the notion of an \emph{attractor}. For a player $\player$, the $\player$-attractor of a set $U \subseteq V$ is the set of vertices from which $\player$ can force the play to reach $U$ in a finite number of steps. Intuitively, while a trap represents a region that the opponent can confine the play within, an attractor represents a region that $\player$ can control and eventually reach, regardless of the opponent's actions. Formally, attractors are computed iteratively: starting from $U$, we add vertices in $V_\player$ that have at least one successor already in the attractor and vertices in $V_{\opponent}$ all of whose successors are already in the attractor, repeating until a fixed point is reached. 
 
@@ -201,32 +201,32 @@ Before detailing the implementation of our propagators, we first illustrate our 
     \centering
     \begin{subfigure}[b]{0.30\textwidth}
         \centering
-        \includegraphics[width=\textwidth]{images/game0a.png}
+        \includegraphics[width=\textwidth]{images/game1a.png}
         \caption{Parity game}
-        \label{fig:game0a}
+        \label{fig:game1a}
     \end{subfigure}
     \hspace{0.6cm}
     \begin{subfigure}[b]{0.30\textwidth}
         \centering
-        \includegraphics[width=\textwidth]{images/game0b.png}
+        \includegraphics[width=\textwidth]{images/game1b.png}
         \caption{Initial assignment}
-        \label{fig:game0b}
+        \label{fig:game1b}
     \end{subfigure}
     \hspace{0.6cm}
     \begin{subfigure}[b]{0.30\textwidth}
         \centering
-        \includegraphics[width=\textwidth]{images/game0c.png}
+        \includegraphics[width=\textwidth]{images/game1c.png}
         \caption{Satisfiable assignment}
-        \label{fig:game0c}
+        \label{fig:game1c}
     \end{subfigure}    \caption{A parity game with vertices $\{0..6\}$, edges $\{0..11\}$, and priorities $\{2,3\}$.}
     \label{fig:game0f1}
 \end{figure}
 
-Figure~\ref{fig:game0a} shows A parity game with 7 vertices and 12 edges. Each vertex carries a priority from the set $\{2,3\}$. Vertices controlled by Player~$\even$ are shown as circles, while vertices controlled by Player~$\odd$ are shown as squares.
+Figure~\ref{fig:game1a} shows A parity game with 7 vertices and 12 edges. Each vertex carries a priority from the set $\{2,3\}$. Vertices controlled by Player~$\even$ are shown as circles, while vertices controlled by Player~$\odd$ are shown as squares.
 
-Searching from the perspective of Player $\player = \even$ and starting at vertex $V_0$, after enforcing constraints $\mathcal{C}_{v_0}, \mathcal{C}_{\player}, \mathcal{C}_{\opponent}, \mathcal{C}_{\!E}$ from Definition \ref{def:csp}, assume that the solver makes an initial assignment of $\mathcal{V}_0 = \mathcal{V}_1 = \mathcal{V}_2 = \mathcal{E}_0 = \mathcal{E}_1 = \mathcal{E}_2 = \mathcal{E}_3 = \top$ (see Figure~\ref{fig:game0b}), while the remaining variables are unassigned. At this point, Player \odd has a winning strategy because edges $\mathcal{E}_0$, $\mathcal{E}_2$ and $\mathcal{E}_3$ form a cycle where the maximum priority occurring infinitely often is 3. 
+Searching from the perspective of Player $\player = \even$ and starting at vertex $V_0$, after enforcing constraints $\mathcal{C}_{v_0}, \mathcal{C}_{\player}, \mathcal{C}_{\opponent}, \mathcal{C}_{\!E}$ from Definition \ref{def:csp}, assume that the solver makes an initial assignment of $\mathcal{V}_0 = \mathcal{V}_1 = \mathcal{V}_2 = \mathcal{E}_0 = \mathcal{E}_1 = \mathcal{E}_2 = \mathcal{E}_3 = \top$ (see Figure~\ref{fig:game1b}), while the remaining variables are unassigned. At this point, Player \odd has a winning strategy because edges $\mathcal{E}_0$, $\mathcal{E}_2$ and $\mathcal{E}_3$ form a cycle where the maximum priority occurring infinitely often is 3. 
 
-A checker of $\mathcal{C}_{N\!O\!C}$ would, in this situation, report unsatisfiability of the problem, triggering a backtrack and a search for an alternative assignment. The solver would continue the search, possibly exploring another assignment, $\mathcal{V}_0 = \mathcal{V}_1 = \mathcal{V}_2 = \mathcal{V}_3 = \mathcal{E}_0 = \mathcal{E}_2 = \mathcal{E}_4 = \mathcal{E}_6 = \top$ (see Figure~\ref{fig:game0c}). Here, another cycle is formed, but the maximum priority occurring infinitely often is 2, which satisfies all constraints, making the problem satisfiable. As a result, starting from $V_0$, this game is won by Player \even.
+A checker of $\mathcal{C}_{N\!O\!C}$ would, in this situation, report unsatisfiability of the problem, triggering a backtrack and a search for an alternative assignment. The solver would continue the search, possibly exploring another assignment, $\mathcal{V}_0 = \mathcal{V}_1 = \mathcal{V}_2 = \mathcal{V}_3 = \mathcal{E}_0 = \mathcal{E}_2 = \mathcal{E}_4 = \mathcal{E}_6 = \top$ (see Figure~\ref{fig:game1c}). Here, another cycle is formed, but the maximum priority occurring infinitely often is 2, which satisfies all constraints, making the problem satisfiable. As a result, starting from $V_0$, this game is won by Player \even.
 
 \subsubsection{A No-Opponent-Cycle checker} \label{sec:nocchecker}
 To enforce $\mathcal{C}_{\!N\!O\!C}$, we propose a propagator based on recursively decomposing the graph into Strongly Connected Components (SCCs). By definition, if every SCC contains more than one vertex, or consists of a single vertex with a self-loop, then all vertices are part of at least one cycle.
@@ -306,18 +306,39 @@ Algorithm~\ref{alg:noc-eager} is also written in a recursive style. The argument
 
 First, consider the case where the current vertex $v$ is not already in the current path (i.e., the else case in line~\ref{alg:noc-eager:defcheck}). This indicates that no cycle has been detected so far, and the algorithm recursively explores each outgoing edge from $v$ whose value is not $\bot$, extending the path accordingly. A basic implementation of \noceager would only explore edges for which $\mathcal{E}[e'] = \top$, thus limiting the search to assigned edges. However, the goal of this propagator is to allow the exploration of at most one unassigned edge, in order to proactively eliminate potential cycles before they become committed.
 
+For instance, if the assignment presented in Figure \ref{fig:game2a} had been considered first, the constraint could have determined in advance that $\mathcal{E}_3$ \textit{must} be $\bot$, since otherwise an odd cycle would be present.
+
 In contrast, if the current vertex $v$ has appeared in the path (line~\ref{alg:noc-eager:pathcheck}), this implies that the current edge closes a cycle. The algorithm then determines the highest priority among the vertices in the cycle, and if this priority favors $\opponent$ (line~\ref{alg:noc-eager:checkopponent}), the current edge is set to $\bot$. If the edge had already been assigned $\top$, this causes a conflict and triggers backtracking.
 
-Since Lazy Clause Generation (LCG) solvers require a justification for each propagation step (to enable clause learning), all edges in the detected cycle are collected to form a clause stating that at least one must be assigned $\bot$ (line~\ref{alg:noc-eager:reason}). For instance, in the scenario shown in Figure~\ref{fig:game0b}, the clause $(\neg \mathcal{E}_0 \vee \neg \mathcal{E}_2 \vee \neg \mathcal{E}_4 \neg \vee \mathcal{E}_6 \vee \neg \mathcal{E}_3)$ would be added to prevent the opponent cycle.
+Since Lazy Clause Generation (LCG) solvers require a justification for each propagation step (to enable clause learning), all edges in the detected cycle are collected to form a clause stating that at least one must be assigned $\bot$ (line~\ref{alg:noc-eager:reason}). For instance, in the scenario shown in Figure~\ref{fig:game1a}, the clause $(\neg \mathcal{E}_0 \vee \neg \mathcal{E}_2 \vee \neg \mathcal{E}_4 \neg \vee \mathcal{E}_6 \vee \neg \mathcal{E}_3)$ would be added to prevent the opponent cycle.
 
 The complexity of the \noceager propagator is primarily driven by the DFS traversal over the graph, with additional work performed when a cycle is detected. In the worst case, the algorithm explores every simple path in the graph starting from the initial vertex. This may result in an exponential number of recursive calls in the number of vertices since each branching decision adds a new path to explore. However, in practice, the number of recursive calls is bounded by the number of edges assigned to $\top$ and at most one unassigned edge, significantly reducing the branching factor. Each recursive call performs a constant number of operations, except when a cycle is found (line~\ref{alg:noc-eager:pathcheck}). Nevertheless, because the algorithm may visit multiple paths and cycles, and because each edge can potentially trigger multiple clause generation steps before being fixed, the overall worst-case complexity remains exponential in the size of the graph. This trade-off is justified by the early pruning capabilities enabled by detecting potentially winning opponent cycles before they are fully formed, especially in graphs with many unassigned edges or nondeterminism. In typical solver applications, where assignments propagate quickly and many edges are fixed early, the practical runtime of the propagator is significantly better than the theoretical worst case—as demonstrated by the experimental results presented in a later subsection, where this approach consistently outperforms alternatives in both speed and effectiveness.
+
+\begin{figure}[ht]
+    \centering
+    \begin{subfigure}[b]{0.30\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{images/game2a.png}
+        \caption{Filtering in advance}
+        \label{fig:game2a}
+    \end{subfigure}
+    \hspace{0.6cm}
+    \begin{subfigure}[b]{0.30\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{images/game2b.png}
+        \caption{Remebering plays}
+        \label{fig:game2b}
+    \end{subfigure}
+    \caption{Parity game continuation. Other assignments.}
+    \label{fig:game1f2}
+\end{figure}
 
 \subsubsection{Improved Filtering Strategy for the No-Opponent-Cycle Propagator}
 
 In order to avoid the exponential behavior of \noceager, we have developed a variant that memorizes cycles and can quickly remove some new cycles. Algorithm \ref{alg:noc-memo} incorporates a parameter $\textit{memo}$ that stores, for each edge, the starting node of an infinite path and the associated highest priority. This information is updated whenever a cycle is found (line~\ref{alg:noc-memo:update}). If $\textit{memo}$ does not contain information about the next edge $e'$, or a new highest priority was found, then the propagator proceeds recursively as before (lines~\ref{alg:noc-memo:check1} and \ref{alg:noc-memo:check2}). Otherwise, it uses the stored information for the new edge (line~\ref{alg:noc-memo:update}). 
 This results in polynomial worst-case runtime, since the recursion is now bounded by the number of edges and the number of different priorities. However, the memoization only captures cycles with the same starting node. The propagator may therefore miss some cycles, rendering it incomplete. To preserve completeness, this variant is therefore used in conjunction with the \nocchecker introduced earlier.
 
-For the example of Figure \ref{fig:game02}, the updated version of \noc stores a tuple $(v=5, m=3)$ on edge $E_5$, indicating that the best priority reachable from this edge is 3 and that the infinite path starts at $V_5$. This prevents the exploration of the subgraph $\{V_4, V_5, V_6\}$ in future stages. %To invoke this propagator, the new parameter is initialized as: $\textit{best} \gets \{(-1,-1) \mid e \in E\}$.
+For the example of Figure \ref{fig:game2b}, the updated version of \noc stores a tuple $(v=5, m=3)$ on edge $E_5$, indicating that the best priority reachable from this edge is 3 and that the infinite path starts at $V_5$. This prevents the exploration of the subgraph $\{V_4, V_5, V_6\}$ in future stages. %To invoke this propagator, the new parameter is initialized as: $\textit{best} \gets \{(-1,-1) \mid e \in E\}$.
 
 Remembering cycles is particularly effective in games where the number of cycles favoring $\player$ exceeds those favoring $\opponent$, as demonstrated below in the section on experiments.
 
@@ -369,7 +390,7 @@ Remembering cycles is particularly effective in games where the number of cycles
 
 \subsection{Solving (RQ2)}
 
-\section{Fucture Plan and Next Steps}
+\section{Future Plan and Next Steps}
 
 \newpage
 \bibliographystyle{acm}
