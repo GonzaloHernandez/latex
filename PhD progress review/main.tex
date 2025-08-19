@@ -74,6 +74,15 @@ We have started the modelling of the games with parity conditions.
 
 \subsection{Problem Statement}
 
+
+In the current state of the art, \wregulargames are modeled and solved using rigid methods that do not allow for modifications to the game without necessitating changes to the method itself.
+
+Additionally, \wregulargames are defined purely using utility functions. \textit{Games} in \constraintform, on the other hand, offer richer modelling functionality by supporting global constraints that are common to all players.
+
+\subsection{Aim}
+
+The objective of this project is to enhance the expressivity of \wregulargames, improve the efficiency of solving methods, and integrate \wregulargames into \constraintgames to fully leverage the advantages of constraint
+
 \subsection{Refined Research Questions}
 
 Building on the research questions defined in my first year, we have refined our focus to games with parity conditions, which were further explored during my second year. As part of my third-year work, we aim to extend this scope to stochastic games. The refined research questions are as follows:
@@ -91,13 +100,13 @@ Building on the research questions defined in my first year, we have refined our
 \begin{itemize}
   \item We have developed a methodology for modeling and solving \wregulargames with parity conditions through the application of constraint technologies. [\hyperref[sec:rq]{RQ1,RQ2}]
   \item We have presented our research to the academic community at the CP2025 conference, where it received positive feedback, and have since submitted it to the AAAI2026 conference. The outcome of that evaluation is currently pending.
-  \item We plan to develop a new \textit{game form} based on constraints, extending our current framework to encompass stochastic \wregulargames. [\hyperref[sec:rq]{RQ3}]
+  \item We plan to develop a new \textit{game form} based on constraints, extending our current modelling framework to encompass stochastic \wregulargames. [\hyperref[sec:rq]{RQ3}]
   \item In addition to the refined research questions, we have proposed a novel method for solving games using clause learning, guided by \textit{utility}. This line of work remains ongoing as a parallel branch of my research.
 \end{itemize}
 
 \section{Methodology and Progress}
 
-\subsection{Modelling (RQ1)}
+\subsection{Modelling (RQ1,RQ2)}
 
  Parity games are two-player zero-sum games played on a labeled directed graph, called the \textit{arena}, where two players, \textit{Even} and \textit{Odd} (denoted~\even or 0, and~\odd or 1, respectively), move a token along adjacent vertices depending on which player controls the current vertex. This process generates a path of states visited by the token. In a parity game, each path is winning for either Player \even or Player \odd. The goal of each player is to enforce a winning path in their favour. We now formalize parity games, including the definition of when a given path in the graph is winning for either player.
 
@@ -123,7 +132,7 @@ Closely related to traps is the notion of an \emph{attractor}. For a player $\pl
 
 Zielonka's recursive algorithm (ZRA) solves parity games by partitioning the vertex set $V$ into winning regions $W_{\even}$ and $W_{\odd}$ and computing corresponding positional strategies $f_{\even}$ and $f_{\odd}$. At each recursive step, the algorithm selects the vertices with maximal priority $p$, computes the $\player$-attractor $A$ for the player $\player$ owning $p$, and removes $A$ from the game to form a subgame. Traps and attractors guide this decomposition: traps identify regions from which the opponent can prevent escape, while attractors identify vertices from which $\player$ can force the play to reach a target set. Iterating this process ensures that for each $v \in W_{\player}$, the strategy $f_{\player}$ generates only winning plays according to the parity condition.
 
-\subsubsection{Constraint Programming Approach}
+\subsubsection{Constraint Programming Approach (RQ1)}
 
 While Zielonka's recursive algorithm starts the search from the vertices with maximal priorities and computes which vertices are attracted to them in order to determine the winning regions containing a given initial vertex $v_0$, the constraint programming (CP) approach begins the search from $v_0$ and attempts to identify the trap that contains the maximal priority relevant to that vertex.
 
@@ -176,7 +185,7 @@ In this approach the $\Phi_A$ constraints, based on progress measures, lead to p
 We present an approach to solving parity games by encoding them as a Constraint Satisfaction Problem (CSP) with three specialized propagators for the winning condition, following the framework described in \ref{sec:reductionsmt}. Unlike previous encodings that use progress measures and integer variables $x_p^v$, our approach employs a global constraint to capture the winning condition directly. The model is defined to allow search from both players’ perspectives, efficiently identifying whether the instance is unsatisfiable for either Player~\even or Player~\odd.
 
 
-\subsubsection{No-Opponent-Cycle Propagators}
+\subsubsection{No-Opponent-Cycle Propagators (RQ2)}
 
 We translate the parity game into a Constraint Satisfaction Problem (CSP) to model the absence of opponent-controlled cycles.
 
@@ -388,9 +397,46 @@ Remembering cycles is particularly effective in games where the number of cycles
 
 % ------------------
 
-\subsection{Solving (RQ2)}
+\subsection{Solving}
+
+We validated our approach through a series of experiments comparing its performance against other CP-based methods \cite{Heljanko:2012} as well as non-CP methods \cite{Zielonka:1998}. Our results indicate that by employing global constraints instead of progress measures, we achieve improvements of at least ??? orders of magnitude compared to other CP-based approaches \cite{Heljanko:2012}. Moreover, since the problem lies in $\mathsf{NP} \cap \mathsf{co\textit{-}NP}$, our method can exploit this property by flipping the perspective to search for satisfiability from the opponent’s viewpoint. In practice, our approach proves competitive with non-CP-based solvers \cite{Zielonka:1998}, and in some cases even outperforms them.
+
+The experimental results have been submitted for evaluation, and a detailed account of our contribution is provided in Appendix~B (\emph{No-Opponent-Cycle Propagators for Solving Parity Games}).
 
 \section{Future Plan and Next Steps}
+
+In my third year, I intend to address QR3 by extending our modelling framework to handle stochastic \wregulargames. Table~\ref{tab:planning} presents the revised timeline outlining the planned completion of each research task.
+
+
+\begin{table}[H]\centering
+    \newcommand{\y}{\cellcolor{black!50}}
+    \newcommand{\n}{\cellcolor{white!100}}
+    \newcolumntype{:}{!{\color{gray!20}\vrule}}
+    \begin{tabular}{|r p{8.2cm}|l:l|l:l:l:l|l:l:l:l|l:l:l:l|l:l|}
+        \hline
+            & \textbf{Activities} 
+            & \multicolumn{4}{c|}{\textbf{2023}} & \multicolumn{4}{c|}{\textbf{2024}} 
+            & \multicolumn{4}{c|}{\textbf{2025}} & \multicolumn{4}{c|}{\textbf{2026}} \\
+        \hline
+            & Literature review 
+            & \n & \n & \y & \y & \y & \n & \n & \n & \n & \n & \n & \n & \n & \n & \n & \n \\
+        \arrayrulecolor{gray!20}\hline
+        RQ1  & Encoding \wregulargames into \constraintgames
+            & \n & \n & \n & \n & \n & \n & \y & \y & \y & \y & \y & \n & \n & \n & \n & \n \\
+        \hline
+        RQ2  & Solving Games with new constraint technologies
+            & \n & \n & \n & \y & \y & \y & \n & \y & \y & \y & \y & \n & \n & \n & \n & \n \\
+        \hline
+        RQ3  & Extending to stochastic \wregulargames Games
+            & \n & \n & \n & \n & \n & \n & \n & \n & \n & \y & \y & \y & \y & \n & \n & \n \\
+        \hline
+            & Documentation
+            & \n & \n & \n & \n & \n & \y & \n & \n & \n & \y & \n & \n & \y & \y & \y & \y \\
+        \arrayrulecolor{black}\hline
+    \end{tabular}
+    \caption{Activity planning}
+    \label{tab:planning}
+\end{table}
 
 \newpage
 \bibliographystyle{acm}
