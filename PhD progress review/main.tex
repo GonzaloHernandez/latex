@@ -66,14 +66,13 @@
 
 \section{Introduction}
 
-In our PhD confirmation Report we defined the problem about \wregulargames where those games are played over an arena  
+\wregulargames with parity conditions are two-player, zero-sum, infinite-duration games played on a labelled directed graph. Vertices represent the states of the players, and edges encode their available actions at each state. Solving these games is central to several techniques in automated formal verification, particularly in model checking and reactive synthesis.
 
-We have started the modelling of the games with parity conditions.
+Because these are perfect-information games, solving them amounts to determining which player—commonly referred to as Player Even ($\even$) or Player Odd ($\odd$)—has a winning strategy from a given starting vertex. It is known that deciding the winner in parity games lies in $\mathsf{NP} \cap \mathsf{co\textit{-}NP}$~\cite{Jurdziński:1998}, yet whether they can be solved in polynomial time remains an open question that has persisted for nearly five decades.
 
-\subsection{Additional Literature Review}
+Due to the central role of parity games in formal verification, numerous algorithms have been developed \cite{Aggarwal:2023,Benerecetti:2025,Jurdziński:2000,Jurdziński:2022,Zielonka:1998}, all of which face exponential running-time limitations for various classes of parity games. The goal of this Ph.D. project is to leverage constraint-solving technologies to address these challenges, providing standardized, scalable, and extensible solutions.
 
 \subsection{Problem Statement}
-
 
 In the current state of the art, \wregulargames are modeled and solved using rigid methods that do not allow for modifications to the game without necessitating changes to the method itself.
 
@@ -81,26 +80,29 @@ Additionally, \wregulargames are defined purely using utility functions. \textit
 
 \subsection{Aim}
 
-The objective of this project is to enhance the expressivity of \wregulargames, improve the efficiency of solving methods, and integrate \wregulargames into \constraintgames to fully leverage the advantages of constraint
+The objective of this project is to enhance the expressivity of \wregulargames with parity conditions, improve the efficiency of solving methods, and integrate \wregulargames into \constraintgames to fully leverage the advantages of constraint
 
 \subsection{Refined Research Questions}
 
 Building on the research questions defined in my first year, we have refined our focus to games with parity conditions, which were further explored during my second year. As part of my third-year work, we aim to extend this scope to stochastic games. The refined research questions are as follows:
 
 \begin{itemize}[left=1.2cm]\label{sec:rq}
-  \item[\textbf{RQ1}] How can games in \wregularform with parity conditions be systematically translated into a \constraintform to support the effective use of constraint-solving techniques?
+    \item[\textbf{RQ1}] How can games in \wregularform with parity conditions be systematically translated into a \constraintform to enable the effective use of constraint-solving techniques?
 
-  \item[\textbf{RQ2}] How can constraint technologies—including \textit{global constraints}—be employed to design solvers and modelling frameworks for \wregulargames with parity conditions that improve flexibility, scalability, and efficiency, while effectively addressing performance challenges in the \textit{synthesis} of \textit{reactive systems}?
+    \item[\textbf{RQ2}] How can solvers based on constraint technologies effectively and efficiently address the performance challenges of solving \wregulargames with parity conditions?
 
-  \item[\textbf{RQ3}] How can the CP-based modelling framework for \wregulargames be extended to handle stochastic parity games?
+    \item[\textbf{RQ3}] How can the proposed modelling framework for solving \wregulargames be extended to address scalability and support new requirements, such as the synthesis of reactive systems?
+
+    \item[\textbf{RQ4}] How can the CP-based modelling framework for \wregulargames be further extended to handle stochastic parity games?
 \end{itemize}
+
 
 \subsection{Contributions So Far}
 
 \begin{itemize}
-  \item We have developed a methodology for modeling and solving \wregulargames with parity conditions through the application of constraint technologies. [\hyperref[sec:rq]{RQ1,RQ2}]
+  \item We have developed a method for modeling and solving \wregulargames with parity conditions through the application of constraint technologies. [\hyperref[sec:rq]{RQ1,RQ2, RQ3}]
   \item We have presented our research to the academic community at the CP2025 conference, where it received positive feedback, and have since submitted it to the AAAI2026 conference. The outcome of that evaluation is currently pending.
-  \item We plan to develop a new \textit{game form} based on constraints, extending our current modelling framework to encompass stochastic \wregulargames. [\hyperref[sec:rq]{RQ3}]
+  \item We plan to develop a new \textit{game form} based on constraints, extending our current modelling framework to encompass stochastic \wregulargames. [\hyperref[sec:rq]{RQ4}]
   \item In addition to the refined research questions, we have proposed a novel method for solving games using clause learning, guided by \textit{utility}. This line of work remains ongoing as a parallel branch of my research.
 \end{itemize}
 
@@ -166,7 +168,7 @@ The definition of the progress measure constraints is as follows: \cite{Heljanko
 (x_{\Omega(w)}^v > x_{\Omega(w)}^w), \textit{ if } \Omega(w) \textit{ is odd}$
 \end{itemize}
 
-\subsubsection{Reduction to SAT}
+\subsubsection*{Reduction to SAT}
 
 The difference logic constraints of the progress measure can be encoded into pure CNF, which enables the use of modern SAT solvers to decide the winner of a parity game. This was the approach chosen in the paper that introduced the SMT encoding~\cite{Heljanko:2012}. Every integer variable $x_p^v$ is represented as its binary encoding using Boolean variables $X_{p,m}^v$ for every $m$ in the set of bits required to represent $x_p^v$.  Indeed, difference logic constraints $X_p^v \geqslant X_p^w$ and $X_p^v > X_p^w$ can then be translated into simple lexicographic constraints as follows:
 
@@ -184,9 +186,6 @@ In this approach the $\Phi_A$ constraints, based on progress measures, lead to p
 
 We present an approach to solving parity games by encoding them as a Constraint Satisfaction Problem (CSP) with three specialized propagators for the winning condition, following the framework described in \ref{sec:reductionsmt}. Unlike previous encodings that use progress measures and integer variables $x_p^v$, our approach employs a global constraint to capture the winning condition directly. The model is defined to allow search from both players’ perspectives, efficiently identifying whether the instance is unsatisfiable for either Player~\even or Player~\odd.
 
-
-\subsubsection{No-Opponent-Cycle Propagators (RQ2)}
-
 We translate the parity game into a Constraint Satisfaction Problem (CSP) to model the absence of opponent-controlled cycles.
 
 \begin{definition}\label{def:csp}
@@ -202,7 +201,7 @@ We translate the parity game into a Constraint Satisfaction Problem (CSP) to mod
 
 The constraints $\mathcal{C}_{v_0}$, $\mathcal{C}_{\opponent}$ and $\mathcal{C}_{\!E}$ directly correspond to the $S_{v_0}$, $\Phi_\forall$ and $\Phi_V$ constraints in the SMT encoding. We have adapted the $\Phi_\exists$ constraint into $\mathcal{C}_{\player}$ to enforce that \emph{exactly one} outgoing edge must be activated for each vertex of player $\player$. Additionally, we replace the progress measure constraint $\Phi_A$ with a global constraint $\mathcal{C}_{\!N\!O\!C}$, where \textit{NOC} stands for \noc. This constraint forbids any cycle in which the highest priority that occurs infinitely often has the same parity as the opponent. Unlike previous formulations that assumed player $\odd$ as the default opponent, our construction generalizes to any arbitrary pair of players $\player$ and $\opponent$. This ensures that player $\player$ is guaranteed to win if, after ruling out all possible winning strategies for $\opponent$, the CSP remains satisfiable with $\player$ as the winner.
 
-\subsubsection{Use Case: Explaining the Methodology}
+\subsubsection*{Use Case: Explaining the Methodology}
 
 Before detailing the implementation of our propagators, we first illustrate our approach through the following example.
 
@@ -237,14 +236,16 @@ Searching from the perspective of Player $\player = \even$ and starting at verte
 
 A checker of $\mathcal{C}_{N\!O\!C}$ would, in this situation, report unsatisfiability of the problem, triggering a backtrack and a search for an alternative assignment. The solver would continue the search, possibly exploring another assignment, $\mathcal{V}_0 = \mathcal{V}_1 = \mathcal{V}_2 = \mathcal{V}_3 = \mathcal{E}_0 = \mathcal{E}_2 = \mathcal{E}_4 = \mathcal{E}_6 = \top$ (see Figure~\ref{fig:game1c}). Here, another cycle is formed, but the maximum priority occurring infinitely often is 2, which satisfies all constraints, making the problem satisfiable. As a result, starting from $V_0$, this game is won by Player \even.
 
-\subsubsection{A No-Opponent-Cycle checker} \label{sec:nocchecker}
+\subsubsection{No-Opponent-Cycle Propagators (RQ2)}
+
+\subsubsection*{NOC Checker} \label{sec:nocchecker}
 To enforce $\mathcal{C}_{\!N\!O\!C}$, we propose a propagator based on recursively decomposing the graph into Strongly Connected Components (SCCs). By definition, if every SCC contains more than one vertex, or consists of a single vertex with a self-loop, then all vertices are part of at least one cycle.
 
 Each resulting subgraph is then evaluated: if it contains a cycle in which the highest priority occurring infinitely often favors $\opponent$, the current assignment is rejected. Otherwise, the maximum priorities favouring $\player$ are removed from the SCC, and new SCCs are computed on the reduced graph.
 %
 If, in the end, all remaining single vertices lack both self-loops and $\opponent$ priorities, the assignment is accepted.
 
-\begin{algorithm}[tb]
+\begin{algorithm}
 \small
 \caption{\textbf{\textit{NOCChecker}}}
 \textbf{Input}: $G$ \\
@@ -275,7 +276,7 @@ If the SCC contains more than one vertex, the algorithm identifies the set of ve
 
 The complexity of the \nocchecker propagator is polynomial in the size of the input graph. Each call to Tarjan's algorithm computes the SCCs in linear time, i.e., $\mathcal{O}(|V| + |E|)$. In the worst case, the algorithm may recursively remove and reprocess subsets of vertices with maximal priority multiple times. However, each vertex can only be part of a best set and removed once per recursive level, ensuring that the total number of Tarjan calls remains linear in the number of vertices. As a result, the overall time complexity of the propagator remains $\mathcal{O}(|V| \cdot (|V| + |E|))$ in the worst case.
 
-\subsubsection{A No-Opponent-Cycle filter} \label{sec:nocfilter}
+\subsubsection*{NOC Filter} \label{sec:nocfilter}
 In addition to \nocchecker, we propose a complete propagator based on Depth-first Search (DFS) to explore the arena. The resulting DFS tree captures all possible paths from $v_0$, and can be used to detect all existing cycles. We define the propagator in the context of a \textit{Lazy Clause Generation} solver~\cite{DBLP:journals/constraints/OhrimenkoSC09}, to take advantage of the strong performance of this type of solver, in particular for problems that contain a large number of Boolean clauses. Algorithm~\ref{alg:noc-eager} presents this version of the propagator, which checks for cycles and reports failure if a cycle with highest priority in favour of $\opponent$ is detected.
 
 \begin{algorithm}
@@ -342,7 +343,7 @@ The complexity of the \noceager propagator is primarily driven by the DFS traver
     \label{fig:game1f2}
 \end{figure}
 
-\subsubsection{Improved Filtering Strategy for the No-Opponent-Cycle Propagator}
+\subsubsection*{Improved Filtering Strategy for the NOC}
 
 In order to avoid the exponential behavior of \noceager, we have developed a variant that memorizes cycles and can quickly remove some new cycles. Algorithm \ref{alg:noc-memo} incorporates a parameter $\textit{memo}$ that stores, for each edge, the starting node of an infinite path and the associated highest priority. This information is updated whenever a cycle is found (line~\ref{alg:noc-memo:update}). If $\textit{memo}$ does not contain information about the next edge $e'$, or a new highest priority was found, then the propagator proceeds recursively as before (lines~\ref{alg:noc-memo:check1} and \ref{alg:noc-memo:check2}). Otherwise, it uses the stored information for the new edge (line~\ref{alg:noc-memo:update}). 
 This results in polynomial worst-case runtime, since the recursion is now bounded by the number of edges and the number of different priorities. However, the memoization only captures cycles with the same starting node. The propagator may therefore miss some cycles, rendering it incomplete. To preserve completeness, this variant is therefore used in conjunction with the \nocchecker introduced earlier.
@@ -395,7 +396,57 @@ Remembering cycles is particularly effective in games where the number of cycles
 \label{alg:noc-memo}
 \end{algorithm}
 
-% ------------------
+\subsection{Enhancing the Framework with Additional Constraints (RQ3)}
+
+Our method efficiently determines the winner in large parity games (in our experiments, in graphs with thousands of nodes). Here we show how our approach can also solve parity game-related problems that involve additional constraints, for instance, including quantitative constraints. These can be seamlessly integrated without modifying the core method, ensuring flexibility and ease of adaptation. In contrast, non-CP-based methods require specific modifications in order to include particular extra requirements.
+
+\subsubsection{Automated Synthesis of Reactive Systems}
+
+In (local) model checking, it suffices to determine the winner from a given vertex (satisfiable if won by Player~$\even$, unsatisfiable if won by Player~$\odd$). However, applications like automated synthesis~\cite{Bruyere:2022,Finkbeiner:2018,Luttenberger:2020} require explicit strategies -- that is, decisions at each vertex.
+
+Our satisfiability encoding can capture multiple winning plays simultaneously. For instance, in Figure~\ref{fig:game1c}, a solution assigning $\top$ to vertices $\mathcal{V}_0$ to $\mathcal{V}_3$ and edges $\mathcal{E}_0$, $\mathcal{E}_1$, $\mathcal{E}_2$, $\mathcal{E}_4$, and $\mathcal{E}_6$ captures two distinct plays.
+%
+To extract individual winning plays, we extend the CSP with variables and constraints such that each solution corresponds to exactly one play. We define a sequence of integer variables $(\mathcal{P}_s)_{s \in \{0..\mid V \mid - 1\}}$ to represent the path. More specifically, we also add:
+\begin{itemize}
+\item $\mathsf{h}$: the position where the finite prefix ends;
+
+\item $\mathsf{t}$: the start of the cycle (tail).
+\end{itemize} 
+
+\noindent 
+We then introduce three new constraints:
+\begin{enumerate}
+\item Path constraint ($\mathcal{C}_{\textit{path}}$): ensures each step follows a valid edge;
+$\mathsf{t} \in \{0..\mid V \mid -1\} \wedge \bigwedge_{s \in \{1..\mathsf{t}\}} \bigvee_{e=(v,w) \in E} (\mathcal{E}_e \wedge \mathcal{P}_{s-1} = v \wedge \mathcal{P}_s = w)$;
+
+\item Cycle closure ($\mathcal{C}_{\textit{cycle}}$): ensures the cycle closes at position $\mathsf{t} + 1$;
+$\mathsf{h} \in \{0..\mathsf{t}\} \wedge \mathcal{P}_{\mathsf{t}+1} = \mathcal{P}_\mathsf{h}$;
+
+\item Uniqueness ($\mathcal{C}_{\textit{unique}}$): enforces only one cycle: $\bigwedge_{i \neq j \in \{0..\mathsf{t}\}} (\mathcal{P}_i \neq \mathcal{P}_j)$.
+\end{enumerate} 
+
+These constraints can be added in MiniZinc without modifying the \noc algorithm. Using Chuffed as the backend, we enumerate all solutions to obtain the set of winning plays, represented as vertex sequences. As an example of an additional constraint, we extend our model with the Energy Condition/Game, defined using the existing variables. Here, each edge has an energy level, and a play is winning if the running sum remains non-negative~\cite{Chatterjee:2010}.
+
+\subsubsection{Energy Conditions/Games}
+
+We now turn to parity games with additional quantitative conditions. Energy Games combine qualitative and quantitative requirements \cite{Chatterjee:2010}. In addition to satisfying the (qualitative) parity conditions, each edge now has an additional \textit{energy level} (or \textit{weight}), and winning the game also requires that the sum of energy levels is always above zero, for any (infinite) play, and at any point during the play.
+
+For memoryless parity games, we can express this additional winning condition in terms of the $\mathcal{P}$ variables introduced above. 
+%
+Given a finite set of energy levels, $(L_e)_{e \in E}$ for each edge, we introduce a finite set of integer variables $(\mathcal{I}_s)_{s \in \{0..\mathsf{t} -\mathsf{h}+1\}}$ to represent the edges that take part in the infinite cycle, the tail, of the play generated by both players in the game. We can define these variables using the following constraint:
+\begin{itemize}
+    \item $\mathcal{C}_{\textit{infEdges}} : \forall s \in \{0..\mathsf{t} -\mathsf{h}+1\} (\mathcal{I}_s = E(\mathcal{P}_{\mathsf{s}+\mathsf{h}},\mathcal{P}_{s+\mathsf{h}+1}) )$
+\end{itemize}
+
+Based on these edge variables, we can then constrain the total energy level of the infinite cycle to be non-negative, which is an additional quantitative requirement in Energy games:
+
+\begin{itemize}
+    \item $\mathcal{C}_{\textit{energy}} : \sum_{e \in \mathcal{I}} (L_e) \geq 0$
+\end{itemize}
+
+The complete model would also constrain the energy levels of all finite prefixes of edges (up to~$\mathsf{t}$) to be non-negative (or above a given initial threshold), which we omit here for brevity. In combination, these constraints are sufficient for modelling the energy condition.
+
+Several other extensions could potentially be implemented in a similar way, as additional constraints, or as an additional objective function to be optimised. Some examples of such extensions are discussed in \cite{bozzelly:2020, Fijalkow:2014, Mogavero:2015, Weinert:2016}. However, further work is needed to precisely define each requirement and establish the appropriate set of constraints.
 
 \subsection{Solving}
 
@@ -427,8 +478,11 @@ In my third year, I intend to address QR3 by extending our modelling framework t
         RQ2  & Solving Games with new constraint technologies
             & \n & \n & \n & \y & \y & \y & \n & \y & \y & \y & \y & \n & \n & \n & \n & \n \\
         \hline
-        RQ3  & Extending to stochastic \wregulargames Games
-            & \n & \n & \n & \n & \n & \n & \n & \n & \n & \y & \y & \y & \y & \n & \n & \n \\
+        RQ3  & Enhancing with additional constraints
+            & \n & \n & \n & \n & \n & \n & \n & \n & \n & \y & \y & \y & \n & \n & \n & \n \\
+        \hline
+        RQ4  & Extending to stochastic \wregulargames
+            & \n & \n & \n & \n & \n & \n & \n & \n & \n & \n & \y & \y & \y & \y & \n & \n \\
         \hline
             & Documentation
             & \n & \n & \n & \n & \n & \y & \n & \n & \n & \y & \n & \n & \y & \y & \y & \y \\
