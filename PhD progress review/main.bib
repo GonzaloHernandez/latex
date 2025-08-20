@@ -149,6 +149,16 @@
   year      = {2022}
 }
 
+@misc{Brihaye:2015,
+  title         = {Weak Subgame Perfect Equilibria and their Application to Quantitative Reachability},
+  author        = {Thomas Brihaye and Véronique Bruyère and Noémie Meunier and Jean-François Raskin},
+  year          = {2015},
+  eprint        = {1504.01557},
+  archiveprefix = {arXiv},
+  primaryclass  = {cs.GT},
+  url           = {https://arxiv.org/abs/1504.01557}
+}
+
 @article{Brihaye:2021,
   title    = {On relevant equilibria in reachability games},
   journal  = {Journal of Computer and System Sciences},
@@ -161,16 +171,6 @@
   author   = {Thomas Brihaye and Véronique Bruyère and Aline Goeminne and Nathan Thomasset},
   keywords = {Multiplayer non-zero-sum games played on graphs, Reachability objectives, Relevant equilibria, Social welfare, Pareto optimality},
   abstract = {We study multiplayer reachability games played on a finite directed graph equipped with target sets, one for each player. In those reachability games, it is known that there always exists a Nash equilibrium. But sometimes several equilibria may coexist. For instance we can have two equilibria: a first one where no player reaches his target set and an other one where all the players reach their target set. It is thus very natural to identify “relevant” equilibria. In this paper, we consider different notions of relevant Nash equilibria including Pareto optimal equilibria and equilibria with high social welfare. We also study relevant subgame perfect equilibria in reachability games. We provide complexity results for various related decision problems for both Nash equilibria and subgame perfect equilibria.}
-}
-
-@misc{Brihaye:2015,
-  title         = {Weak Subgame Perfect Equilibria and their Application to Quantitative Reachability},
-  author        = {Thomas Brihaye and Véronique Bruyère and Noémie Meunier and Jean-François Raskin},
-  year          = {2015},
-  eprint        = {1504.01557},
-  archiveprefix = {arXiv},
-  primaryclass  = {cs.GT},
-  url           = {https://arxiv.org/abs/1504.01557}
 }
 
 
@@ -449,6 +449,80 @@
   year      = {2023}
 }
 
+@article{Tarim:2006,
+author = {Tarim, S. Armagan and Manandhar, Suresh and Walsh, Toby},
+address = {Heidelberg},
+copyright = {2006 INIST-CNRS},
+issn = {1383-7133},
+journal = {Constraints : an international journal},
+keywords = {Applied sciences ; Decision theory. Utility theory ; Exact sciences and technology ; Flows in networks. Combinatorial problems ; Inventory control production control. Distribution ; Operational research and scientific management ; Operational research. Management science ; Portfolio theory},
+language = {eng},
+number = {1},
+pages = {53-80},
+publisher = {Springer},
+title = {Stochastic Constraint Programming: A Scenario-Based Approach},
+volume = {11},
+year = {2006},
+}
+
+@article{Walsh:2009,
+author = {Walsh, Toby},
+copyright = {http://arxiv.org/licenses/nonexclusive-distrib/1.0},
+keywords = {Computer Science - Artificial Intelligence},
+language = {eng},
+title = {Stochastic Constraint Programming},
+abstract = {ECAI 2002: 111-115 To model combinatorial decision problems involving uncertainty and
+probability, we introduce stochastic constraint programming. Stochastic
+constraint programs contain both decision variables (which we can set) and
+stochastic variables (which follow a probability distribution). They combine
+together the best features of traditional constraint satisfaction, stochastic
+integer programming, and stochastic satisfiability. We give a semantics for
+stochastic constraint programs, and propose a number of complete algorithms and
+approximation procedures. Finally, we discuss a number of extensions of
+stochastic constraint programming to relax various assumptions like the
+independence between stochastic variables, and compare with other approaches
+for decision making under uncertainty.},
+year = {2009},
+}
+
+@article{Gladin:2022,
+author = {Gladin, Egor and Lavrik-Karmazin, Maksim and Zainullina, Karina and Rudenko, Varvara and Gasnikov, Alexander and Takáč, Martin},
+copyright = {http://arxiv.org/licenses/nonexclusive-distrib/1.0},
+keywords = {Computer Science - Learning ; Mathematics - Optimization and Control},
+language = {eng},
+title = {Algorithm for Constrained Markov Decision Process with Linear Convergence},
+abstract = {The problem of constrained Markov decision process is considered. An agent
+aims to maximize the expected accumulated discounted reward subject to multiple
+constraints on its costs (the number of constraints is relatively small). A new
+dual approach is proposed with the integration of two ingredients: entropy
+regularized policy optimizer and Vaidya's dual optimizer, both of which are
+critical to achieve faster convergence. The finite-time error bound of the
+proposed approach is provided. Despite the challenge of the nonconcave
+objective subject to nonconcave constraints, the proposed approach is shown to
+converge (with linear rate) to the global optimum. The complexity expressed in
+terms of the optimality gap and the constraint violation significantly improves
+upon the existing primal-dual approaches.},
+year = {2022},
+}
+
+@incollection{Friedmann:2009,
+  author    = {Friedmann, Oliver and Lange, Martin and Liu, Zhiming and Ravn, Anders P.},
+  address   = {Berlin, Heidelberg},
+  booktitle = {Automated Technology for Verification and Analysis},
+  copyright = {Springer-Verlag Berlin Heidelberg 2009},
+  isbn      = {9783642047602},
+  issn      = {0302-9743},
+  keywords  = {Model Check ; Priority Propagation ; Recursive Algorithm ; Strongly Connect Component ; Winning Strategy},
+  language  = {eng},
+  pages     = {182-196},
+  publisher = {Springer Berlin Heidelberg},
+  series    = {Lecture Notes in Computer Science},
+  title     = {Solving Parity Games in Practice},
+  abstract  = {Parity games are 2-player games of perfect information and infinite duration that have important applications in automata theory and decision procedures (validity as well as model checking) for temporal logics. In this paper we investigate practical aspects of solving parity games. The main contribution is a suggestion on how to solve parity games efficiently in practice: we present a generic solver that intertwines optimisations with any of the existing parity game algorithms which is only called on parts of a game that cannot be solved faster by simpler methods. This approach is evaluated empirically on a series of benchmarking games from the aforementioned application domains, showing that using this approach vastly speeds up the solving process. As a side-effect we obtain the surprising observation that Zielonka’s recursive algorithm is the best parity game solver in practice.},
+  year      = {2009}
+}
+
+
 @manual{Friedmann:2017,
   author      = {Oliver Friedmann and Martin Lange},
   title       = {The PGSolver Collection of Parity Game Solvers, Version 4.1},
@@ -458,7 +532,6 @@
   url         = {https://github.com/tcsprojects/pgsolver/blob/master/doc/pgsolver.pdf},
   note        = {Accessed: 2025-03-13}
 }
-
 
 @article{Gazda:2013,
   title     = {Zielonka’s Recursive Algorithm: dull, weak and solitaire games and tighter bounds},
@@ -480,7 +553,8 @@
   year   = {2019},
   url    = {https://www.gecode.org/doc-latest/MPG.pdf}
 }
-    
+
+
 @article{Heljanko:2012,
   title    = {Solving parity games by a reduction to {SAT}},
   journal  = {Journal of Computer and System Sciences},

@@ -72,6 +72,20 @@ Because these are perfect-information games, solving them amounts to determining
 
 Due to the central role of parity games in formal verification, numerous algorithms have been developed \cite{Aggarwal:2023,Benerecetti:2025,Jurdziński:2000,Jurdziński:2022,Zielonka:1998}, all of which face exponential running-time limitations for various classes of parity games. The goal of this Ph.D. project is to leverage constraint-solving technologies to address these challenges, providing standardized, scalable, and extensible solutions.
 
+\subsection{Additional Literature Review}
+
+In addition to the core references discussed earlier, we reviewed several further works that are particularly relevant to the continuation of our research during the second year. Among these, the following documents stand out as the most influential and directly applicable to our study.
+
+In \emph{Infinite Games on Finitely Coloured Graphs with Applications to Automata on Infinite Trees} \cite{Zielonka:1998}, Zielonka provides a characterization of parity games and discusses a recursive method for solving them. This algorithm has become the standard and most widely used approach in the state of the art. From this work, we extracted the key concepts of \emph{attractors} and \emph{traps}, which are central to the development of our modelling framework.
+
+In \emph{Small Progress Measures for Solving Parity Games} \cite{Jurdziński:2000}, Jurdziński introduces the progress measures technique, which is another influential method for solving parity games.  
+
+The paper \emph{Benchmarks for Parity Games} \cite{Keiren:2015} presents methods for computing winning strategies in parity games using progress measures and discusses their worst-case behaviour. This work also provides theoretical foundations for current approaches that reduce parity games to Satisfiability Modulo Theories (SMT), and it includes the characterization of Jurdziński games, which we used in our experiments.  
+
+Finally, in \emph{Solving Parity Games in Practice} \cite{Friedmann:2009}, Friedmann presents a more detailed analysis of Zielonka’s recursive algorithm (ZRA), particularly the role of attractors. This paper also explains how \emph{strongly connected components} (SCCs) can be leveraged to solve parity games effectively.
+
+As part of my future work in the third year, I am focusing on extending the framework to stochastic \wregulargames. In this context, I am currently examining additional studies, including \cite{Gladin:2022,Tarim:2006,Walsh:2009,Chatterjee:2012}, which provide valuable insights for this direction.
+
 \subsection{Problem Statement}
 
 In the current state of the art, \wregulargames are modeled and solved using rigid methods that do not allow for modifications to the game without necessitating changes to the method itself.
@@ -142,7 +156,7 @@ While Zielonka's recursive algorithm starts the search from the vertices with ma
 
 In this way, \cite{Heljanko:2012} effectively define an approach that can be viewed as the inverse of the attractor concept, but restricted to the perspective of Player~\even.
 
-\begin{definition} A CNF formula capturing the simple path conditions of \ref{sec:strategies} is defined as the conjunction $\Phi = \Phi_\exists \;\wedge\; \Phi_\forall \;\wedge\; \Phi_V$, where
+\begin{definition} A CNF formula that encodes the simple path conditions from Definition~\ref{def:arena} can be expressed as the conjunction $\Phi = \Phi_\exists \;\wedge\; \Phi_\forall \;\wedge\; \Phi_V$, where
 \begin{itemize}\label{def:cnf}
     \item $\Phi_\exists = \bigwedge_{v \in V_{\subeven}} (S_v \rightarrow \bigvee_{w \in vE} T_{(v,w)})$
     \item $\Phi_\forall = \bigwedge_{v \in V_{\subodd}} (S_v \rightarrow \bigwedge_{w \in vE} T_{(v,w)})$
@@ -164,7 +178,7 @@ The definition of the progress measure constraints is as follows: \cite{Heljanko
 \begin{itemize}
 \item $\Phi_A = \bigwedge_{(v,w) \in E} \left(T_{(v,w)} \rightarrow \Psi_{(v,w)}\right)$
 \item $\Psi_{(v,w)} = \bigwedge_{p \in \textit{Odd}^{<\Omega(w)}(G)} (x_p^v \geqslant x_p^w), \textit{ if } \Omega(w) \textit{ is even}$
-\item $\Psi_{(v,w)} = \bigwedge_{p \in \textit{Odd}^{<\Omega(w)}(G)} (x_p^v \geqslant x_p^w) \land \\
+\item $\Psi_{(v,w)} = \bigwedge_{p \in \textit{Odd}^{<\Omega(w)}(G)} (x_p^v \geqslant x_p^w) \land 
 (x_{\Omega(w)}^v > x_{\Omega(w)}^w), \textit{ if } \Omega(w) \textit{ is odd}$
 \end{itemize}
 
@@ -180,7 +194,7 @@ The difference logic constraints of the progress measure can be encoded into pur
 
 The encoding introduces up to $O(n^2)$ integer variables, for $n$ vertices and $|\textit{Odd}(G)|\ \in\ O(n)$. Each integer variable requires up to $\lceil \log(n+1) \rceil$ Boolean variables for its binary representation. The lexicographic constraints are linear size in the number of bits. The worst-case size of the encoding is therefore cubic in the size of the arena, both in terms of variables and clauses in the CNF.
 
-In this approach the $\Phi_A$ constraints, based on progress measures, lead to poor scalability of SAT-based approaches. As discussed above, the size of the encoding is, in the worst case, cubic in the size of the arena. In practice, the encoding sizes are typically not cubic, but still prohibitive. 
+In this approach the $\Phi_A$ constraints, based on progress measures, lead to poor scalability of SAT-based approaches. In practice, the encoding sizes are typically not cubic, but still prohibitive. 
 
 \subsubsection{Characterizing Winning Strategies Globally}
 
@@ -232,7 +246,7 @@ Before detailing the implementation of our propagators, we first illustrate our 
 
 Figure~\ref{fig:game1a} shows A parity game with 7 vertices and 12 edges. Each vertex carries a priority from the set $\{2,3\}$. Vertices controlled by Player~$\even$ are shown as circles, while vertices controlled by Player~$\odd$ are shown as squares.
 
-Searching from the perspective of Player $\player = \even$ and starting at vertex $V_0$, after enforcing constraints $\mathcal{C}_{v_0}, \mathcal{C}_{\player}, \mathcal{C}_{\opponent}, \mathcal{C}_{\!E}$ from Definition \ref{def:csp}, assume that the solver makes an initial assignment of $\mathcal{V}_0 = \mathcal{V}_1 = \mathcal{V}_2 = \mathcal{E}_0 = \mathcal{E}_1 = \mathcal{E}_2 = \mathcal{E}_3 = \top$ (see Figure~\ref{fig:game1b}), while the remaining variables are unassigned. At this point, Player \odd has a winning strategy because edges $\mathcal{E}_0$, $\mathcal{E}_2$ and $\mathcal{E}_3$ form a cycle where the maximum priority occurring infinitely often is 3. 
+Searching from the perspective of Player $\player = \even$ and starting at vertex $V_0$, after enforcing constraints $\mathcal{C}_{v_0}, \mathcal{C}_{\player}, \mathcal{C}_{\opponent}, \mathcal{C}_{\!E}$ from Definition \ref{def:csp}, assume that the solver makes an initial assignment of $\mathcal{V}_0 = \mathcal{V}_1 = \mathcal{V}_2 = \mathcal{E}_0 = \mathcal{E}_1 = \mathcal{E}_2 = \mathcal{E}_3 = \top$ (see Figure~\ref{fig:game1b}), while the remaining variables are unassigned. At this point, Player~\odd has a winning strategy because edges $\mathcal{E}_0$, $\mathcal{E}_2$ and $\mathcal{E}_3$ form a cycle where the maximum priority occurring infinitely often is 3. 
 
 A checker of $\mathcal{C}_{N\!O\!C}$ would, in this situation, report unsatisfiability of the problem, triggering a backtrack and a search for an alternative assignment. The solver would continue the search, possibly exploring another assignment, $\mathcal{V}_0 = \mathcal{V}_1 = \mathcal{V}_2 = \mathcal{V}_3 = \mathcal{E}_0 = \mathcal{E}_2 = \mathcal{E}_4 = \mathcal{E}_6 = \top$ (see Figure~\ref{fig:game1c}). Here, another cycle is formed, but the maximum priority occurring infinitely often is 2, which satisfies all constraints, making the problem satisfiable. As a result, starting from $V_0$, this game is won by Player \even.
 
@@ -322,7 +336,7 @@ In contrast, if the current vertex $v$ has appeared in the path (line~\ref{alg:n
 
 Since Lazy Clause Generation (LCG) solvers require a justification for each propagation step (to enable clause learning), all edges in the detected cycle are collected to form a clause stating that at least one must be assigned $\bot$ (line~\ref{alg:noc-eager:reason}). For instance, in the scenario shown in Figure~\ref{fig:game1a}, the clause $(\neg \mathcal{E}_0 \vee \neg \mathcal{E}_2 \vee \neg \mathcal{E}_4 \neg \vee \mathcal{E}_6 \vee \neg \mathcal{E}_3)$ would be added to prevent the opponent cycle.
 
-The complexity of the \noceager propagator is primarily driven by the DFS traversal over the graph, with additional work performed when a cycle is detected. In the worst case, the algorithm explores every simple path in the graph starting from the initial vertex. This may result in an exponential number of recursive calls in the number of vertices since each branching decision adds a new path to explore. However, in practice, the number of recursive calls is bounded by the number of edges assigned to $\top$ and at most one unassigned edge, significantly reducing the branching factor. Each recursive call performs a constant number of operations, except when a cycle is found (line~\ref{alg:noc-eager:pathcheck}). Nevertheless, because the algorithm may visit multiple paths and cycles, and because each edge can potentially trigger multiple clause generation steps before being fixed, the overall worst-case complexity remains exponential in the size of the graph. This trade-off is justified by the early pruning capabilities enabled by detecting potentially winning opponent cycles before they are fully formed, especially in graphs with many unassigned edges or nondeterminism. In typical solver applications, where assignments propagate quickly and many edges are fixed early, the practical runtime of the propagator is significantly better than the theoretical worst case—as demonstrated by the experimental results presented in a later subsection, where this approach consistently outperforms alternatives in both speed and effectiveness.
+The complexity of the \noceager propagator is primarily driven by the DFS traversal over the graph, with additional work performed when a cycle is detected. In the worst case, the algorithm explores every simple path in the graph starting from the initial vertex. This may result in an exponential number of recursive calls in the number of vertices since each branching decision adds a new path to explore. However, in practice, the number of recursive calls is bounded by the number of edges assigned to $\top$ and at most one unassigned edge, significantly reducing the branching factor. Each recursive call performs a constant number of operations, except when a cycle is found (line~\ref{alg:noc-eager:pathcheck}). Nevertheless, because the algorithm may visit multiple paths and cycles, and because each edge can potentially trigger multiple clause generation steps before being fixed, the overall worst-case complexity remains exponential in the size of the graph. This trade-off is justified by the early pruning capabilities enabled by detecting potentially winning opponent cycles before they are fully formed, especially in graphs with many unassigned edges or nondeterminism. In typical solver applications, where assignments propagate quickly and many edges are fixed early, the practical runtime of the propagator is significantly better than the theoretical worst case—as demonstrated by the experimental results presented in a our paper in Appendix, where this approach consistently outperforms alternatives in both speed and effectiveness.
 
 \begin{figure}[ht]
     \centering
@@ -350,7 +364,7 @@ This results in polynomial worst-case runtime, since the recursion is now bounde
 
 For the example of Figure \ref{fig:game2b}, the updated version of \noc stores a tuple $(v=5, m=3)$ on edge $E_5$, indicating that the best priority reachable from this edge is 3 and that the infinite path starts at $V_5$. This prevents the exploration of the subgraph $\{V_4, V_5, V_6\}$ in future stages. %To invoke this propagator, the new parameter is initialized as: $\textit{best} \gets \{(-1,-1) \mid e \in E\}$.
 
-Remembering cycles is particularly effective in games where the number of cycles favoring $\player$ exceeds those favoring $\opponent$, as demonstrated below in the section on experiments.
+Remembering cycles is particularly effective in games where the number of cycles favoring $\player$ exceeds those favoring $\opponent$, as demonstrated in our experiments in Appendix.
 
 \begin{algorithm}
 \caption{\textbf{\textit{NOCMemo}}}
@@ -450,9 +464,9 @@ Several other extensions could potentially be implemented in a similar way, as a
 
 \subsection{Solving}
 
-We validated our approach through a series of experiments comparing its performance against other CP-based methods \cite{Heljanko:2012} as well as non-CP methods \cite{Zielonka:1998}. Our results indicate that by employing global constraints instead of progress measures, we achieve improvements of at least ??? orders of magnitude compared to other CP-based approaches \cite{Heljanko:2012}. Moreover, since the problem lies in $\mathsf{NP} \cap \mathsf{co\textit{-}NP}$, our method can exploit this property by flipping the perspective to search for satisfiability from the opponent’s viewpoint. In practice, our approach proves competitive with non-CP-based solvers \cite{Zielonka:1998}, and in some cases even outperforms them.
+We validated our approach through a series of experiments comparing its performance against other CP-based methods \cite{Heljanko:2012} as well as non-CP methods \cite{Zielonka:1998}. Our results indicate that by employing global constraints instead of progress measures, we achieve improvements of at least three orders of magnitude compared to other CP-based approaches \cite{Heljanko:2012}. Moreover, since the problem lies in $\mathsf{NP} \cap \mathsf{co\textit{-}NP}$, our method can exploit this property by flipping the perspective to search for satisfiability from the opponent’s viewpoint. In practice, our approach proves competitive with non-CP-based solvers \cite{Zielonka:1998}, and in some cases even outperforms them.
 
-The experimental results have been submitted for evaluation, and a detailed account of our contribution is provided in Appendix~B (\emph{No-Opponent-Cycle Propagators for Solving Parity Games}).
+The experimental results have been submitted for evaluation, and a detailed account of our contribution is provided in Appendix (\emph{No-Opponent-Cycle Propagators for Solving Parity Games}).
 
 \section{Future Plan and Next Steps}
 
@@ -492,11 +506,18 @@ In my third year, I intend to address QR3 by extending our modelling framework t
     \label{tab:planning}
 \end{table}
 
+\section{Professional Development Progress}
+
+\begin{figure}
+    \centering
+    \includegraphics[width=\textwidth]{images/MDP.png}
+    \caption{Filtering in advance}
+    \caption{Parity game continuation. Other assignments.}
+    \label{fig:mdp}
+\end{figure}
+
 \newpage
 \bibliographystyle{acm}
 \bibliography{main}
-
-% \includepdf[pages={1-1}]{attachments/MDP_Compulsory_Module-Milestone_Report.pdf} \label{appendix:a}
-% \includepdf[pages={1-1}]{attachments/Monash_Doctoral_Program_NEW.pdf} \label{appendix:b}
 
 \end{document}
