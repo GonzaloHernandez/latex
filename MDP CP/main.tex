@@ -1,0 +1,49 @@
+\documentclass{article}
+\usepackage[letterpaper, margin=1in]{geometry}
+\setlength{\parskip}{1em}
+\usepackage{graphicx}
+\setlength\parindent{0pt}
+\usepackage{amssymb}
+\usepackage[table]{xcolor}
+\usepackage{tikz}
+\usepackage{array}
+\usepackage{placeins}
+\usepackage{algorithm}
+\usepackage[noend]{algorithmic}
+\usepackage{tcolorbox}
+\usepackage{arydshln}
+\usepackage[font=small,skip=2pt]{caption}
+\usepackage{hyperref}
+\usepackage{colortbl}
+\usepackage{enumitem}
+\usepackage{ifthen}
+\usepackage[final]{pdfpages}
+\usepackage{subcaption}
+
+\makeatletter
+
+\usepackage{titling}
+\setlength{\droptitle}{-8em}
+
+\title{Generic Constraint Games\\PhD Progress Review Report}
+\author{Gonzalo Hernandez}
+\date{}
+
+\begin{document}
+
+\section{MDP model using CP}
+
+$MDP = (S,A,r,p)$ \\
+$r: A \rightarrow \mathsf{I}$ \\
+$p: A \rightarrow \mathsf{R}$ \\
+------- \\
+$OSP = (\mathcal{X},\mathcal{D},\mathcal{C},f)$ \\
+$\mathcal{X} = (\mathcal{A}_a)_{a \in A} \cup (\mathcal{V}_a)_{a \in A}$\\
+$\mathcal{D}_\mathcal{A} = \{ \top, \bot \}$ \\
+$\mathcal{D}_\mathcal{V} = \{ 0.0 \dots 1.0 \}$ \\
+$f : max()$ \\
+$\mathcal{C}$ is defined as: \\
+$\mathcal{V}_a = \Sigma_{s'} (p(a') * (r(a')+\gamma \mathcal{V}_{s'}))$
+
+
+\end{document}
