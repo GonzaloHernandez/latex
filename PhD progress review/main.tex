@@ -74,27 +74,25 @@ Due to the central role of parity games in formal verification, numerous algorit
 
 \subsection{Additional Literature Review}
 
-In addition to the core references discussed earlier, we reviewed several further works that are particularly relevant to the continuation of our research during the second year. Among these, the following documents stand out as the most influential and directly applicable to our study.
+In addition to the core references discussed earlier in my first milestone, we reviewed several further works that are particularly relevant to the continuation of our research during the second year. Among these, the following documents stand out as the most influential and directly applicable to our study.
 
 In \emph{Infinite Games on Finitely Coloured Graphs with Applications to Automata on Infinite Trees} \cite{Zielonka:1998}, Zielonka provides a characterization of parity games and discusses a recursive method for solving them. This algorithm has become the standard and most widely used approach in the state of the art. From this work, we extracted the key concepts of \emph{attractors} and \emph{traps}, which are central to the development of our modelling framework.
 
 In \emph{Small Progress Measures for Solving Parity Games} \cite{Jurdziński:2000}, Jurdziński introduces the progress measures technique, which is another influential method for solving parity games.  
 
-The paper \emph{Benchmarks for Parity Games} \cite{Keiren:2015} presents methods for computing winning strategies in parity games using progress measures and discusses their worst-case behaviour. This work also provides theoretical foundations for current approaches that reduce parity games to Satisfiability Modulo Theories (SMT), and it includes the characterization of Jurdziński games, which we used in our experiments.  
+The paper \emph{Benchmarks for Parity Games} \cite{Keiren:2015} presents methods for computing winning strategies in parity games using progress measures discussing their worst-case behaviour. This work also provides theoretical foundations for approaches that reduce parity games to Satisfiability Modulo Theories (SMT), and it includes the characterization of Jurdziński games, which we used in our experiments.  
 
 Finally, in \emph{Solving Parity Games in Practice} \cite{Friedmann:2009}, Friedmann presents a more detailed analysis of Zielonka’s recursive algorithm (ZRA), particularly the role of attractors. This paper also explains how \emph{strongly connected components} (SCCs) can be leveraged to solve parity games effectively.
 
-As part of my future work in the third year, I am focusing on extending the framework to stochastic \wregulargames. In this context, I am currently examining additional studies, including \cite{Gladin:2022,Tarim:2006,Walsh:2009,Chatterjee:2012}, which provide valuable insights for this direction.
+As part of my future work in the third year, I am focusing on extending the framework to stochastic \wregulargames. In this context, I am currently examining additional studies, including \cite{Chatterjee:2012,Gladin:2022,Rendl:2014,Tarim:2006,Walsh:2009}, which provide valuable insights for this direction.
 
-\subsection{Problem Statement}
+\subsection{Aim and Problem Statement}
 
-In the current state of the art, \wregulargames are modeled and solved using rigid methods that do not allow for modifications to the game without necessitating changes to the method itself.
+\wregulargames are defined purely using utility functions, and usually modeled and solved using rigid methods that do not allow for modifications to the game without necessitating changes to the method itself. 
 
-Additionally, \wregulargames are defined purely using utility functions. \textit{Games} in \constraintform, on the other hand, offer richer modelling functionality by supporting global constraints that are common to all players.
+\textit{Games} in \constraintform, on the other hand, offer richer modelling functionality by supporting global constraints that are common to all players.
 
-\subsection{Aim}
-
-The objective of this project is to enhance the expressivity of \wregulargames with parity conditions, improve the efficiency of solving methods, and integrate \wregulargames into \constraintgames to fully leverage the advantages of constraint
+The objective of this project is to enhance the expressivity of \wregulargames with parity conditions, improve the efficiency of solving methods, and integrate \wregulargames into \constraintgames to fully leverage the advantages of constraint approaches.
 
 \subsection{Refined Research Questions}
 
@@ -114,15 +112,15 @@ Building on the research questions defined in my first year, we have refined our
 \subsection{Contributions So Far}
 
 \begin{itemize}
-  \item We have developed a method for modeling and solving \wregulargames with parity conditions through the application of constraint technologies. [\hyperref[sec:rq]{RQ1,RQ2, RQ3}]
-  \item We have presented our research to the academic community at the CP2025 conference, where it received positive feedback, and have since submitted it to the AAAI2026 conference. The outcome of that evaluation is currently pending.
+  \item We have developed a method for modeling and solving \wregulargames with parity conditions through the application of constraint technologies. [\hyperref[sec:rq]{RQ1, RQ2, RQ3}]
+  \item We submitted our research outputs to the CP2025 conference. Although the paper was not accepted, it was well received by the reviewers and garnered very positive feedback, which we used to further improve the work. We have since resubmitted it to the AAAI2026 conference, where the evaluation is currently pending.
   \item We plan to develop a new \textit{game form} based on constraints, extending our current modelling framework to encompass stochastic \wregulargames. [\hyperref[sec:rq]{RQ4}]
   \item In addition to the refined research questions, we have proposed a novel method for solving games using clause learning, guided by \textit{utility}. This line of work remains ongoing as a parallel branch of my research.
 \end{itemize}
 
 \section{Methodology and Progress}
 
-\subsection{Modelling (RQ1,RQ2)}
+\subsection{Modelling [\hyperref[sec:rq]{RQ1,RQ2}]}
 
  Parity games are two-player zero-sum games played on a labeled directed graph, called the \textit{arena}, where two players, \textit{Even} and \textit{Odd} (denoted~\even or 0, and~\odd or 1, respectively), move a token along adjacent vertices depending on which player controls the current vertex. This process generates a path of states visited by the token. In a parity game, each path is winning for either Player \even or Player \odd. The goal of each player is to enforce a winning path in their favour. We now formalize parity games, including the definition of when a given path in the graph is winning for either player.
 
@@ -142,13 +140,13 @@ Given an initial vertex $v_0$, a strategy is said to be winning from $v_0$ for p
 
 \subsubsection{Traps, Attractors and ZRA}
 
-Current algorithms are based on this concept. A \emph{trap} for a player $\player \in \{\even,\odd\}$ is a set of vertices in which the opponent $\opponent \in \{\even,\odd\}, \; \player \neq \opponent,$ can force the play to remain forever. Formally, a set $U \subseteq V$ is called a trap for $\player$ if $\forall v \in U \cap V_{\player} : vE \cap U \neq \emptyset$ and $\forall v \in U \cap V_{\opponent} : vE \subseteq U$. \cite{Zielonka:1998}
+A \emph{trap} for a player $\player \in \{\even,\odd\}$ is a set of vertices in which the opponent $\opponent \in \{\even,\odd\}, \; \player \neq \opponent,$ can force the play to remain forever. Formally, a set $U \subseteq V$ is called a trap for $\player$ if $\forall v \in U \cap V_{\player} : vE \cap U \neq \emptyset$ and $\forall v \in U \cap V_{\opponent} : vE \subseteq U$ \cite{Zielonka:1998}. Current algorithms are based on this concept. 
 
 Closely related to traps is the notion of an \emph{attractor}. For a player $\player$, the $\player$-attractor of a set $U \subseteq V$ is the set of vertices from which $\player$ can force the play to reach $U$ in a finite number of steps. Intuitively, while a trap represents a region that the opponent can confine the play within, an attractor represents a region that $\player$ can control and eventually reach, regardless of the opponent's actions. Formally, attractors are computed iteratively: starting from $U$, we add vertices in $V_\player$ that have at least one successor already in the attractor and vertices in $V_{\opponent}$ all of whose successors are already in the attractor, repeating until a fixed point is reached. 
 
 Zielonka's recursive algorithm (ZRA) solves parity games by partitioning the vertex set $V$ into winning regions $W_{\even}$ and $W_{\odd}$ and computing corresponding positional strategies $f_{\even}$ and $f_{\odd}$. At each recursive step, the algorithm selects the vertices with maximal priority $p$, computes the $\player$-attractor $A$ for the player $\player$ owning $p$, and removes $A$ from the game to form a subgame. Traps and attractors guide this decomposition: traps identify regions from which the opponent can prevent escape, while attractors identify vertices from which $\player$ can force the play to reach a target set. Iterating this process ensures that for each $v \in W_{\player}$, the strategy $f_{\player}$ generates only winning plays according to the parity condition.
 
-\subsubsection{Constraint Programming Approach (RQ1)}
+\subsubsection{Constraint Programming Approach [\hyperref[sec:rq]{RQ1}]}
 
 While Zielonka's recursive algorithm starts the search from the vertices with maximal priorities and computes which vertices are attracted to them in order to determine the winning regions containing a given initial vertex $v_0$, the constraint programming (CP) approach begins the search from $v_0$ and attempts to identify the trap that contains the maximal priority relevant to that vertex.
 
@@ -171,7 +169,7 @@ Intuitively, these constraints ensure that:
 \end{itemize}
 \end{definition}
 
-The Winning strategy condition also es implemented using the same approach: every \textit{infinite} path must satisfy the parity condition, that is, the highest priority that occurs infinitely often along the path must be even. This can be locally encoded using a \textit{progress measure}~\cite{Heljanko:2012,Jurdziński:2000} expressed with additional integer variables. A variable $x_p^v$ is introduced for every $v \in V$ and every $p \in \textit{Odd}(G)$, corresponding to the set of all odd priorities in the game, defined as $\textit{Odd}(G) = \{ p\in {\mathbb N} \mid p \textit{ is odd and } \Omega(v) = p, \textit{ for some } v \in V \}$. These variables track \textit{progress} along every $ t \in \textit{Inf}(\pi) $, the set of priorities that appear infinitely often in $\pi$, ensuring that $x_p^v > x_p^w$ if the priority is odd, or $x_p^v \geq x_p^w$ if the priority is even. Since odd priorities require a strictly increasing chain of integers, cycles with odd priorities are ruled out by this constraint. On the other hand, for even priorities, only a non-strict inequality is required.
+The Winning strategy condition also is implemented using the same approach: every \textit{infinite} path must satisfy the parity condition, that is, the highest priority that occurs infinitely often along the path must be even. This can be locally encoded using a \textit{progress measure}~\cite{Heljanko:2012,Jurdziński:2000} expressed with additional integer variables. A variable $x_p^v$ is introduced for every $v \in V$ and every $p \in \textit{Odd}(G)$, corresponding to the set of all odd priorities in the game, defined as $\textit{Odd}(G) = \{ p\in {\mathbb N} \mid p \textit{ is odd and } \Omega(v) = p, \textit{ for some } v \in V \}$. These variables track \textit{progress} along every $ t \in \textit{Inf}(\pi) $, the set of priorities that appear infinitely often in $\pi$, ensuring that $x_p^v > x_p^w$ if the priority is odd, or $x_p^v \geq x_p^w$ if the priority is even. Since odd priorities require a strictly increasing chain of integers, cycles with odd priorities are ruled out by this constraint. On the other hand, for even priorities, only a non-strict inequality is required.
 %
 The definition of the progress measure constraints is as follows: \cite{Heljanko:2012,Cotton:2004}
 
@@ -184,13 +182,13 @@ The definition of the progress measure constraints is as follows: \cite{Heljanko
 
 \subsubsection*{Reduction to SAT}
 
-The difference logic constraints of the progress measure can be encoded into pure CNF, which enables the use of modern SAT solvers to decide the winner of a parity game. This was the approach chosen in the paper that introduced the SMT encoding~\cite{Heljanko:2012}. Every integer variable $x_p^v$ is represented as its binary encoding using Boolean variables $X_{p,m}^v$ for every $m$ in the set of bits required to represent $x_p^v$.  Indeed, difference logic constraints $X_p^v \geqslant X_p^w$ and $X_p^v > X_p^w$ can then be translated into simple lexicographic constraints as follows:
+The difference logic constraints of the progress measure can be encoded into pure CNF. This enables the use of modern SAT solvers to decide the winner of a parity game. This was the approach chosen in the paper that introduced the SMT encoding~\cite{Heljanko:2012}. Every integer variable $x_p^v$ is represented as its binary encoding using Boolean variables $X_{p,m}^v$ for every $m$ in the set of bits required to represent $x_p^v$.  Indeed, difference logic constraints $X_p^v \geqslant X_p^w$ and $X_p^v > X_p^w$ can then be translated into simple lexicographic constraints as follows:
 
 \begin{itemize}
     \item $\mathsf{GreatOrEq}(v, w, p, 0) = x_{p,0}^w \rightarrow x_{p,0}^v$
     \item $\mathsf{GreatOrEq}(v, w, p, m) = (x_{p,m}^w \rightarrow x_{p,m}^v) \wedge ((x_{p,m}^w \vee x_{p,m}^v)) \rightarrow \mathsf{GreatOrEq}(v, w, p, m-1)$
-    \item $\mathsf{StrictGr}(v, w, p, 0) = x_{p,0}^v \wedge x_{p,0}^v$
-    \item $\mathsf{StrictGr}(v, w, p, m) = (x_{p,m}^w \rightarrow x_{p,m}^v) \wedge ((x_{p,m}^w \vee x_{p,m}^v)) \rightarrow \mathsf{StrictGr}(v, w, p, m-1)$\end{itemize}
+    \item $\mathsf{StrictGr}(v, w, p, 0) = x_{p,0}^v \wedge \neg x_{p,0}^w$
+    \item $\mathsf{StrictGr}(v, w, p, m) = (x_{p,m}^w \rightarrow x_{p,m}^v) \wedge ((x_{p,m}^w \vee \neg x_{p,m}^v)) \rightarrow \mathsf{StrictGr}(v, w, p, m-1)$\end{itemize}
 
 The encoding introduces up to $O(n^2)$ integer variables, for $n$ vertices and $|\textit{Odd}(G)|\ \in\ O(n)$. Each integer variable requires up to $\lceil \log(n+1) \rceil$ Boolean variables for its binary representation. The lexicographic constraints are linear size in the number of bits. The worst-case size of the encoding is therefore cubic in the size of the arena, both in terms of variables and clauses in the CNF.
 
@@ -250,7 +248,7 @@ Searching from the perspective of Player $\player = \even$ and starting at verte
 
 A checker of $\mathcal{C}_{N\!O\!C}$ would, in this situation, report unsatisfiability of the problem, triggering a backtrack and a search for an alternative assignment. The solver would continue the search, possibly exploring another assignment, $\mathcal{V}_0 = \mathcal{V}_1 = \mathcal{V}_2 = \mathcal{V}_3 = \mathcal{E}_0 = \mathcal{E}_2 = \mathcal{E}_4 = \mathcal{E}_6 = \top$ (see Figure~\ref{fig:game1c}). Here, another cycle is formed, but the maximum priority occurring infinitely often is 2, which satisfies all constraints, making the problem satisfiable. As a result, starting from $V_0$, this game is won by Player \even.
 
-\subsubsection{No-Opponent-Cycle Propagators (RQ2)}
+\subsubsection{No-Opponent-Cycle Propagators [\hyperref[sec:rq]{RQ2}]}
 
 \subsubsection*{NOC Checker} \label{sec:nocchecker}
 To enforce $\mathcal{C}_{\!N\!O\!C}$, we propose a propagator based on recursively decomposing the graph into Strongly Connected Components (SCCs). By definition, if every SCC contains more than one vertex, or consists of a single vertex with a self-loop, then all vertices are part of at least one cycle.
@@ -334,9 +332,9 @@ For instance, if the assignment presented in Figure \ref{fig:game2a} had been co
 
 In contrast, if the current vertex $v$ has appeared in the path (line~\ref{alg:noc-eager:pathcheck}), this implies that the current edge closes a cycle. The algorithm then determines the highest priority among the vertices in the cycle, and if this priority favors $\opponent$ (line~\ref{alg:noc-eager:checkopponent}), the current edge is set to $\bot$. If the edge had already been assigned $\top$, this causes a conflict and triggers backtracking.
 
-Since Lazy Clause Generation (LCG) solvers require a justification for each propagation step (to enable clause learning), all edges in the detected cycle are collected to form a clause stating that at least one must be assigned $\bot$ (line~\ref{alg:noc-eager:reason}). For instance, in the scenario shown in Figure~\ref{fig:game1a}, the clause $(\neg \mathcal{E}_0 \vee \neg \mathcal{E}_2 \vee \neg \mathcal{E}_4 \neg \vee \mathcal{E}_6 \vee \neg \mathcal{E}_3)$ would be added to prevent the opponent cycle.
+Since Lazy Clause Generation (LCG) solvers require a justification for each propagation step (to enable clause learning), all edges in the detected cycle are collected to form a clause stating that at least one must be assigned $\bot$ (line~\ref{alg:noc-eager:reason}). For instance, in the scenario shown in Figure~\ref{fig:game1a}, the clause $(\neg \mathcal{E}_0 \vee \neg \mathcal{E}_2 \vee \neg \mathcal{E}_4 \vee \neg \mathcal{E}_6 \vee \neg \mathcal{E}_3)$ would be added to prevent the opponent cycle.
 
-The complexity of the \noceager propagator is primarily driven by the DFS traversal over the graph, with additional work performed when a cycle is detected. In the worst case, the algorithm explores every simple path in the graph starting from the initial vertex. This may result in an exponential number of recursive calls in the number of vertices since each branching decision adds a new path to explore. However, in practice, the number of recursive calls is bounded by the number of edges assigned to $\top$ and at most one unassigned edge, significantly reducing the branching factor. Each recursive call performs a constant number of operations, except when a cycle is found (line~\ref{alg:noc-eager:pathcheck}). Nevertheless, because the algorithm may visit multiple paths and cycles, and because each edge can potentially trigger multiple clause generation steps before being fixed, the overall worst-case complexity remains exponential in the size of the graph. This trade-off is justified by the early pruning capabilities enabled by detecting potentially winning opponent cycles before they are fully formed, especially in graphs with many unassigned edges or nondeterminism. In typical solver applications, where assignments propagate quickly and many edges are fixed early, the practical runtime of the propagator is significantly better than the theoretical worst case—as demonstrated by the experimental results presented in a our paper in Appendix, where this approach consistently outperforms alternatives in both speed and effectiveness.
+The complexity of the \noceager propagator is primarily driven by the DFS traversal over the graph, with additional work performed when a cycle is detected. In the worst case, the algorithm explores every simple path in the graph starting from the initial vertex. This may result in an exponential number of recursive calls in the number of vertices since each branching decision adds a new path to explore. However, in practice, the number of recursive calls is bounded by the number of edges assigned to $\top$ and at most one unassigned edge, significantly reducing the branching factor. Each recursive call performs a constant number of operations, except when a cycle is found (line~\ref{alg:noc-eager:pathcheck}). Nevertheless, because the algorithm may visit multiple paths and cycles, and because each edge can potentially trigger multiple clause generation steps before being fixed, the overall worst-case complexity remains exponential in the size of the graph. This trade-off is justified by the early pruning capabilities enabled by detecting potentially winning opponent cycles before they are fully formed, especially in graphs with many unassigned edges or nondeterminism. In typical solver applications, where assignments propagate quickly and many edges are fixed early, the practical runtime of the propagator is significantly better than the theoretical worst case—as demonstrated by the experimental results presented in our paper in the Appendix, where this approach consistently outperforms alternatives in both speed and effectiveness.
 
 \begin{figure}[ht]
     \centering
@@ -410,7 +408,7 @@ Remembering cycles is particularly effective in games where the number of cycles
 \label{alg:noc-memo}
 \end{algorithm}
 
-\subsection{Enhancing the Framework with Additional Constraints (RQ3)}
+\subsection{Enhancing the Framework with Additional Constraints [\hyperref[sec:rq]{RQ3}]}
 
 Our method efficiently determines the winner in large parity games (in our experiments, in graphs with thousands of nodes). Here we show how our approach can also solve parity game-related problems that involve additional constraints, for instance, including quantitative constraints. These can be seamlessly integrated without modifying the core method, ensuring flexibility and ease of adaptation. In contrast, non-CP-based methods require specific modifications in order to include particular extra requirements.
 
@@ -470,53 +468,60 @@ The experimental results have been submitted for evaluation, and a detailed acco
 
 \section{Future Plan and Next Steps}
 
-In my third year, I intend to address QR3 by extending our modelling framework to handle stochastic \wregulargames. Table~\ref{tab:planning} presents the revised timeline outlining the planned completion of each research task.
+In my third year, I plan to address \hyperref[sec:rq]{RQ4} by extending our modelling framework to incorporate stochastic \wregulargames. The objective is to evaluate the state of the art in solving Markov Decision Processes (MDPs) within a CP framework and to adapt our current work accordingly. To achieve this, both literature review and experimentation will once again play a central role in this new phase.
+
+Beyond this, an important direction is to explore how concepts from two-player games with alternating quantifiers—existential, universal, and random—can be integrated into our framework. While existential and universal quantifiers naturally capture the interaction between competing players, the addition of random quantifiers introduces probabilistic uncertainty that must be treated explicitly. This makes the problem substantially more complex, as strategies need to combine adversarial reasoning with stochastic analysis. Addressing this topic represents a significant and independent extension of the project, requiring methodological advances and careful identification of practical application domains.
+
+
+Table~\ref{tab:planning} presents the revised timeline outlining the planned completion of each research task.
 
 
 \begin{table}[H]\centering
     \newcommand{\y}{\cellcolor{black!50}}
     \newcommand{\n}{\cellcolor{white!100}}
     \newcolumntype{:}{!{\color{gray!20}\vrule}}
-    \begin{tabular}{|r p{8.2cm}|l:l|l:l:l:l|l:l:l:l|l:l:l:l|l:l|}
+    \begin{tabular}{|r p{7.9cm}|l:l|l:l:l:l|l:l:l:l|l:l:l:l|l:l|}
         \hline
             & \textbf{Activities} 
             & \multicolumn{4}{c|}{\textbf{2023}} & \multicolumn{4}{c|}{\textbf{2024}} 
             & \multicolumn{4}{c|}{\textbf{2025}} & \multicolumn{4}{c|}{\textbf{2026}} \\
         \hline
-            & Literature review 
+            & Literature review
             & \n & \n & \y & \y & \y & \n & \n & \n & \n & \n & \n & \n & \n & \n & \n & \n \\
         \arrayrulecolor{gray!20}\hline
-        RQ1  & Encoding \wregulargames into \constraintgames
+        \hyperref[sec:rq]{RQ1}
+            & Encoding \wregulargames into \constraintgames
             & \n & \n & \n & \n & \n & \n & \y & \y & \y & \y & \y & \n & \n & \n & \n & \n \\
         \hline
-        RQ2  & Solving Games with new constraint technologies
+        \hyperref[sec:rq]{RQ2}
+            & Solving Games with new constraint technologies
             & \n & \n & \n & \y & \y & \y & \n & \y & \y & \y & \y & \n & \n & \n & \n & \n \\
         \hline
-        RQ3  & Enhancing with additional constraints
+        \hyperref[sec:rq]{RQ3}
+            & Enhancing with additional constraints
             & \n & \n & \n & \n & \n & \n & \n & \n & \n & \y & \y & \y & \n & \n & \n & \n \\
         \hline
-        RQ4  & Extending to stochastic \wregulargames
+        \hyperref[sec:rq]{RQ4}
+            & Extending to stochastic \wregulargames
             & \n & \n & \n & \n & \n & \n & \n & \n & \n & \n & \y & \y & \y & \y & \n & \n \\
         \hline
-            & Documentation
-            & \n & \n & \n & \n & \n & \y & \n & \n & \n & \y & \n & \n & \y & \y & \y & \y \\
+            & Thesis Writing
+            & \n & \n & \n & \n & \n & \n & \n & \n & \n & \n & \n & \n & \n & \y & \y & \y \\
         \arrayrulecolor{black}\hline
     \end{tabular}
     \caption{Activity planning}
     \label{tab:planning}
 \end{table}
 
-\section{Professional Development Progress}
+\section*{Professional Development Progress}
 
-\begin{figure}
+\begin{figure}[h]
     \centering
     \includegraphics[width=\textwidth]{images/MDP.png}
-    \caption{Filtering in advance}
-    \caption{Parity game continuation. Other assignments.}
     \label{fig:mdp}
 \end{figure}
 
-\newpage
+% \newpage
 \bibliographystyle{acm}
 \bibliography{main}
 
