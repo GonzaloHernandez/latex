@@ -33,10 +33,12 @@
 
 \section{MDP model using CP}
 
-$MDP = (S,A,r,p)$ \\
-$r: A \rightarrow \mathsf{I}$ \\
-$p: A \rightarrow \mathsf{R}$ \\
-------- \\
+$MDP = (S,A,P,R,\gamma)$ \\
+$S = S^d \cup S^c$ \\
+$P: S \times A \times S \rightarrow [0,1]$ \\
+$R: S \times A \times S \rightarrow \mathbb{R}$ \\
+$\gamma \in [0,1]$ \\
+\\
 $OSP = (\mathcal{X},\mathcal{D},\mathcal{C},f)$ \\
 $\mathcal{X} = (\mathcal{A}_a)_{a \in A} \cup (\mathcal{V}_a)_{a \in A}$\\
 $\mathcal{D}_\mathcal{A} = \{ \top, \bot \}$ \\
@@ -44,6 +46,5 @@ $\mathcal{D}_\mathcal{V} = \{ 0.0 \dots 1.0 \}$ \\
 $f : max()$ \\
 $\mathcal{C}$ is defined as: \\
 $\mathcal{V}_a = \Sigma_{s'} (p(a') * (r(a')+\gamma \mathcal{V}_{s'}))$
-
 
 \end{document}
