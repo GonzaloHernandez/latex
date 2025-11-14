@@ -1,0 +1,48 @@
+\usepackage{amssymb}
+
+\makeatletter
+\newcommand{\flow}
+% {\@ifnextchar{,}{}{\@ifnextchar{.}{}{\@ifnextchar{)}{}{ }}}}
+{}
+
+\newcommand{\even}          {\raisebox{0.3ex}{\scalebox{0.7}{$\bigcirc$}}\flow}
+\newcommand{\odd}           {\scalebox{0.9}{$\square$}\flow}
+\newcommand{\subeven}       {\raisebox{0.3ex}{\scalebox{0.5}{$\bigcirc$}}\flow}
+\newcommand{\subodd}        {\scalebox{0.6}{$\square$}\flow}
+\newcommand{\player}        {\mathsf{p}\flow}
+\newcommand{\opponent}      {\overline{\mathsf{p}}\flow}
+
+\newcommand{\wregularform}  {$\omega$-regular form\flow}
+\newcommand{\wregulargames} {$\omega$-regular games\flow}
+\newcommand{\noc}           {{\small\textsf{No\textit{-}Opponent\textit{-}Cycle}}\flow}
+\newcommand{\nocchecker}    {{\small\textsf{NOC\textit{-}Checker}}\flow}
+\newcommand{\noceager}      {{\small\textsf{NOC\textit{-}Eager}}\flow}
+\newcommand{\nocmemo}       {{\small\textsf{NOC\textit{-}Memo}}\flow}
+\newcommand{\zra}           {{\small\textsf{ZRA}}\flow}
+\makeatother
+
+% \newtheorem{definition}{Definition}
+% \newtheorem{example}{Example}
+
+% Define MiniZinc syntax highlighting
+\lstdefinelanguage{MiniZinc}{
+  keywords={include, constraint, output, array, of, var, bool},
+  morekeywords={[2] set, int, float, string},
+  keywordstyle=\color{blue}\bfseries,
+  keywordstyle={[2]\color{teal}\bfseries},
+  sensitive=true,
+  comment=[l]{\%}, 
+  morecomment=[s]{/*}{*/},
+  commentstyle=\color{gray}\ttfamily,
+  stringstyle=\color{red}\ttfamily,
+  morestring=[b]",    % Defines double-quoted strings
+  morestring=[b]',    % Defines single-quoted strings  basicstyle=\ttfamily\small,
+  numberstyle=\tiny\color{gray},
+  numbers=left,
+  stepnumber=1,
+  breaklines=true,
+  showstringspaces=false,
+  frame=single,
+  tabsize=2,
+  basicstyle=\ttfamily\footnotesize
+}
