@@ -10,9 +10,6 @@
 % Other font encondings may result in incorrect characters.
 %
 \usepackage{graphicx}
-% Used for displaying a sample figure. If possible, figure files should
-% be included in EPS format.
-%
 % If you use the hyperref package, please uncomment the following two lines
 % to display URLs in blue roman font according to Springer's eBook style:
 %\usepackage{color}
@@ -32,59 +29,43 @@
 \usepackage[table]{xcolor}
 \usepackage{amsmath} 
 \usepackage{multirow}
+\usepackage{bibentry}
+\usepackage[skip=5pt]{caption}
 
 \input{macros.tex}
 
-\usepackage{bibentry}
+\setlength{\textfloatsep}{10pt plus 1.0pt minus 2.0pt}
+\setlength{\intextsep}{10pt plus 1.0pt minus 2.0pt}
 
 \begin{document}
 %
-\title{No-Opponent-Cycle Propagators for Solving Parity Ga\begin{itemize}
-\item $\Phi_A = \bigwedge_{(v,w) \in E} \left(T_{(v,w)} \rightarrow \Psi_{(v,w)}\right)$
-\item $\Psi_{(v,w)} = \bigwedge_{p \in \textit{Odd}^{>\Omega(w)}(G)} (x_p^v \geqslant x_p^w), \textit{ if } \Omega(w) \textit{ is even}$
-\item $\Psi_{(v,w)} = \bigwedge_{p \in \textit{Odd}^{>\Omega(w)}(G)} (x_p^v \geqslant x_p^w) \land \\
-(x_{\Omega(w)}^v > x_{\Omega(w)}^w), \textit{ if } \Omega(w) \textit{ is odd}$
-\end{itemize}
+\title{No-Opponent-Cycle Propagators for Solving Parity Games}
 
-% (Done) Add reference to difference logic since this is a non-standard logic
-These constraints are instances of {\em difference logic}, which is supported by some SMT solvers. Thus, an SMT solver can determine the satisfiability of~$(S_{v_0} \wedge \Phi_{\exists} \wedge \Phi_{\forall} \wedge \Phi_V \wedge \Phi_A)$, and, as such, decide whether player~\even has a winning strategy.
+\author{Authors' Names Omitted for Double-Blind Review}
+% \author{
+%     Gonzalo Hernandez\textsuperscript{\rm 1,4} \and
+%     Julian Garcia\textsuperscript{\rm 1} \and
+%     Julian Gutierrez\textsuperscript{\rm 3} \and
+%     Guido Tack\textsuperscript{\rm 1,2}
+% }
+%
 
-The difference logic constraints of the progress measure can also be encoded into pure CNF, which enables the use of modern SAT solvers to decide the winner of a parity game. This was the approach chosen in the paper that introduced the SMT encoding~\cite{Heljanko:2012}. mes}
-%
-%\titlerunning{Abbreviated paper title}
-% If the paper title is too long for the running head, you can set
-% an abbreviated paper title here
-%
-\author{
-    Gonzalo Hernandez\textsuperscript{\rm 1,4} \and
-    Julian Garcia\textsuperscript{\rm 1} \and
-    Julian Gutierrez\textsuperscript{\rm 2} \and
-    Guido Tack\textsuperscript{\rm 1,3}
-}
-%
-\authorrunning{G. Hernandez et al.}
+\authorrunning{Anonymized Submission}
+% \authorrunning{G. Hernandez et al.}
 % First names are abbreviated in the running head.
 % If there are more than two authors, 'et al.' is used.
 %
+
+\institute{Affiliations Omitted for Double-Blind Review}
 % \institute{
-%     Princeton University, Princeton NJ 08544, USA \and
-%     Springer Heidelberg, Tiergartenstr. 17, 69121 Heidelberg, Germany
-%     \email{lncs@springer.com}\\
-
-%     \url{http://www.springer.com/gp/computer-science/lncs} \and
-%     ABC Institute, Rupert-Karls-University Heidelberg, Heidelberg, Germany\\
-%     \email{\{abc,lncs\}@uni-heidelberg.de}
+%     \textsuperscript{\rm 1}Monash University, Australia
+%     \textsuperscript{\rm 2}OPTIMA ARC ITTC\\
+%     \email{\{gonzalo.hernandez,julian.garcia,guido.tack\}@monash.edu}\\
+%     \textsuperscript{\rm 3}University of Sussex, United Kingdom
+%     \email{\{J.Gutierrez\}@sussex.ac.uk}\\
+%     \textsuperscript{\rm 4}Universidad de Nariño, Colombia
+%     \email{\{gonzalo.hernandez\}@udenar.edu.co}
 % }
-
-\institute{
-    Monash University, Australia
-    \email{\{gonzalo.hernandez,julian.garcia,guido.tack\}@monash.edu}\\
-    University of Sussex, United Kingdom
-    \email{\{J.Gutierrez\}@sussex.ac.uk}\\
-    OPTIMA ARC ITTC\\
-    Universidad de Nariño, Colombia
-    \email{\{gonzalo.hernandez\}@udenar.edu.co}
-}
 
 %
 \maketitle              % typeset the header of the contribution
@@ -142,7 +123,7 @@ The game starts with a token at an initial vertex $v_0 \in V$. Player Even is re
 
 \begin{figure}[ht]
     \centering
-    \includegraphics[width=0.20\textwidth]{images/game01.png} 
+    \includegraphics[width=0.30\textwidth]{images/game01.png} 
     \caption{A parity game with 7 vertices and 12 edges. Each vertex carries a priority from the set $\{2,3\}$. Vertices controlled by Player~$\even$ are shown as circles, while vertices controlled by Player~$\odd$ are shown as squares.}
     \label{fig:game01}
 \end{figure}
@@ -187,7 +168,7 @@ The definition of the progress measure constraints is as follows: \cite{Heljanko
 \begin{itemize}
 \item $\Phi_A = \bigwedge_{(v,w) \in E} \left(T_{(v,w)} \rightarrow \Psi_{(v,w)}\right)$
 \item $\Psi_{(v,w)} = \bigwedge_{p \in \textit{Odd}^{>\Omega(w)}(G)} (x_p^v \geqslant x_p^w), \textit{ if } \Omega(w) \textit{ is even}$
-\item $\Psi_{(v,w)} = \bigwedge_{p \in \textit{Odd}^{>\Omega(w)}(G)} (x_p^v \geqslant x_p^w) \land \\
+\item $\Psi_{(v,w)} = \bigwedge_{p \in \textit{Odd}^{>\Omega(w)}(G)} (x_p^v \geqslant x_p^w) \land 
 (x_{\Omega(w)}^v > x_{\Omega(w)}^w), \textit{ if } \Omega(w) \textit{ is odd}$
 \end{itemize}
 
@@ -236,13 +217,13 @@ Let us illustrate the filtering we want to achieve using this global constraint 
 
 \begin{figure}[ht]
     \centering
-    \begin{subfigure}[b]{0.23\textwidth}
+    \begin{subfigure}[b]{0.30\textwidth}
         \centering
         \includegraphics[width=\textwidth]{images/game02a.png}
         \caption{Initial assignment}
         \label{fig:game02a}
     \end{subfigure}
-    \begin{subfigure}[b]{0.23\textwidth}
+    \begin{subfigure}[b]{0.30\textwidth}
         \centering
         \includegraphics[width=\textwidth]{images/game02b.png}
         \caption{Satisfiable assignment}
@@ -261,42 +242,7 @@ Each resulting subgraph is then evaluated: if it contains a cycle in which the h
 %
 If, in the end, all remaining single vertices lack both self-loops and $\opponent$ priorities, the assignment is accepted.
 
-% \begin{algorithm}[H]
-%     \small
-%     \caption{$\mathsf{NoOpponentCycle}$ as checker based on SCC}
-%     \begin{algorithmic}[1]
-%     \Function{NOCChecker}{ $\mathcal{V},\ \mathcal{E}$ }
-%         \STATE \textbf{assert} all variables are assigned
-%         \STATE $G' \gets G[\ \{ v \mid \mathcal{V}[v] = \top \}\ ]$
-%         \STATE $Stack \gets \textit{empty stack}$
-%         \FOR{$scc \in \textit{Tarjan}(G')$}
-%             \STATE \textbf{push} $scc$ \textbf{onto} $Stack$
-%         \ENDFOR
-%         \While{$Stack \neq \textit{empty}$}
-%             \STATE $scc \gets$ \textbf{pop} from $Stack$
-%             \IF{$|scc| = 1$}
-%                 \STATE $v \gets$ the unique vertex in $scc$
-%                 \IF{$\textit{priority}(v) \textit{ mod } 2 = \opponent \land vEv$}
-%                     \STATE \Return $\bot$
-%                 \ENDIF
-%             \ELSE
-%                 \STATE $bestSet \gets \textit{bestVertices}(scc)$
-%                 \STATE $v \gets$ an arbitrary vertex in $bestSet$
-%                 \IF{$\textit{priority}(v)\textit{ mod }2 = \opponent$}
-%                     \STATE \Return $\bot$
-%                 \ENDIF
-%                 \FOR{$scc \in \textit{Tarjan}(G' \setminus bestSet) $}
-%                     \STATE \textbf{push} $scc$ \textbf{onto} $Stack$
-%                 \ENDFOR
-%             \ENDIF
-%         \EndWhile
-%         \STATE \Return $\top$
-%     \EndFunction
-%     \end{algorithmic}
-%     \label{alg:noc-checker-stack}
-% \end{algorithm}
-
-\begin{algorithm}[tb]
+\begin{algorithm}[htb]
 \small
 \caption{\textbf{\textit{NOCChecker}}}
 \textbf{Input}: $G$ \\
@@ -305,16 +251,10 @@ If, in the end, all remaining single vertices lack both self-loops and $\opponen
     \FOR{$scc \in \textit{Tarjan}(G)$} \label{alg:noc-checker:breakingdown}
         \IF{$|scc| = 1$} \label{alg:noc-checker:single}
             \STATE $v \gets$ the unique vertex in $scc$
-            % \IF{$\textit{priority}(v) \bmod 2 = \opponent \land vEv$} \label{alg:noc-checker:self}
-            %     \RETURN $\bot$
-            % \ENDIF
             \STATE \textbf{if }$\textit{priority}(v) \bmod 2 = \opponent \land vEv$ \textbf{then return $\bot$} \label{alg:noc-checker:self}  
         \ELSE
             \STATE $bestSet \gets \textit{bestVertices}(scc)$ \label{alg:noc-checker:best}
             \STATE $v \gets$ an arbitrary vertex in $bestSet$
-            % \IF{$\textit{priority}(v) \bmod 2 = \opponent$} \label{alg:noc-checker:opponent}
-            %     \RETURN $\bot$
-            % \ENDIF
             \STATE \textbf{if }$\textit{priority}(v) \bmod 2 = \opponent$ \textbf{then return $\bot$} \label{alg:noc-checker:opponent}  
 
             \STATE \textit{NOCChecker}($G \setminus bestSet$) \label{alg:noc-checker:recursion}
@@ -336,7 +276,7 @@ The complexity of the \nocchecker propagator is polynomial in the size of the in
 \subsection{A No-Opponent-Cycle filter} \label{sec:nocfilter}
 In addition to \nocchecker, we propose a complete propagator based on Depth-first Search (DFS) to explore the arena. The resulting DFS tree captures all possible paths from $v_0$, and can be used to detect all existing cycles. We define the propagator in the context of a \textit{Lazy Clause Generation} solver~\cite{DBLP:journals/constraints/OhrimenkoSC09}, to take advantage of the strong performance of this type of solver, in particular for problems that contain a large number of Boolean clauses. Algorithm~\ref{alg:noc-eager} presents this version of the propagator, which checks for cycles and reports failure if a cycle with highest priority in favour of $\opponent$ is detected.
 
-\begin{algorithm}
+\begin{algorithm}[htb]
 \small
 \caption{\textbf{\textit{NOCEager}}}
 \textbf{Input}: $path_V,\ path_E,\ v,\ e,\ \mathcal{E},\ \textit{defined}$ \\
@@ -347,9 +287,6 @@ In addition to \nocchecker, we propose a complete propagator based on Depth-firs
         \STATE $m \gets \max\{f(v') \mid v' \in path_V[i_v:]\}$
         \IF{$m \text{ mod } 2 = \opponent$} \label{alg:noc-eager:checkopponent}
             \STATE $\textit{reason} \gets \textit{clausify}(\neg path_E[i_v:])$ \label{alg:noc-eager:reason}
-            % \IF{not ($\mathcal{E}[e] \gets (\bot, \textit{reason}))$}
-            %     \RETURN $\bot$
-            % \ENDIF
             \STATE \textbf{if }not ($\mathcal{E}[e] \gets (\bot, \textit{reason}))$ \textbf{then return $\bot$}
         \ENDIF
     \ELSIF{$\textit{defined}$} \label{alg:noc-eager:defcheck}
@@ -391,7 +328,7 @@ For the example of Figure \ref{fig:game02}, the updated version of \noc stores a
 
 Remembering cycles is particularly effective in games where the number of cycles favoring $\player$ exceeds those favoring $\opponent$, as demonstrated below in the section on experiments.
 
-\begin{algorithm}
+\begin{algorithm}[htb]
 \caption{\textbf{\textit{NOCMemo}}}
 \small
 \textbf{Input}: $path_V, path_E, v, e, \mathcal{E}, \textit{defined}, \textit{memo}$ \\
@@ -403,9 +340,6 @@ Remembering cycles is particularly effective in games where the number of cycles
         \STATE $\textit{memo}[e] \gets (v,\ m)$ \label{alg:noc-memo:update}
         \IF{$m \bmod 2 = \opponent$} 
             \STATE $\textit{reason} \gets \textit{clausify}(\neg path_E[i_v:])$
-            % \IF{not ($\mathcal{E}[e] \gets (\bot, \textit{reason}))$}
-            %     \RETURN $\bot$
-            % \ENDIF
             \STATE \textbf{if }not ($\mathcal{E}[e] \gets (\bot, \textit{reason}))$ \textbf{then return $\bot$}
         \ENDIF
     \ELSIF{$\textit{defined}$}
@@ -435,8 +369,6 @@ Remembering cycles is particularly effective in games where the number of cycles
 \label{alg:noc-memo}
 \end{algorithm}
 
-%The introduction of memory in the \nocmemo propagator eliminates redundant recursive calls and avoids re-exploring subgraphs whose outcomes have already been computed. This can lead to a significant reduction in the number of visited nodes and edges during propagation, particularly in instances with recurring cycles or regions dominated by player $\player$.
-
 \section{Experiments and Evaluation}\label{sec:experiments}
 
 To evaluate the performance of our approach, we implemented the \noc propagators using the LCG solver Chuffed (version 0.12.1)~\cite{chuffed:2018}. Additionally, we used MiniZinc~\cite{DBLP:conf/cp/NethercoteSBBDT07} to implement additional constraints in some experiments. For experiments involving SAT solvers, we employed CaDiCaL (version 2.1.3)~\cite{Biere:Cadical:2024}, \text{MiniSat} (version 2.2.0)~\cite{Een:MiniSat:2003}, Kissat (version 4.0.2)~\cite{Biere:Kissat:2024}, and zChaff (version 2007.3.12)~\cite{Moskewicz:zChaff:2001}. For SMT solving, we used Z3 (version 4.14.1.0). We also incorporated the implementation of the Zielonka Recursive Algorithm (\zra) with an improved attractor strategy, as in~\cite{Aggarwal:2023}.
@@ -453,7 +385,9 @@ An additional experiment comparing \noc with other CP-based approaches appears i
 \begin{table}[ht]
 \centering
 \caption{Average solving times (in seconds) on special game classes, categorized by winner.}
-{\fontsize{9}{11}\selectfont
+{
+\fontsize{9}{11}\selectfont
+% \footnotesize
 \setlength{\tabcolsep}{1mm}
 \begin{tabular}{l|c|r|r|r|r@{\hspace{1mm}}r@{\hspace{1mm}}r}
 \toprule
@@ -552,7 +486,7 @@ The results of the experiments are summarised in Figure~\ref{fig:peakofmemory}. 
 
 \begin{figure}[ht]
     \centering
-    \includegraphics[width=0.4\textwidth]{images/peakmemory.png} % Adjust the path to your figure file
+    \includegraphics[width=0.5\textwidth]{images/peakmemory.png} % Adjust the path to your figure file
     \caption{Memory usage on the Jurdziński graphs $J_{level,10}$, constrained to 13K vertices.}
     \label{fig:peakofmemory}
 \end{figure}
@@ -598,6 +532,7 @@ Our key innovation, replacing a SAT encoding with a global constraint, not only 
 
 Our work goes beyond parity games by easily enabling new solutions to synthesis and providing the flexibility to adapt our core to solve multiplayer games, including more general games (e.g.,  \wregulargames \cite{Chatterjee:2012}). Our results demonstrate that constraint-based approaches with carefully designed global constraints offer a promising direction for practical formal verification tools that balance expressiveness and computational efficiency.
 
+\bibliographystyle{splncs04}
 \bibliography{paper}
 
 \end{document}

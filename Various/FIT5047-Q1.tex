@@ -1,0 +1,92 @@
+\documentclass{article}
+\usepackage[letterpaper, margin=1in]{geometry}
+\setlength{\parskip}{1em}
+\usepackage{graphicx}
+\setlength\parindent{0pt}
+\usepackage{amssymb}
+\usepackage[table]{xcolor}
+\usepackage{tikz}
+\usepackage{array}
+\usepackage{placeins}
+\usepackage{algorithm}
+\usepackage[noend]{algorithmic}
+\usepackage{tcolorbox}
+\usepackage{arydshln}
+\usepackage[font=small,skip=2pt]{caption}
+\usepackage{hyperref}
+\usepackage{colortbl}
+\usepackage{enumitem}
+\usepackage{ifthen}
+\usepackage[final]{pdfpages}
+\usepackage{subcaption}
+
+\makeatletter
+
+\usepackage{titling}
+\setlength{\droptitle}{-8em}
+
+\usepackage{xcolor}
+\definecolor{mycolor}{rgb}{1.0 , 0.8 , 1.0}
+\newcommand{\hl}[2][mycolor]{\colorbox{#1}{$#2$}}
+
+\title{Generic Constraint Games\\PhD Progress Review Report}
+\author{Gonzalo Hernandez}
+\date{}
+
+
+\begin{document}
+
+\section{Formula 1}
+
+$\varphi_1 = ((A \vee (B \rightarrow C)) \wedge (\neg C \vee D)) 
+\rightarrow ((A \rightarrow D) \vee (C \leftrightarrow E))$
+
+$\varphi_1 = ((A \vee (B \rightarrow C)) \wedge (\neg C \vee D)) 
+\rightarrow ((A \rightarrow D) \vee ((\neg C \wedge \neg E) \vee (E \wedge C)))$
+
+$\varphi_1 = ((A \vee (B \rightarrow C)) \wedge (\neg C \vee D)) 
+\rightarrow ((A \rightarrow D) \vee (\neg C \wedge \neg E) \vee (E \wedge C))$
+
+$\varphi_1 = ((A \vee (B \rightarrow C)) \wedge (\neg C \vee D)) 
+\rightarrow ((\neg A \vee D) \vee (\neg C \wedge \neg E) \vee (E \wedge C))$
+
+$\varphi_1 = ((A \vee (B \rightarrow C)) \wedge (\neg C \vee D)) 
+\rightarrow (
+    (\neg A \vee D \vee -C \vee E) \wedge
+    (\neg A \vee D \vee -C \vee C) \wedge
+    (\neg A \vee D \vee -E \vee E) \wedge
+    (\neg A \vee D \vee -E \vee C)
+)$
+
+$\varphi_1 = ((A \vee (B \rightarrow C)) \wedge (\neg C \vee D)) 
+\rightarrow (
+    (\neg A \vee D \vee -C \vee E) \wedge
+    (\neg A \vee D \vee -E \vee C)
+)$
+
+\section{Formula 2} 
+
+\section{Formula 3} 
+
+$\varphi_3 = ((A \leftrightarrow B) \vee (C \rightarrow D)) \wedge ((\neg A \vee \neg D) \rightarrow (F \wedge \neg G))$
+
+$\varphi_3 = (((A \rightarrow B) \wedge (A \leftarrow B) ) \vee (C \rightarrow D)) \wedge ((\neg A \vee \neg D) \rightarrow (F \wedge \neg G))$
+
+$\varphi_3 = (((\neg A \vee B) \wedge (A \vee \neg B) ) \vee (C \rightarrow D)) \wedge ((\neg A \vee \neg D) \rightarrow (F \wedge \neg G))$
+
+$\varphi_3 = (((\neg A \vee B) \wedge (A \vee \neg B) ) \vee (\neg C \vee D)) \wedge ((\neg A \vee \neg D) \rightarrow (F \wedge \neg G))$
+
+$\varphi_3 = (((\neg A \vee B) \wedge (A \vee \neg B) ) \vee (\neg C \vee D)) \wedge (\neg (\neg A \vee \neg D) \vee (F \wedge \neg G))$
+
+$\varphi_3 = (((\neg A \vee B) \wedge (A \vee \neg B) ) \vee (\neg C \vee D)) \wedge ((A \wedge D) \vee (F \wedge \neg G))$
+
+$\varphi_3 = (\neg A \vee B \vee \neg C \vee D) \wedge (A \vee \neg B \vee \neg C \vee D)
+\wedge ((A \wedge D) \vee (F \wedge \neg G))$
+
+$\varphi_3 = (\neg A \vee B \vee \neg C \vee D) \wedge (A \vee \neg B \vee \neg C \vee D)
+\wedge ((A \vee F) \wedge (A \vee \neg G) \wedge (D \vee F) \wedge (D \vee \neg G))$
+
+$\varphi_3 = (\neg A \vee B \vee \neg C \vee D) \wedge (A \vee \neg B \vee \neg C \vee D)
+\wedge (A \vee F) \wedge (A \vee \neg G) \wedge (D \vee F) \wedge (D \vee \neg G)$
+
+\end{document}
