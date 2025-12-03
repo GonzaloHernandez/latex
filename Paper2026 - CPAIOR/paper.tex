@@ -371,14 +371,12 @@ Remembering cycles is particularly effective in games where the number of cycles
 
 \section{Experiments and Evaluation}\label{sec:experiments}
 
-To evaluate the performance of our approach, we implemented the \noc propagators using the LCG solver Chuffed (version 0.12.1)~\cite{chuffed:2018}. Additionally, we used MiniZinc~\cite{DBLP:conf/cp/NethercoteSBBDT07} to implement additional constraints in some experiments. For experiments involving SAT solvers, we employed CaDiCaL (version 2.1.3)~\cite{Biere:Cadical:2024}, \text{MiniSat} (version 2.2.0)~\cite{Een:MiniSat:2003}, Kissat (version 4.0.2)~\cite{Biere:Kissat:2024}, and zChaff (version 2007.3.12)~\cite{Moskewicz:zChaff:2001}. For SMT solving, we used Z3 (version 4.14.1.0). We also incorporated the implementation of the Zielonka Recursive Algorithm (\zra) with an improved attractor strategy, as in~\cite{Aggarwal:2023}.
+To evaluate the performance of our approach, we implemented the \noc propagators using the LCG solver Chuffed (version 0.12.1)~\cite{chuffed:2018}. Additionally, we used MiniZinc~\cite{DBLP:conf/cp/NethercoteSBBDT07} to implement additional constraints in some experiments. For experiments involving SAT solvers, we employed CaDiCaL (version 2.1.3)~\cite{Biere:Cadical:2024}, \text{MiniSat} (version 2.2.0)~\cite{Een:MiniSat:2003}, Kissat (version 4.0.2)~\cite{Biere:Kissat:2024}, and zChaff (version 2007.3.12)~\cite{Moskewicz:zChaff:2001}. For SMT solving, we used Z3 (version 4.14.1.0). For SOTA we used Oink (fresh github)~\cite{vanDijk:2018}. We also incorporated the implementation of the Zielonka Recursive Algorithm (\zra) with an improved attractor strategy, as in~\cite{Aggarwal:2023}.
 
-All experiments were conducted on an Intel Xeon 8260 CPU (24 cores, non-hyperthreaded) with 268.55 GB of RAM, running Linux. The complete source code, including implementations and experimental setups, is available at [Link removed to preserve double-blind review; source code is provided as supplementary material]
+All experiments were conducted on an Intel Xeon 8260 CPU (24 cores, non-hyperthreaded) with 268.55 GB of RAM, running Linux. The complete source code, including implementations and experimental setups, is available at [Link removed to preserve double-blind review]
 
-We evaluate the different approaches on benchmark sets similar to those used in previous work. In particular, we consider three sources:
-First, the PGSolver library \cite{Friedmann:2017}, from which we use three classes of games;
-Second, the RandomGamesSet-500, a custom set of 500 randomly generated games using the information proposed in \cite{Friedmann:2017};
-And third, the Jurdziński graphs \cite{Jurdziński:2022,Keiren:2015}, which allow for controlled generation of graphs of varying size based on two parameters: levels and blocks. 
+We evaluate the different approaches using a standard benchmark set employed in prior research. Specifically, the benchmarks are drawn from two primary sources: PGSolver Library \cite{Friedmann:2017} and Benchmarks for Parity Games \cite{Keiren:2015}.
+It is important to note that the existing benchmarks were initially proposed based on the State-of-the-Art (SOTA) algorithms prevailing at the time. For Constraint Programming (CP) Methods, our findings indicate that RandomGames represent the worst-case scenario.
 
 An additional experiment comparing \noc with other CP-based approaches appears in the appendix.
 

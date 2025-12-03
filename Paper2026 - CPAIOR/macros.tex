@@ -1,24 +1,20 @@
 \usepackage{amssymb}
+\usepackage{xspace}
 
-\makeatletter
-\newcommand{\flow}
-% {\@ifnextchar{,}{}{\@ifnextchar{.}{}{\@ifnextchar{)}{}{ }}}}
-{}
+\newcommand{\even}          {\raisebox{0.3ex}{\scalebox{0.7}{$\bigcirc$}}\xspace}
+\newcommand{\odd}           {\scalebox{0.9}{$\square$}\xspace}
+\newcommand{\subeven}       {\raisebox{0.3ex}{\scalebox{0.5}{$\bigcirc$}}\xspace}
+\newcommand{\subodd}        {\scalebox{0.6}{$\square$}\xspace}
+\newcommand{\player}        {\mathsf{p}\xspace}
+\newcommand{\opponent}      {\overline{\mathsf{p}}\xspace}
 
-\newcommand{\even}          {\raisebox{0.3ex}{\scalebox{0.7}{$\bigcirc$}}\flow}
-\newcommand{\odd}           {\scalebox{0.9}{$\square$}\flow}
-\newcommand{\subeven}       {\raisebox{0.3ex}{\scalebox{0.5}{$\bigcirc$}}\flow}
-\newcommand{\subodd}        {\scalebox{0.6}{$\square$}\flow}
-\newcommand{\player}        {\mathsf{p}\flow}
-\newcommand{\opponent}      {\overline{\mathsf{p}}\flow}
-
-\newcommand{\wregularform}  {$\omega$-regular form\flow}
-\newcommand{\wregulargames} {$\omega$-regular games\flow}
-\newcommand{\noc}           {{\small\textsf{No\textit{-}Opponent\textit{-}Cycle}}\flow}
-\newcommand{\nocchecker}    {{\small\textsf{NOC\textit{-}Checker}}\flow}
-\newcommand{\noceager}      {{\small\textsf{NOC\textit{-}Eager}}\flow}
-\newcommand{\nocmemo}       {{\small\textsf{NOC\textit{-}Memo}}\flow}
-\newcommand{\zra}           {{\small\textsf{ZRA}}\flow}
+\newcommand{\wregularform}  {$\omega$-regular form\xspace}
+\newcommand{\wregulargames} {$\omega$-regular games\xspace}
+\newcommand{\noc}           {{\small\textsf{No\textit{-}Opponent\textit{-}Cycle}}\xspace}
+\newcommand{\nocchecker}    {{\small\textsf{NOC\textit{-}Checker}}\xspace}
+\newcommand{\noceager}      {{\small\textsf{NOC\textit{-}Eager}}\xspace}
+\newcommand{\nocmemo}       {{\small\textsf{NOC\textit{-}Memo}}\xspace}
+\newcommand{\zra}           {{\small\textsf{ZRA}}\xspace}
 \makeatother
 
 % \newtheorem{definition}{Definition}
