@@ -400,13 +400,13 @@ The benchmark sets were partitioned into two distinct size categories for evalua
 
 \begin{table}[ht]
 \centering
-\caption{Small Games Set (Up to $\approx$ 1 Million vertices). Values represent time in seconds.}
+\caption{Time Performance of Algorithms on Small Games (Up to $\approx$ 1 Million Vertices), Measured in Seconds.}
 {
 \setlength{\tabcolsep}{1mm}
 \begin{tabular}{l|rrrr|r|>{\columncolor{gray!15}}r|rrr}
 \toprule
 \textbf{Ben} & \multicolumn{4}{c|}{\textbf{Oink}} & \multicolumn{1}{c|}{\textbf{ZRA}} & \multicolumn{1}{c|}{\textbf{\cellcolor{gray!15}NOC}} & \multicolumn{3}{c}{\textbf{Reduction SAT}} \\
-\textbf{ch.} & PP & PPP & PAR & QPT & AtrImp &  & CaDiCal & Kissat & MiniSat \\
+\textbf{ch.} & PP & PPP & PAR & QPT & ImpAttr &  & CaDiCal & Kissat & MiniSat \\
 \midrule
 EqC & 0.663 & 0.649 & 0.544 & 199.265 & \textbf{0.190} & 0.399 & 16.114 & 76.424 & 32.594 \\
 MoC & 0.327 & 0.324 & 0.294 & 145.672 & \textbf{0.172} & 0.289 & 15.524 & 28.924 & 22.443 \\
@@ -422,12 +422,13 @@ In Table \ref{tab:smallgames}, we compare the performance of our \noc propagator
 
 \begin{table}[ht]
 \centering
-\caption{Big Games Set (Up to $\approx$ 22 Million vertices)} {
+\caption{Time Performance of Algorithms on Large Games (Up to 22 $\approx$ Million Vertices), Measured in Seconds Using PAR2 Scoring.}
+{
 \setlength{\tabcolsep}{1mm}
 \begin{tabular}{l|rrrr|r|>{\columncolor{gray!15}}r}
 \toprule
 \textbf{Benchmark} & \multicolumn{4}{c|}{\textbf{Oink}} & \multicolumn{1}{c|}{\textbf{ZRA}} & \multicolumn{1}{c}{\textbf{\cellcolor{gray!15}NOC}} \\
- & PP & PPP & PAR & QPT & AtrImp &   \\
+ & PP & PPP & PAR & QPT & Imp Attr &   \\
 \midrule
 Equiv Checking      & 24.775 & 24.876 &  24.159 & 137.250 &  \textbf{14.490} & 16.169 \\
 Model Checking      &  9.547 &  9.557 &   8.718 & 164.438 &  \textbf{3.929} &  8.838 \\
@@ -441,7 +442,7 @@ Random Games        &  0.016 &  0.015 & \textbf{0.015} &   0.015 &   0.053 &  0.
 
 Table \ref{tab:biggames} presents the results for larger benchmark games, where we focus on evaluating the scalability of our \noc approach in comparison to \zra and other state-of-the-art algorithms. Here, \noc demonstrates competitive performance, being only slightly slower than \zra in most cases, while outperforming other algorithms in specific instances. Notably, in the PGSolver Collection, \noc outperforms all Oink algorithms and is significantly faster than \zra.
 
-A Note on Time Measurement: The runtime metrics presented for the \noc and \zra approaches incorporate both the solver execution time and the necessary internal problem preparation time (excluding I/O operations such as file reading). Conversely, only the solving time is reported for the SAT-based approaches. This decision reflects the fact that the initial preparation time, specifically the encoding generation, is notably high and was not the focus of optimization in this work. The complete version of this table, available in the Appendix, additionally shows that the \nocmemo implementation does not offer a performance advantage over the \noceager implementation on these specific benchmark instances.
+The runtime metrics for the \noc and \zra approaches include both the solver execution time and the internal problem preparation time (excluding I/O operations like file reading). Conversely, only the solving time is reported for the SAT-based approaches. This distinction is made because the initial preparation time for SAT-based approaches, specifically the encoding generation, is notably high and was not the primary focus of optimization in this work. Other experiments with its respective statistical analysis (AVG, SD, WR), detailed in the Appendix, show that the \nocmemo implementation offers no significant performance advantage over the \noceager implementation on these specific benchmark instances.
 
 \subsection{Resource Utilization Analysis}
 
@@ -516,5 +517,171 @@ Our work goes beyond parity games by easily enabling new solutions to synthesis 
 
 \bibliographystyle{splncs04}
 \bibliography{paper}
+
+\section*{Appendix A: Supplementary Proofs}
+This experiment focuses on CP and SMT solvers. We have selected Jurdziński graphs for this experiment, which allows us to vary the size of the graphs. We selected graphs with 10 blocks and between 10 and 80 levels (in steps of 10).
+
+Table \ref{tab:cp-cp} presents the solving time in seconds of four approaches: \noc, a MiniZinc CP model (expressing the progress measure using integer variables and constraints) solved by Gecode and Google CP-SAT, and an SMT model using difference logic to implement the progress measure, solved using Z3. The results provide strong evidence that Chuffed with the \noc propagator clearly outperforms the other approaches by several orders of magnitude on these graphs. Furthermore, some solutions, such as MiniZinc with Gecode, used over 256 GB of memory to complete the task.
+
+\begin{table}[ht]
+\centering
+\caption{Solving time on the Jurdziński Graphs $J_{level,10}$ CP-CP. (*) Represent times exceeding 5 minutes.}
+\begin{tabular}{c|r|r|rrr}
+\toprule
+\textbf{d} & \multicolumn{2}{c|}{\textbf{No-Opponent-Cycle}} & \multicolumn{3}{c}{\textbf{Other Solvers}} \\
+& \odd Eager & \even Memo & Mzn(Gecode) & Mzn(CP-SAT) & Z3\\
+\midrule
+\textbf{10} & 0.000 & \cellcolor{gray!30}0.008  & 0.59   & 0.71   & 0.22   \\
+\textbf{20} & 0.000 & \cellcolor{gray!30}0.025  & 3.06   & 2.59   & 0.58   \\
+\textbf{30} & 0.000 & \cellcolor{gray!30}0.039  & 10.57  & 6.15   & 2.64   \\
+\textbf{40} & 0.000 & \cellcolor{gray!30}0.087  & 28.53  & 12.52  & 7.76   \\
+\textbf{50} & 0.001 & \cellcolor{gray!30}0.089  & 63.77  & 22.47  & 18.11  \\
+\textbf{60} & 0.001 & \cellcolor{gray!30}0.097  & 126.88 & 37.41  & 35.76  \\
+\textbf{70} & 0.001 & \cellcolor{gray!30}0.158  & 231.51 & 58.22  & 65.62  \\
+\textbf{80} & 0.001 & \cellcolor{gray!30}0.185  & *      & 88.89  & 111.80 \\
+\bottomrule
+\end{tabular}
+\label{tab:cp-cp}
+\end{table}   
+
+\section*{Appendix B: Additional experiments}
+
+\begin{table}[ht]
+\centering
+\caption{Average solving times (in seconds) on special game classes, categorized by winner.}
+\begin{tabular}{l|c|r|rr|rr|rrr}
+\toprule
+\textbf{Game} & \textbf{Win} & \multicolumn{1}{c|}{\textbf{ZRA}} & \multicolumn{2}{c|}{\textbf{NOC from \even}} & \multicolumn{2}{c|}{\textbf{NOC from \odd}} & \multicolumn{3}{c}{\textbf{SAT Solvers}} \\
+\textbf{class} & &  & Eager & Memo & Eager & Memo & CaDiCal & MiniSat & Kissat \\
+\midrule
+\textbf{RaG} & \even & 0.009 & 0.040 & 0.800 & \cellcolor{gray!30}0.003 & 0.004 & 10.393 &  16.069 &  14.936 \\
+\textbf{RaG} & \odd  & 0.008 & \cellcolor{gray!30}0.004 & 0.004 & 0.035 & 0.776 &  9.216 &   6.189 &  13.369 \\
+\\ [-3pt]
+\textbf{StG} & \even & 0.009 & 0.032 & 0.680 & \cellcolor{gray!30}0.003 & 0.003 & 132.217 & 233.167 & 158.103 \\
+\textbf{StG} & \odd  & 0.009 & \cellcolor{gray!30}0.002 & 0.003 & 0.028 & 0.627 &  62.470 &  29.582 &  32.775 \\
+\\ [-3pt]
+\textbf{ClG} & \even & 0.010 & 0.142 & 1.725 & \cellcolor{gray!30}0.001 & 0.002 &  20.548 &  57.217 &  22.362 \\
+\textbf{ClG} & \odd  & 0.026 & \cellcolor{gray!30}0.005 & 0.006 & 0.472 & 5.632 &  22.856 &   8.702 &  11.572 \\
+\bottomrule
+\end{tabular}
+\label{tab:pgsolver-appendix}
+\end{table}
+
+In Table~\ref{tab:pgsolver-appendix}, we evaluated performance in three classes of arenas: RandGames (RaG), SteadyGames (StG), and ClickGames (ClG). For each class, we generated instances and solved them using the \zra solver, \noceager (differing by the player of interest), and three SAT-based solvers (CaDiCaL, MiniSat, and Kissat). Table \ref{tab:pgsolver-appendix} summarizes the average solving times over 35 runs per configuration. Each run starts from a randomly chosen initial vertex~$v_0$. Results are grouped by game class, with the second column indicating the winning player (\even or \odd) for each configuration. The remaining columns report the average solving times (in seconds) for each solver and variant.
+
+In all instances, every variant of \noc outperforms the SAT solvers by at least three orders of magnitude. Moreover, one of the \noc variants achieves performance comparable to \zra, which is the best performing non-CP-based procedure in practice~\cite{Aggarwal:2023}. Notably, when we select $\player$ as the player of interest, \noc tends to be faster in cases where $\opponent$ wins. This is because the algorithm can often conclude early by detecting the unsatisfiability of the problem.
+
+\begin{table}[ht]
+\centering
+\caption{Average solving times (in seconds) on the RandomGamesSet-500, grouped by game size and winner.}
+\begin{tabular}{l|c|r|rrr|rrrr}
+\toprule
+\textbf{Game Size} & \textbf{Win} & \textbf{ZRA} & \multicolumn{3}{c|}{\textbf{NOC from \even}} & \multicolumn{3}{c}{\textbf{NOC from \odd}} \\
+$|V| \times |E|$ & & & Checker & Eager & Memo & Checker & Eager & Memo \\
+\midrule
+\textbf{8K} $\times$ 20   & \even & 0.020 & 26.041 & 0.125 & 2.759 & 60.000 & \cellcolor{gray!30}0.009 & 0.011 \\
+\textbf{8K} $\times$ 20   & \odd  & 0.020 & 60.000 & \cellcolor{gray!30}0.011 & 0.013 & 36.396 & 0.186 & 3.532 \\
+\\ [-3pt]
+\textbf{20K} $\times$ 20  & \even & 0.061 & 31.347 & 0.502 & 14.493 & 60.000 & \cellcolor{gray!30}0.026 & 0.029 \\
+\textbf{20K} $\times$ 20  & \odd  & 0.062 & 60.000 & 0.\cellcolor{gray!30}032 & 0.037 & 27.250 & 0.485 & 14.268 \\
+\\ [-3pt]
+\textbf{50K} $\times$ 20  & \even & 0.209 & 23.382 & 2.323 & 60.000 & 26.437 & \cellcolor{gray!30}0.076 & 0.087 \\
+\textbf{50K} $\times$ 20  & \odd  & 0.205 & 23.085 & \cellcolor{gray!30}0.084 & 0.096 & 21.387 & 2.422 & 60.000 \\
+\\ [-3pt]
+\textbf{90K} $\times$ 20  & \even & 0.427 & 60.000 & 6.905 & 60.000 & 60.000 & \cellcolor{gray!30}0.148 & 0.163 \\
+\textbf{90K} $\times$ 20  & \odd  & 0.422 & 60.000 & \cellcolor{gray!30}0.172 & 0.196 & 60.000 & 7.129 & 60.000 \\
+\\ [-3pt]
+\textbf{150K} $\times$ 10 & \even & 0.331 & 60.000 & 6.050 & 60.000 & 60.000 & \cellcolor{gray!30}0.138 & 0.147 \\
+\textbf{150K} $\times$ 10 & \odd  & 0.317 & 60.000 & \cellcolor{gray!30}0.244 & 0.254 & 60.000 & 13.221 & 60.000 \\
+\bottomrule
+\end{tabular}
+\label{tab:rand500-average-appendix}
+\end{table}
+
+In Table \ref{tab:rand500-average-appendix} we compared the performance of \noc against \zra using a benchmark of 500 randomly generated games of varying sizes and edge densities. The sizes range from 8,000 to 150,000 vertices, with a maximum of 10 or 20 outgoing edges per vertex. In each game, the initial vertex $v_0$ was also selected randomly Table~\ref{tab:rand500-average-appendix} reports the average solving times (in seconds), grouped by game size and by the winning player (\even or \odd). Each row presents the performance of \zra, along with two \noc variants from Player~\even's perspective (Eager, Memo) and two corresponding variants from Player~\odd's perspective.
+%
+The results show that the \noceager variant was consistently competitive with \zra, often achieving similar or better solving times. To support these observations, we conducted a standard deviation analysis and a Wilcoxon signed-rank test, both of which provide strong statistical evidence. These results, along with the full version of the table, are provided in the appendix, which also highlights the differences between the \noc filters and the Checker variant; a timeout of 60 seconds was set on each solver run.
+
+\begin{table}[ht]
+\centering
+\caption{Solving times on Jurdziński graphs $J_{d,10}$. Symbol (*) represents unsolvable by the solver. \cite{Jurdziński:2000}.}
+\begin{tabular}{r|r|>{\itshape}r|r|rrrr}
+\toprule
+\textbf{d} & \textbf{ZRA} & \multicolumn{2}{c|}{\textbf{No-Opponent-Cycle}} & \multicolumn{4}{c}{\textbf{SAT Solvers}} \\
+& & \odd Eager & \even Memo & CaDiCaL & MiniSat & Kissat & zChaff \\
+\midrule
+\textbf{10}  & 0.009   & 0.000 & \cellcolor{gray!30}0.008 & 0.130   & 0.292   & 1.040   & 0.156 \\
+\textbf{30}  & 0.140   & 0.000 & \cellcolor{gray!30}0.039 & 1.700   & 3.073   & 8.670   & 0.670 \\
+\textbf{50}  & 0.564   & 0.001 & \cellcolor{gray!30}0.089 & 5.680   & 9.329   & 15.550  & 1.558 \\
+\textbf{70}  & 1.451   & 0.001 & \cellcolor{gray!30}0.158 & 12.940  & 19.726  & 26.320  & 2.930 \\
+\textbf{90}  & 2.975   & 0.001 & \cellcolor{gray!30}0.240 & 93.150  & 34.565  & 41.140  & *     \\
+\textbf{110} & 5.309   & 0.001 & \cellcolor{gray!30}0.344 & 134.840 & 55.368  & 62.930  &       \\
+\textbf{130} & 8.616   & 0.001 & \cellcolor{gray!30}0.468 & 193.500 & 80.627  & 85.320  & *     \\
+\textbf{150} & 13.070  & 0.002 & \cellcolor{gray!30}0.610 & 260.590 & 111.662 & 115.420 &       \\
+\textbf{170} & 18.826  & 0.002 & \cellcolor{gray!30}0.769 & 342.000 & 148.768 & 147.460 & *     \\
+\textbf{190} & 26.131  & 0.002 & \cellcolor{gray!30}0.956 & 437.110 & 192.320 & 182.210 &       \\
+\textbf{210} & 35.045  & 0.002 & \cellcolor{gray!30}1.145 & 539.770 & 244.924 & 230.440 & *     \\
+\textbf{230} & 45.780  & 0.002 & \cellcolor{gray!30}1.363 & 655.450 & 297.770 & 283.340 &       \\
+\textbf{250} & 58.552  & 0.002 & \cellcolor{gray!30}1.599 & 749.670 & 368.385 & 341.040 & *     \\
+\textbf{270} & 73.619  & 0.003 & \cellcolor{gray!30}1.866 & 879.440 & 447.689 & 395.860 &       \\
+\textbf{290} & 90.890  & 0.003 & \cellcolor{gray!30}2.127 & 1057.340& 539.538 & 468.190 & *     \\
+\textbf{310} & 110.554 & 0.003 & \cellcolor{gray!30}2.420 & 1207.110& 623.698 & 540.090 &       \\
+\textbf{330} & 132.978 & 0.003 & \cellcolor{gray!30}2.819 & 1403.980& 717.835 & 585.110 & *     \\
+\textbf{350} & 158.433 & 0.003 & \cellcolor{gray!30}3.197 & 1588.480& 809.985 & 630.480 &       \\
+\textbf{370} & 187.527 & 0.004 & \cellcolor{gray!30}3.562 & 1767.350& 928.425 & 711.390 & *     \\
+\textbf{390} & 219.209 & 0.004 & \cellcolor{gray!30}3.941 & 2113.110& 1039.260& 818.460 &       \\
+\textbf{410} & 254.540 & 0.004 & \cellcolor{gray!30}4.348 & 2341.200& 1157.990& 897.660 & *     \\
+\textbf{430} & 292.778 & 0.004 & \cellcolor{gray!30}4.742 & 2612.670& 1387.010& 991.170 &       \\
+\bottomrule
+\end{tabular}
+\label{tab:jurd-appendix}
+\end{table}
+
+The Table \ref{tab:jurd-appendix} shows the set of experiments compares the \noc propagator with \zra and SAT-based approaches, using three different solvers: CaDiCaL, MiniSat, and Kissat. For completeness, we included results for zChaff, as it was used in previous work~\cite{Heljanko:2012}, though it is no longer competitive. Table~\ref{tab:jurd} shows solving times in seconds. In this experiment, we extended the range of levels (and thus the problem size) up to 410. The \nocmemo propagator, when solving from player~\even’s perspective, consistently outperforms SAT-based approaches by at least two orders of magnitude and exceeds \zra's performance by more than one order of magnitude. Moreover, the full version of the table, provided in the appendix, shows that when the problem is flipped to search from player~\odd’s perspective, \noceager performs even faster, achieving speedups of over four orders of magnitude compared to \zra on the largest instances.
+
+All the results reported above omit initialization times. For example, SAT solvers required over 300 seconds to initialize on the largest instances, whereas \noc took less than 30 milliseconds in the same game. In contrast, \zra does not involve a significant initialization phase.
+
+% -----------------------------------------------------------------------------------------------
+
+\section*{Appendix C: Statistical Evaluation}
+
+\begin{table}[ht]
+\centering
+\caption{Statistical analysis based on Table \ref{tab:rand500-average-appendix} comparing ZRA and \noceager from \odd's perspective. The table includes mean (AVG) and standard deviation (SD) of solving times, along with Wilcoxon signed-rank test statistics (Samples, WR+, WR-).}
+\begin{tabular}{l|c|rr|rr|rrr}
+\toprule
+\textbf{Game Size} & \textbf{Win} & \multicolumn{2}{c|}{\textbf{ZRA}} & \multicolumn{2}{c|}{\textbf{NOC from \odd}} & \multicolumn{3}{c}{\textbf{Wilcoxon SR}}\\
+$|V| \times |E|$ & & AVG & SD & AVG & SD & Samples & WR+ & WR- \\
+\midrule
+\textbf{8K} $\times$ 20   & \even & 0.020 & 0.001 & \cellcolor{gray!30}0.009 & 0.001 & 84 & 0 & -3570 \\
+\textbf{20K} $\times$ 20  & \even & 0.061 & 0.061 & \cellcolor{gray!30}0.026 & 0.002 & 55 & 0 & -1540 \\
+\textbf{50K} $\times$ 20  & \even & 0.209 & 0.025 & \cellcolor{gray!30}0.076 & 0.006 & 44 & 0 &  -990 \\
+\textbf{90K} $\times$ 20  & \even & 0.427 & 0.094 & \cellcolor{gray!30}0.148 & 0.019 & 50 & 0 & -1275 \\
+\textbf{150K} $\times$ 10 & \even & 0.331 & 0.082 & \cellcolor{gray!30}0.138 & 0.006 & 24 & 0 &  -520 \\
+\bottomrule
+\end{tabular}
+\label{tab:rand500-statisticalanalysis-even}
+\end{table}
+
+\begin{table}[ht]
+\centering
+\caption{Statistical analysis based on Table \ref{tab:rand500-average-appendix} comparing ZRA and \noceager from \even's perspective. The table includes mean (AVG) and standard deviation (SD) of solving times, along with Wilcoxon signed-rank test statistics (Samples, WR+, WR-).}
+\begin{tabular}{l|c|rr|rr|rrr}
+\toprule
+\textbf{Game Size} & \textbf{Win} & \multicolumn{2}{c|}{\textbf{ZRA}} & \multicolumn{2}{c|}{\textbf{NOC from \even}} & \multicolumn{3}{c}{\textbf{Wilcoxon SR}}\\
+$|V| \times |E|$ & & AVG & SD & AVG & SD & Samples & WR+ & WR- \\
+\midrule
+\textbf{8K} $\times$ 20   & \odd  & 0.020 & 0.001 & \cellcolor{gray!30}0.011 & 0.004 & 74 & 75 & -2700 \\
+\textbf{20K} $\times$ 20  & \odd  & 0.062 & 0.004 & \cellcolor{gray!30}0.032 & 0.014 & 45 & 10 & -1025 \\
+\textbf{50K} $\times$ 20  & \odd  & 0.205 & 0.028 & \cellcolor{gray!30}0.084 & 0.018 & 56 &  0 & -1596 \\
+\textbf{90K} $\times$ 20  & \odd  & 0.422 & 0.100 & \cellcolor{gray!30}0.172 & 0.052 & 46 &  1 & -1080 \\
+\textbf{150K} $\times$ 10 & \odd  & 0.317 & 0.040 & \cellcolor{gray!30}0.244 & 0.148 & 22 & 33 &  -220 \\
+\bottomrule
+\end{tabular}
+\label{tab:rand500-statisticalanalysis-odd}
+\end{table}
+
+The statistical evidence presented in Table~\ref{tab:rand500-statisticalanalysis-even} and Table~\ref{tab:rand500-statisticalanalysis-odd}, suggests that \noceager achieves comparable performance to ZRA, with a consistent trend in its favor. In all cases, \noceager records lower average solving times with smaller standard deviations, indicating slightly more stable behavior. The Wilcoxon signed-rank test supports this observation: the number of positive ranks (WR+) is generally low, and the negative rank sums (WR--) are consistently large, providing statistically significant—though not drastic—evidence that \noceager tends to perform better across the tested instances.
+
 
 \end{document}
