@@ -373,7 +373,7 @@ The three versions of the \noc propagator can be used to solve parity games, wit
 
 \subsection{Solving for $\player$ and $\opponent$ in Parallel}
 
-As our experiments demonstrate, solver performance is heavily dependent on the game's underlying structure. We observed that if a structural property makes the game challenging to solve from the $\player$'s perspective, it often simplifies the solution process from the $\opponent$'s perspective. Consequently, solving the game from both perspectives in parallel—by flipping the game—significantly improves overall efficiency. This acceleration is attributed to the \noc propagator’s capacity to rapidly prune the search space by eliminating $\opponent$'s winning options, effectively proving that $\player$ has no winning strategy. To exploit this asymmetry, we execute both perspectives concurrently and utilize the result obtained by the faster computation.
+As our experiments demonstrate, solver performance is heavily dependent on the game's underlying structure. We observed that if a structural property makes the game challenging to solve from the $\player$'s perspective, it often simplifies the solution process from the $\opponent$'s perspective. This asymmetry is particularly critical because when a game structure presents a worst-case scenario for one player's solution method, we can often overtake this difficulty by solving the game from the opposite player's perspective. Consequently, solving the game from both perspectives in parallel—by flipping the game—significantly improves overall efficiency. This acceleration is attributed to the \noc propagator’s capacity to rapidly prune the search space by eliminating $\opponent$'s winning options, effectively proving that $\player$ has no winning strategy. To exploit this asymmetry, we execute both perspectives concurrently and utilize the result obtained by the faster computation.
 
 \section{Experiments and Evaluation}\label{sec:experiments}
 
@@ -392,18 +392,16 @@ We evaluated the approaches using a standard benchmark set commonly employed in 
 \begin{itemize}
     \item Equivalence Checking ($\textbf{EqC}$): This group contains 77 games derived from formal equivalence checking problems, including strong bisimulation, weak bisimulation, and stuttering equivalence. These games are characterized by complex, structured connectivity patterns reflecting system design.
     \item Model Checking ($\textbf{MoC}$): This set consists of 106 games originating from temporal logic model checking ($\mu$-calculus) against system models. These instances are considered organic and reflect real-world verification challenges.
-    \item Random Games ($\textbf{RaG}$): This category includes 125 randomly generated games with varying sizes and priority distributions, designed primarily to test the general robustness and average-case performance of solving algorithms. Note: For Constraint Programming (CP) methods, our findings indicate that Random Games represent a worst-case scenario due to their lack of exploitable structure.
     \item PGSolver Collection ($\textbf{PGS}$): This collection comprises 161 games sourced from the hardest known families of parity games, including ladder games, recursive ladder games, elevator verification, clique games, steady games, and Jurdziński games \cite{Benerecetti:2016}.
+    \item Random Games ($\textbf{RaG}$): This category includes 125 randomly generated games with varying sizes and priority distributions, designed primarily to test the general robustness and average-case performance of solving algorithms.
 \end{itemize}
 
 The benchmark sets were partitioned into two distinct size categories for evaluation, optimizing for the feasibility of the $\textbf{Reduction to SAT}$ approach on smaller instances and focusing on scalability for larger instances:
 
 \begin{table}[ht]
 \centering
-\caption{Small Games Set (Up to $\approx$ 1 Million vertices)}
+\caption{Small Games Set (Up to $\approx$ 1 Million vertices). Values represent time in seconds.}
 {
-\fontsize{9}{11}\selectfont
-% \footnotesize
 \setlength{\tabcolsep}{1mm}
 \begin{tabular}{l|rrrr|r|>{\columncolor{gray!15}}r|rrr}
 \toprule
@@ -424,15 +422,11 @@ In Table \ref{tab:smallgames}, we compare the performance of our \noc propagator
 
 \begin{table}[ht]
 \centering
-\caption{Big Games Set (Up to $\approx$ 22 Million vertices)}
-
-{
-\fontsize{9}{11}\selectfont
-% \footnotesize
+\caption{Big Games Set (Up to $\approx$ 22 Million vertices)} {
 \setlength{\tabcolsep}{1mm}
 \begin{tabular}{l|rrrr|r|>{\columncolor{gray!15}}r}
 \toprule
-\textbf{Benchmark} & \multicolumn{4}{c|}{\textbf{Oink}} & \multicolumn{1}{c|}{\textbf{ZRA}} & \multicolumn{1}{c|}{\textbf{\cellcolor{gray!15}NOC}} \\
+\textbf{Benchmark} & \multicolumn{4}{c|}{\textbf{Oink}} & \multicolumn{1}{c|}{\textbf{ZRA}} & \multicolumn{1}{c}{\textbf{\cellcolor{gray!15}NOC}} \\
  & PP & PPP & PAR & QPT & AtrImp &   \\
 \midrule
 Equiv Checking      & 24.775 & 24.876 &  24.159 & 137.250 &  \textbf{14.490} & 16.169 \\
@@ -447,8 +441,7 @@ Random Games        &  0.016 &  0.015 & \textbf{0.015} &   0.015 &   0.053 &  0.
 
 Table \ref{tab:biggames} presents the results for larger benchmark games, where we focus on evaluating the scalability of our \noc approach in comparison to \zra and other state-of-the-art algorithms. Here, \noc demonstrates competitive performance, being only slightly slower than \zra in most cases, while outperforming other algorithms in specific instances. Notably, in the PGSolver Collection, \noc outperforms all Oink algorithms and is significantly faster than \zra.
 
-
-The full version of this table, provided in Appendix, further reveals that \nocmemo is not more effective than \noceager on these game instances.
+A Note on Time Measurement: The runtime metrics presented for the \noc and \zra approaches incorporate both the solver execution time and the necessary internal problem preparation time (excluding I/O operations such as file reading). Conversely, only the solving time is reported for the SAT-based approaches. This decision reflects the fact that the initial preparation time, specifically the encoding generation, is notably high and was not the focus of optimization in this work. The complete version of this table, available in the Appendix, additionally shows that the \nocmemo implementation does not offer a performance advantage over the \noceager implementation on these specific benchmark instances.
 
 \subsection{Resource Utilization Analysis}
 
