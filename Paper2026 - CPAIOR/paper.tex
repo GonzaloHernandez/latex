@@ -373,7 +373,9 @@ The three versions of the \noc propagator can be used to solve parity games, wit
 
 \subsection{Solving for $\player$ and $\opponent$ in Parallel}
 
-As our experiments demonstrate, solver performance is heavily dependent on the game's underlying structure. We observed that if a structural property makes the game challenging to solve from the $\player$'s perspective, it often simplifies the solution process from the $\opponent$'s perspective. This asymmetry is particularly critical because when a game structure presents a worst-case scenario for one player's solution method, we can often overtake this difficulty by solving the game from the opposite player's perspective. Consequently, solving the game from both perspectives in parallel—by flipping the game—significantly improves overall efficiency. This acceleration is attributed to the \noc propagator’s capacity to rapidly prune the search space by eliminating $\opponent$'s winning options, effectively proving that $\player$ has no winning strategy. To exploit this asymmetry, we execute both perspectives concurrently and utilize the result obtained by the faster computation.
+As our experiments demonstrate, solver performance is heavily dependent on the game's underlying structure. We observed that if a structural property makes the game challenging to solve from the perspective of $\player$, it often simplifies the solution process from the perspective of $\opponent$. This asymmetry in computational cost is particularly critical because when a game structure presents a worst-case scenario for one player's solution method, we can often overtake this difficulty by solving the game from the opposite player's perspective. This problem duality allows us to transform the problem. Consequently, solving the game from both perspectives in parallel—by flipping the game—significantly improves overall efficiency. This acceleration is attributed to the \noc propagator’s capacity to rapidly prune the search space by eliminating the winning options of $\opponent$, effectively proving that $\player$ has no winning strategy. To exploit this asymmetry, we execute both perspectives concurrently and utilize the result obtained by the faster computation.
+
+SOTA methods (ZRA) cannot exploit this duality. Their inability to do so is evidenced in data presented in the Appendix, where their performance is shown to remain consistent regardless of which player wins (we have also verified this for all original games and their complements). Additional experiments detailing this asymmetric behavior are also provided in the Appendix.
 
 \section{Experiments and Evaluation}\label{sec:experiments}
 
@@ -400,9 +402,9 @@ The benchmark sets were partitioned into two distinct size categories for evalua
 
 \begin{table}[ht]
 \centering
-\caption{Time Performance of Algorithms on Small Games (Up to $\approx$ 1 Million Vertices), Measured in Seconds.}
+\caption{Time Performance of Algorithms on Small Games (Up to $\approx$ 1 Million Vertices), Average measured in Seconds.}
 {
-\setlength{\tabcolsep}{1mm}
+\setlength{\tabcolsep}{1.1mm}
 \begin{tabular}{l|rrrr|r|>{\columncolor{gray!15}}r|rrr}
 \toprule
 \textbf{Bench} & \multicolumn{4}{c|}{\textbf{Oink}} & \multicolumn{1}{c|}{\textbf{ZRA}} & \multicolumn{1}{c|}{\textbf{\cellcolor{gray!15}NOC}} & \multicolumn{3}{c}{\textbf{Reduction SAT}} \\
@@ -410,7 +412,7 @@ The benchmark sets were partitioned into two distinct size categories for evalua
 \midrule
 \textbf{EqC} & 0.663 & 0.649 & 0.544 & 199.265 & \textbf{0.190} & 0.399 & 16.114 & 76.424 & 32.594 \\[2pt]
 \textbf{MoC} & 0.327 & 0.324 & 0.294 & 145.672 & \textbf{0.172} & 0.289 & 15.524 & 28.924 & 22.443 \\[2pt]
-\textbf{PGS} & \textbf{0.126} & 0.126 & 2.580 & 200.424 & 7.237 & 5.028 & 292.021 & 294.794 & 306.186 \\[2pt]
+\textbf{PGS} & \textbf{0.126} & 0.126 & 2.580 & 200.424 & 7.237 & 5.043 & 292.021 & 294.794 & 306.186 \\[2pt]
 \textbf{RaG} & 0.001 & 0.001 & 0.001 & \textbf{0.001} & 0.002 & 0.001 & 1.100 & 1.113 & 1.384 \\
 \bottomrule
 \end{tabular}
@@ -422,9 +424,9 @@ In Table \ref{tab:smallgames}, we compare the performance of our \noc propagator
 
 \begin{table}[ht]
 \centering
-\caption{Time Performance of Algorithms on Large Games (Up to 22 $\approx$ Million Vertices), Measured in Seconds Using PAR2 Scoring.}
+\caption{Time Performance of Algorithms on Large Games (Up to $\approx$ 40 Million Vertices), Average measured in Seconds Using PAR2 Scoring.}
 {
-\setlength{\tabcolsep}{1mm}
+\setlength{\tabcolsep}{1.2mm}
 \begin{tabular}{l|rrrr|r|>{\columncolor{gray!15}}r}
 \toprule
 \textbf{Benchmark} & \multicolumn{4}{c|}{\textbf{Oink}} & \multicolumn{1}{c|}{\textbf{ZRA}} & \multicolumn{1}{c}{\textbf{\cellcolor{gray!15}NOC}} \\
@@ -432,7 +434,7 @@ In Table \ref{tab:smallgames}, we compare the performance of our \noc propagator
 \midrule
 Equivalence Checking      & 24.775 & 24.876 &  24.159 & 137.250 &  \textbf{14.490} & 16.169 \\ [2pt]
 Model Checking      &  9.547 &  9.557 &   8.718 & 164.438 &  \textbf{3.929} &  8.838 \\[2pt]
-PGSolver Collection & 44.949 & 44.922 & 182.643 & 210.988 & 201.804 & \textbf{31.909} \\[2pt]
+PGSolver Collection & 44.949 & 44.922 & 182.643 & 210.988 & 201.804 & \textbf{32.189} \\[2pt]
 Random Games        &  0.016 &  0.015 & \textbf{0.015} &   0.015 &   0.053 &  0.025 \\
 \bottomrule
 \end{tabular}
@@ -681,9 +683,8 @@ $|V| \times |E|$ & & AVG & SD & AVG & SD & Samples & WR+ & WR- \\
 \bottomrule
 \end{tabular}
 \label{tab:rand500-statisticalanalysis-odd}
-\end{table}
+\end{table}SOTA methods (ZRA) cannot exploit this duality; as shown in Tables 1–2, their performance remains consistent regardless of which player wins (we have also verified this for all original games and their complements)
 
 The statistical evidence presented in Table~\ref{tab:rand500-statisticalanalysis-even} and Table~\ref{tab:rand500-statisticalanalysis-odd}, suggests that \noceager achieves comparable performance to ZRA, with a consistent trend in its favor. In all cases, \noceager records lower average solving times with smaller standard deviations, indicating slightly more stable behavior. The Wilcoxon signed-rank test supports this observation: the number of positive ranks (WR+) is generally low, and the negative rank sums (WR--) are consistently large, providing statistically significant—though not drastic—evidence that \noceager tends to perform better across the tested instances.
-
 
 \end{document}
