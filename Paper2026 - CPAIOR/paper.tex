@@ -460,7 +460,9 @@ The results of the experiments are summarised in Figure~\ref{fig:peakofmemory}. 
 \end{figure}
 
 \section{Games with Additional Constraints}
-Our method not only determines the winner in large parity games efficiently, but also flexibly supports additional constraints—such as quantitative or structural requirements—without modifying the core algorithm. This is a major advantage over non-CP approaches, which typically require tailored adaptations/extensions to do this. 
+
+Our approach leverages Constraint Programming (CP) to solve parity games, offering a significant advantage over existing methods. While earlier SAT-solving techniques, first introduced a decade ago, provided an initial framework, they often exhibit poor performance and lack scalability when applied to large parity games. Our method, in contrast, not only determines the winner in large parity games efficiently but also flexibly integrates additional constraints—such as quantitative or structural requirements—without any modification to the core algorithm. This inherent adaptability to various constraints is a decisive advantage over non-CP approaches, which necessitate custom adaptations for every new constraint.
+
 
 \subsection{Automated Synthesis of Reactive Systems}
 
