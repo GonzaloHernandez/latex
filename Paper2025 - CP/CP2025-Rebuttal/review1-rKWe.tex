@@ -1,0 +1,107 @@
+\documentclass{article}
+\usepackage[top=1.5cm, left=1.5cm, right=1.5cm, bottom=1.5cm]{geometry}
+\usepackage{xcolor}
+
+\begin{document}
+
+\section*{Review1 by rKWe - 3:Weak reject,  3:Somewhat confident }
+The overall idea of the paper is very nice: it identifies a weakness in SAT encodings and develops a propagator to replace the problematic part of the encoding. The clause learning CP model performs very well, and the paper also studies some variants of the propagator which lead to improved performance.
+
+There are, however, a few technical points that I am not happy with:
+
+It is never explained exactly what the complexity is of enforcing GAC on the no-odd-cycles constraint. Is it as hard as the original problem?
+
+\textcolor{red}{ 
+Enforcing GAC ensures that every odd cycle is eliminated from the solution by promoting backward propagation, which falsifies each edge and vertex up to the root node. This effectively reduces solving the problem to setting the root vertex to false during the search, making the task as hard as the original co-NP-complete problem.}
+
+The complexity of all the variants is never discussed. This is important because Algorithm 1 does not keep track of which vertices it has visited during the DFS, which means that its runtime is potentially exponential.
+\\
+\textcolor{red}{
+Alg1-NOC-Checker: is potentially exponential although $path_V$ is tracking visited vertices \\
+Alg4-NOC-Memo: is cubic over $|V|$ in the worse case, tracking visited verities throw $path_V$ and saving visited loop throw $(best^v,best^m)$ $O(k \cdot |E|)$}
+
+The memo algorithm given later can be linear, but the explanation given is that it only improves inter-invocation performance. 
+
+\textcolor{red}{While it is true that the example used to illustrate this emphasizes inter-invocation scenarios — as in the case where "the search could subsequently explore an assignment that is identical except for V1, E0, and E2" — a similar situation arises during the recursive search within Alg-4 itself.}
+
+I do not understand why memoization is not needed even in the base case.
+
+\textcolor{red}{Alg1-NOC-Checker was our starting point; at that stage, it was necessary to first analyze how the winning condition could be integrated with memoization. Additionally, explaining this approach was useful for the clarity and structure of the paper.}
+
+There is no comparison of the amount of propagation/pruning achieved by difference logic versus the new propagator.
+
+\textcolor{red}{I agree. I dont know how to calculate that.}
+
+The propagator itself is more like a checker. If there already exists an odd priority cycle, it will detect it. However, I can imagine cases where all possible cycles have odd priority, but this will not do anything until more assignments are made. (the variants that perform, essentially, a singleton version of this check to prune some values do not change this issue in any way).
+
+\textcolor{red}{
+As we explained earlier, NOC does not enforce full GAC because doing so would be computationally expensive. Instead, we chose to leverage the benefits of the search process itself.\\
+NOC-Checker does exactly that — it detects the existence of an odd-priority cycle when it emerges. However, NOC-Basic and NOC-Memo proactively perform pruning in advance, as described in Section 3.3. In cases where all possible cycles have odd priority (which represents the best-case scenario), NOC can quickly determine that the problem is unsatisfiable by establishing a winning strategy for player ODD. This behavior is evidenced in Table 4, where instances won by ODD are solved in approximately 10 milliseconds.}
+
+low level comments:
+
+Is it standard notation in parity games to use circles and squares? I found it very hard to remember which is odd and which is even.
+
+\textcolor{red}{Some papers do use shapes to represent the players Even and Odd. In our work, we found it useful to adopt this convention and associate the same shapes to indicate vertex ownership in our figures. This helps maintain consistency and clarity throughout the diagrams.}
+
+How is the initial call to algorithm 1 made? That is, initial values of v, e, pathV, pathE?
+
+\textcolor{red}{$noOddCycle([],[],start,\mathcal{E},-1)$}
+
+264: what is noc-basic?
+
+\textcolor{red}{It is not "similar to NOC-Basic"; it is "called NOC-Basic".}
+
+alg 2, line 12: you should use some notation such as Iverson brackets to show that the last argument is reified and not an assignment
+
+\textcolor{red}{The last parameter is not a reification. In line 12, we are simply passing a boolean value as a parameter.}
+
+I do not understand table 1. What are the columns?
+
+\textcolor{red}{Table 1 combines the results of four different experiments: Jurdzinski20-20, Jurdzinski30-15, ModelCheckerLadder500, and ModelCheckerLadder2000. For each experiment, there are four columns, each representing a different run starting from a different initial vertex. The titles of each subtable also indicate, using shapes, which player won each game.}
+
+\subsection*{Pros And Cons:}
+\textbf{pros}:\\
+nice overall approach
+one of the variants performs well and outperforms SAT and SMT
+\\
+\textbf{cons}:\\
+some technical issues (see main part of review)
+\subsection*{Questions To Authors:}
+My main question is why do we not get exponential runtime in the base version of the checker?
+
+\textcolor{red}{Indeed, the base version, NOC-Checker, is potentially exponential. It only detects previously visited vertices. This was improved in NOC-Memo, which also detects previously visited cycles and thereby avoids exponential behaviour. We did not start with this more advanced approach because cycle detection in our context requires an additional evaluation of the best priority. Explaining this evaluation carefully was necessary as part of the step-by-step development of our improved versions.}
+
+%-----------------------------------------------------------------------------------------------
+
+\section*{Rebuttal}
+
+We thank the reviewer for the thoughtful and constructive feedback. The insights provided have helped us improve the clarity and completeness of our work. Below, we address each of the concerns raised.
+
+**Q. Is [NoOddCycle] as hard as the original problem?**
+
+We agree that the complexity analysis deserves more explicit discussion. The NOC constraint is not as hard as the original problem, since NOC only requires that *any* edge on a potential odd cycle needs to be false, while the original problem also contains the additional constraints that force certain edges to be true. 
+
+Note that Algorithms 2 and 4 are not merely checkers, they actively propagate that edges must be absent if they otherwise closed an odd cycle. GAC for NOC is achieved when all edges but one on an odd cycle are true, and the algorithm makes the final edge false. Our Algorithms 2 and 4 almost do that, except that they are restricted to the edge that *closes* the cycle. This could be changed, although we don't expect big performance gains, since the search tends to construct the graphs one edge at a time. 
+
+Algorithm 1 and 2 indeed have exponential complexity. Algorithm 4 improves this to $O(k|E|)$ where $k$ is the number of priorities (since it considers each edge at most $k$ times in line 13). We believe that the GAC version can be implemented with the same time complexity.
+
+Q. Is it standard notation...?
+
+We adopted the use of circles and squares following established conventions from prior works, such as Jurdziński (2000) [17], to indicate vertex ownership.
+
+Q. How is the initial call to algorithm 1 made? 
+
+$\textsf{NoOddCycle}([],[],\textit{start},\mathcal{E},-1)$
+
+Q. 264: what is noc-basic?
+
+This should have read "Algorithm 2".
+
+Q. I do not understand table 1
+
+This table combines the results of four different experiments: Jurdzinski20-20, Jurdzinski30-15, ModelCheckerLadder500, and ModelCheckerLadder2000. For each experiment, there are four columns, each representing a different run starting from a different initial vertex. The titles of each subtable also indicate, using shapes, which player won each game.
+
+
+
+\end{document}

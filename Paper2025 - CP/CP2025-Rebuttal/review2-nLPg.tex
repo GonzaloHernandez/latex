@@ -1,0 +1,56 @@
+\documentclass{article}
+\usepackage[top=1.5cm, left=1.5cm, right=1.5cm, bottom=1.5cm]{geometry}
+\usepackage{xcolor}
+
+\begin{document}
+
+\section*{Review2 by rKWe - 4:Weak accept,  3:Somewhat confident }
+The paper is nicely written and easy to follow. The authors do a good job of introducing the relevant background about the game and the start of the art on how to solve it. The paper is a bit heavy on notation, but again, this is all well-explained and easy enough to follow. I only have a few remarks below that I think could make it even more polished.
+
+I liked the structure of the paper and how the propagator is reasoned and built step by step. It was so clear, I never felt like I needed to go and check again for details.
+
+The experimental evaluation looks nice and clear, although I would have liked to see more about how other non CP/SAT approaches perform. In particular, the resource utilisation analysis was excellent!
+
+I also consider Section 5 to be an excellent addition to the paper and puts the contributions of the authors in a more general framework. I do find it surprising that there is no mention of bipartite graphs and how this propagator could be used for that purpose.
+
+\textcolor{red}{It would be interesting to explore this direction, especially since the key properties of bipartite graphs are directly related to the presence or absence of even and odd cycles.}
+
+In short, I think this is quite a nice paper that should be accepted.
+
+Minor comments: Line 62: “to address” Example 2 and Figure 1: If every vertex has a different color, why not use different colors? Line 122: “approache” Line 189: The section header is sentence case while all others are in title case. Line 264: NOC-basic. I assume this means Algorithm 2, in which case I would rewrite the caption of Algorithm 2 to include this short name. Or don’t use the short name here, as they are introduced much later in Section 4.1 Line 335: The first experiment… but this is about table 2. What about the experiment in Table 1? Why is there a big space gap in line 345?
+
+\subsection*{Pros And Cons:}
+\textbf{pros}:\\
+Clear and reasonable approach leading to good experimental results\\
+\textbf{cons}:\\
+Unsure if DFS is the best starting point
+\subsection*{Questions To Authors:}
+Why a DFS tree and not a BFS tree? Isn't the latter more common when checking for bipartite graphs? And would it also lead to a more balanced tree?\\
+\textcolor{red}{DFS is the standard and well-studied approach for traversing directed graphs, whereas bipartite graphs are typically considered in the context of undirected graphs, where BFS is more commonly used for checking bipartiteness.}
+
+Were SAT approaches the very best? 
+
+\textcolor{red}{While SAT-based approaches do not offer the best performance for solving this type of problem, this method emerges as a new alternative for solving parity games within a well-supported and continuously evolving framework}
+
+How do specialised algorithms perform when solving these instances?
+
+\textcolor{red}{The standard approach is Zielonka’s Recursive Algorithm (ZRA), which outperforms CP/SAT methods. However, our work presents a directed extension mechanism that ZRA does not naturally support, as outlined in Section 5.}
+%-----------------------------------------------------------------------------------------------
+
+\section*{Rebuttal}
+
+We thank the reviewer for the positive and encouraging comments, and we greatly appreciate the valuable feedback. We will address all the small issues to ensure that the paper is clear, consistent, and error-free.
+
+**Q. Why a DFS tree and not a BFS tree?  Isn't the latter more common when checking for bipartite graphs?**
+
+The graphs we are exploring are not bipartite -- while they contain two types of nodes (odd and even), we can have edges between any pair of nodes, not just nodes from the different partitions.
+
+In response to the question about DFS vs BFS, while both can be used to detect cycles in graphs, the DFS has the advantage of using less memory (linear in the depth of the search tree, rather than in the size of the explored graph).
+
+**Q. Were SAT approaches the very best? How do specialised algorithms perform when solving these instances?**
+
+The most efficient algorithms for solving parity games are specialised approaches such as Zielonka’s Recursive Algorithm (ZRA), which generally outperforms CP/SAT methods. 
+
+While SAT-based methods may not offer the best performance for solving the basic problem, they can take advantage of the rapid performance improvements in SAT solving. In addition, SAT-based methods and our method make it easy to extend the problem with, e.g., additional constraints, which are not naturally supported by ZRA (as discussed in Section 5).
+
+\end{document}

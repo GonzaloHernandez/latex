@@ -1,0 +1,16 @@
+\definition{
+    \textit{Reach(M)} &$ = \{\langle t_0,t_1,\ldots \rangle \in \Omega \mid t_k \in M$ for some $k \geqslant 0\}$
+}
+
+\textit{Reachability} condition requires that some states in the set $M \subseteq V$ be visited. Similarly, \textit{Safety} condition requires that only the states in the set $M \subseteq V$ be visited.
+
+\definition{
+    \textit{Inf($\omega$)} &$ = \{t \in \langle t_0,t_1,\ldots \rangle \in \Omega \mid t_k = t$ for infinitely many $k \geqslant 0\}$
+}
+
+\definition{
+    \textit{priority} &$ : V \rightarrow \mathbb{N}_0 $
+    \\ & \textit{Parity} &$ =\{ \omega \in \Omega \mid max\{priority(t) \mid t \in $ \textit{Inf($\omega$)}$\}$ is even$\}$
+}
+
+Having a set vertices that are reached infinitely many times, \textit{Inf($\omega$)}, and given a function \textit{prior} that assigns a non-negative integer $\mathbb{N}_0$ label to each vertex, the \textit{Parity} condition requires that the highest priority that is reached infinitely often must be \textit{even}.

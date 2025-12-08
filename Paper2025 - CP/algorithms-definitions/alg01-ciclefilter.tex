@@ -1,0 +1,22 @@
+\begin{algorithm}[H]
+    \caption{Cycle Filter}
+    \begin{algorithmic}[1]
+    \Function{filter}{ $path_V, path_E, v, E, e, \textit{defined}$ }
+        \If{$v \in path_V$} 
+            \State $i_v \gets \text{index}(v, path_V)$
+            \State $c_{\text{min}} \gets \min\{f(v') \mid v' \in path_V[i_v:]\}$
+            \If{$c_{\text{min}} \mod 2 = 1$} 
+                \State $\text{reason} \gets \text{clausify}(\neg path_E[i_v:])$
+                \State $E[e] \gets (\text{false}, \text{reason})$
+            \EndIf
+        \Else 
+            \If{$\textit{defined}$}
+                \For{$e' \in \text{edges}(v) \textbf{ where } E[e'] \ne \text{false}$}
+                    \State status $\gets \text{filter}(path_V \cup \{v\}, path_E \cup \{e'\}, \text{target}(e'), E, e', E[e'] = \textit{true})$
+                \EndFor
+            \EndIf
+        \EndIf
+    \EndFunction
+    \end{algorithmic}
+    \label{alg:cycle-filter-v1}
+\end{algorithm}

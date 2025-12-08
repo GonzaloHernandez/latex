@@ -1,0 +1,718 @@
+\documentclass[a4paper,UKenglish,cleveref, autoref, thm-restate, anonymous]{lipics-v2021}
+\usepackage{algpseudocode}
+\usepackage{algorithm}
+\usepackage{comment}
+
+\input{macros.tex}
+
+%\graphicspath{{./graphics/}}%helpful if your graphic files are in another directory
+
+\bibliographystyle{plainurl}% the mandatory bibstyle
+
+\title{A No-Odd-Cycle Propagator for Solving Parity Games} %TODO Please add
+
+% \titlerunning{Dummy short title} %TODO optional, please use if title is longer than one line
+
+\author{Gonzalo Hernandez}{Monash University \and Universidad de Nariño}{gonzalo.hernandez@monash.edu\footnote{Also reachable at \texttt{gonzalo.hernandez@udenar.edu.co}}}{}{}
+\author{Julian Garcia}{Monash University}{julian.garcia@monash.edu}{}{}
+\author{Julian Gutierrez}{University of Sussex}{J.Gutierrez@sussex.ac.uk}{}{}
+\author{Guido Tack}{Monash University \and OPTIMA ARC ITTC}{guido.tack@monash.edu}{}{}
+
+% \author{Joan R. Public\footnote{Optional footnote, e.g. to mark corresponding author}}{Department of Informatics, Dummy College, [optional: Address], Country}{joanrpublic@dummycollege.org}{[orcid]}{[funding]}
+
+% \authorrunning{J. Open Access and J.\,R. Public} %TODO mandatory. First: Use abbreviated first/middle names. Second (only in severe cases): Use first author plus 'et al.'
+
+\Copyright{Gonzalo Hernandez, Julian Garcia, Julian Gutierrez, , Guido Tack} %TODO mandatory, please use full first names. LIPIcs license is "CC-BY";  http://creativecommons.org/licenses/by/3.0/
+
+\ccsdesc[500]{Theory of Computation~Constraint and Logic Programming}
+\ccsdesc[500]{Theory of Computation~Algorithmic Game Theory}
+\ccsdesc[300]{Theory of Computation~Verification by Model Checking}
+
+%\ccsdesc[100]{\textcolor{red}{Replace ccsdesc macro with valid one}} %TODO mandatory: Please choose ACM 2012 classifications from https://dl.acm.org/ccs/ccs_flat.cfm 
+
+\keywords{constraint programming, game theory, parity games, synthesis of reactive systems, model checking} %TODO mandatory; please add comma-separated list of keywords
+
+\category{} %optional, e.g. invited paper
+
+\relatedversion{} %optional, e.g. full version hosted on arXiv, HAL, or other respository/website
+%\relatedversiondetails[linktext={opt. text shown instead of the URL}, cite=DBLP:books/mk/GrayR93]{Classification (e.g. Full Version, Extended Version, Previous Version}{URL to related version} %linktext and cite are optional
+
+%\supplement{}%optional, e.g. related research data, source code, ... hosted on a repository like zenodo, figshare, GitHub, ...
+%\supplementdetails[linktext={opt. text shown instead of the URL}, cite=DBLP:books/mk/GrayR93, subcategory={Description, Subcategory}, swhid={Software Heritage Identifier}]{General Classification (e.g. Software, Dataset, Model, ...)}{URL to related version} %linktext, cite, and subcategory are optional
+
+%\funding{(Optional) general funding statement \dots}%optional, to capture a funding statement, which applies to all authors. Please enter author specific funding statements as fifth argument of the \author macro.
+
+\acknowledgements{I want to thank \dots}%optional
+
+%\nolinenumbers %uncomment to disable line numbering
+
+%Editor-only macros:: begin (do not touch as author)%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\EventEditors{John Q. Open and Joan R. Access}
+\EventNoEds{2}
+\EventLongTitle{The 31st International Conference on Principles and Practice of Constraint Programming
+(CP 2025)}
+\EventShortTitle{CP 2025}
+\EventAcronym{CP}
+\EventYear{225}
+\EventDate{August 10--15, 2025}
+\EventLocation{Glasgow, Scotland}
+\EventLogo{}
+\SeriesVolume{31}
+\ArticleNo{1}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+
+Solving parity games is a fundamental problem in formal verification, specifically when using model checking and automated synthesis techniques, which have several industrial-scale applications. In this paper, we propose a constraint-based approach for solving parity games based on a novel propagation algorithm that removes odd cycles from graphs. Our implementation in a Lazy Clause Generation framework outperforms other existing constraint-based methods for parity games, and compares well with the most specialized (not CP-based) algorithms for parity games, while preserving the greater flexibility of more general constraint-based methods.
+
+Because new constraints can be easily added, our method provides a flexible framework for refining existing problem formulations of a game to search for preferred solutions, by satisfying additional constraints. 
+% Julian: Can we present something about this? If not, maybe better to leave this sentence out... 
+This feature of our method can also be used to solve parity games where additional quantitative constraints ({\em e.g.}, cost or resource-bounded requirements) need to be satisfied. 
+%
+This paper presents the theoretical foundations of our approach, an experimental evaluation, and a discussion of the results, including an analysis of different versions of the propagator developed.
+
+\end{abstract}
+
+\section{Introduction}
+
+Parity games are two-player zero-sum infinite-duration games played on a labelled directed graph, where vertices represent different states of the players in the game, and edges represent their possible available actions at every state. 
+Solving these games is at the core of several techniques in automated formal verification, in particular, when solving model checking and automated synthesis problems.
+
+Since parity games are zero-sum, perfect-information games, solving them amounts to finding which player (usually called Player Even, or $\even$, and Player Odd, or $\odd$) has a winning strategy, from a given starting vertex in the graph. 
+It is known that deciding the winner in parity games is a $\text{NP} \cap \text{co-N}P$ problem~\cite{Jurdziński:1998}, but it is not known whether or not they can be solved in polynomial time; a problem that has remained open for nearly 50 years. 
+Due to the importance of parity games in formal verification, several algorithms have been developed \cite{Aggarwal:2023,Arcucci:2017,Jurdziński:2000,Jurdziński:2022,Zielonka:1998}, all of them suffering from exponential running time limitations for different classes of parity games. 
+One such approach follows the idea of reducing the solution of a parity game to the solution of a SAT instance representing the game. The generated SAT instance is satisfiable if and only if in the original game, Player Even has a winning strategy.
+This idea has a lot of potential given the advances in SAT-solving technology, but, as we will show later, it suffers from poor scalability due to the large size of the generated CNF formula for a given game.
+
+In this paper, we address these scalability issues by developing a specialised propagator that takes into account the structure of parity games, resulting in significant improvements in performance and modelling power. 
+In particular, we show that our methodology outperforms all other state-of-the-art constraint-based solvers.
+
+More specifically, in this paper we propose to replace the encoding currently used for SAT solving to forbid cycles in the graph that correspond to Player Odd winning \cite{Heljanko:2012} with an efficient global constraint propagator, significantly reducing the encoding size of the problem. The propagator is based on a depth-first search of the game graph, filtering edges that would close winning cycles for Player Odd, and generating explanations for the filtering steps that can be used in a Lazy Clause Generation~\cite{DBLP:journals/constraints/OhrimenkoSC09} solver. We demonstrate that our implementation achieves significantly better performance than other SAT or CP-based approaches.
+In doing so, we aim to pave the way for using the CP framework address other, more specialized, parity games as well.
+
+%Following a CP methodology, we introduce a novel approach that eliminates the reliance on odd cycles in the resolution of parity games. Our method leverages a no-odd-cycle propagator that efficiently detects and resolves cycles (that is, find the winner of a given cycle -- a closed path), which is the key information in this kind of games. By integrating our propagator into state-of-the-art solving techniques, we show improved performance in several benchmark instances.
+
+The remainder of this paper is organized as follows. In Section~2, we present the theoretical foundations and necessary definitions used in further sections. Section~3 introduces our proposed approach, including the design and implementation of the no-odd-cycle propagator. Section~4 provides experimental results and a comparative analysis against state-of-the-art solvers, while Section~5 presents the extension of our method with additional constraints. Finally, we conclude in Section~6 with a discussion of our findings and potential future research directions.
+
+\section{Preliminaries and Related work}
+
+This section introduces the formalisation of parity games used in the rest of the paper, and it gives an overview of the existing translations into Boolean Satisfiability (SAT) and Satisfiability Modulo Theories (SMT).
+
+\subsection{Parity Games}
+
+Parity games are two-player zero-sum games played on a labelled directed graph, called the \textit{arena}, where two players, \textit{Even \even} and \textit{Odd \odd}, move a token along adjacent vertices depending on which player controls the vertex where the token is, generating a path of  states visited by the token. In a parity game, each path is winning for either Player Even or for Player Odd. The goal of each player is to force a winning path for themselves. We will now formalise parity games, including the definition of when a given path in the graph is winning for either player.
+
+\begin{definition}\label{def:arena}
+    An \textit{arena} $G$ is a finite directed graph $G = (V=V_{\subeven}\cup V_{\subodd}, E, \Omega)$, where:
+$V$ is a finite set of vertices, $E \subseteq V \times V$ is a set of directed edges satisfying that every vertex has at least one outgoing edge, and $\Omega: V \to \mathbb{N}$ is a labelling function that assigns every vertex a non-negative integer, called its \textit{priority} or \textit{color}~\cite{Brihaye:2011,Erich:2008}.
+\end{definition}
+
+The game starts with a token at an initial vertex $v_0 \in V$. Player Even is responsible for moving the token when it is on a vertex in $V_{\subeven}$, and Player Odd is responsible for moving the token when it is on a vertex in $V_{\subodd}$. Because every node is required to have at least one outgoing edge, the token travels along the graph generating a path of infinite length. The winner is determined by the lowest priority that is visited by the token infinitely often. Example~\ref{exa:jurd-2-1} illustrates an instance of a parity game arena.
+
+\begin{example}\label{exa:jurd-2-1}
+The parity game in Figure~\ref{fig:jurd-2-1} is taken from~\cite{Jurdziński:2000}. It consists of 7 vertices and 12 edges. Every vertex has a color taken from the set $\textit{Colors}=\{1,2,3,4\}$. In the figure, vertices of player~\even are represented by circle vertices, and vertices of player~\odd are represented by square vertices.
+
+\end{example}
+
+%Change this figure. It contains numbers that do no appear in the definition stated above, both inside the vertices and along the edges. Also, have here just a random game -- no need to mentiond Jurdzinski as this is something that has not been mentioned yet. 
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=0.6\textwidth]{images/game-2-1a.png} 
+    \caption{Parity Game with seven vertices and set of priorities given by the set Colors=\{1..4\}.}
+    \label{fig:jurd-2-1}
+\end{figure}
+
+
+\begin{comment}
+
+\subsubsection*{Parity winning condition}
+
+To analyze the mechanism used for players to play using their strategies, let us first define the game in terms of the arena and the definition of winning strategies.  Thas is importat to understand how every player will reason about the payoff in his own benefit.
+
+\begin{definition}\label{def:winningconditions}  
+A parity game is a tuple $\Gamma = ((V_i)_{i \in \{\subeven,\subodd\}}, W, E, \Omega)$, where player even \even and player odd \odd control a subset of vertices $V_i$, and their strategies are determined by the outgoing edges $ e \in E $ from $ V_i $. The set $ W $ represents the winning condition for player both players. \cite{Chatterjee:2012,Flesch:2023}
+\end{definition}  
+
+For the sake of Following Example \ref{exa:jurd-2-1}, let us assume that the play starts in $ V_0 $. In this case, player \even makes the first move. It is easy to see that the optimal choice is to use $ E_1 $, since on the second move, upon reaching $ V_2 $, they can close the cycle by selecting $ E_3 $. This ensures that the minimal color in the cycle is 2, making player \even the winner with the play sequence $\pi = \langle 0,2,0,2,\dots \rangle$.  
+
+\begin{definition}\label{def:play}  
+    A play is a sequence $ \pi = \langle t_0, t_1, \ldots, t_h, \ldots \rangle $ for all $ h \geqslant 0 $, where the finite prefix $ \langle t_0, \dots, t_h \rangle $ represents the history of the path, and the remaining sequence $ \langle t_{h+1}, \dots \rangle $ forms the infinite continuation. The set of states that appear infinitely often in $ \pi $ is defined as  $\textit{Inf}(\pi) = \{ t \in \pi \mid t_k = t \text{ for infinitely many } k \geqslant 0 \}$.
+\end{definition}  
+
+If the game starts in $V_1$, other possible plays include $\pi' = \langle 1,2,0,2,0,\dots \rangle$ or $\pi'' = \langle 1,2,3,2,3,\dots \rangle$. In both cases, player \even is the winner. However, if the game starts in $V_4$, the possible plays are $\pi''' = \langle 4,5,4,5,\dots \rangle$ or $\pi'''' = \langle 4,5,6,5,6,\dots \rangle$, where player \odd can force the game into plays where the minimum color is 3, making \odd the winner.  
+
+\begin{definition}  
+    The parity condition is defined as $\textit{Parity} = \{ \pi \in \Pi \mid \min \{ f(t) \mid t \in \textit{Inf}(\pi) \} \text{ is even} \}$, where player \even is the default winner if the condition holds; otherwise, player \odd wins. \cite{Erich:2008}
+\end{definition}  
+
+\end{comment}
+
+\subsection*{Strategies, Plays, and Winning Conditions}
+A memoryless, or {\em positional strategy} for Player Even (Odd) in a parity game is a function $f_{\subeven} : V_{\subeven} \to V$ ($f_{\subodd} : V_{\subodd} \to V$) that dictates how the player should move the token when it is in one of the vertices that the player controls. Every pair of memoryless strategies, one for each player, uniquely determines an infinite path $\pi$, called a {\em play}, in the game. Accordingly, $\Omega \pi$ is then an infinite sequence of priorities. Let $\pi_k$ be the $(k+1)$th element in such a sequence of vertices, that is, in such a path. Because the graph where the game is played is finite, such an infinite sequence of priorities has a (possibly empty) finite prefix $\Omega(\pi_0) \Omega(\pi_1) \ldots \Omega(\pi_h)$ of length $h$ and an infinite tail $\Omega(\pi_{h+1}) \Omega(\pi_{h+2}) \ldots$ of priorities that are seen infinitely often (given that the graph is finite and the strategies are memoryless/positional). We say that a play~$\pi$ is {\em winning} for player $\even$ (player $\odd$) if the smallest priority that appears infinitely often in its associated sequence of priorities $\Omega \pi$ is even (odd). 
+
+Given an initial vertex $v_0$, a strategy is said to be winning from $v_0$ for player~$\even$ (player~$\odd$) if it only generates winning plays for player~$\even$ (player~$\odd$) starting at $v_0$ for all strategies of the other player. It is known that for every vertex~$v\in V$ in a parity game, one of the two players always has a memoryless winning strategy from that vertex~$v$. Solving a parity game means deciding, for every vertex~$v\in V$, which player has a memoryless winning strategy from that vertex. It then implies finding a partition $W_{\subeven} \cup W_{\subodd} = V$, of the vertices from which each player has a winning strategy. We say that $W_{\subeven}$ is the winning region of player~$\even$, while $W_{\subodd}$ is the winning region of player~$\odd$. We usually say that player~$\even$ wins a parity game when this player has a winning strategy at~$v_0$; otherwise, we say that player~$\odd$ wins the given parity game starting at vertex~$v_0$. 
+
+\subsection{Solving parity games using SAT-Modulo-Theories}
+
+In addition to dedicated algorithms to solve parity games, techniques have been developed to \textit{encode} a given game into constraint-based formalisms, in order to use off-the-shelf solvers to solve parity games. One such approache~\cite{Heljanko:2012} uses Satisfiability Modulo Theories (SMT) solvers to do so. 
+That encoding is based on the following result:
+
+\begin{lemma}\label{def:smt-condition}
+    A game is won by player \even if, starting at $v_0$, every $v \in V_{\subeven}$ has at least one outgoing edge leading to an infinite path where the lowest priority is even. Furthermore, every $v \in V_{\subodd}$ must have all of its outgoing edges leading to infinite paths with the same condition.
+\end{lemma}
+
+The idea is to construct a CNF formula that is satisfiable if and only if the condition described by Lemma~\ref{def:smt-condition} holds. Determining satisfiability therefore is equivalent to proving that Player~\even has a winning strategy, while determining unsatisfiability proves the same for Player~\odd.
+%
+The approach introduces Boolean variables for the vertices and edges of the arena: $S_v$ for every $v \in V$ and $T_{v,w}$ for every $(v, w) \in E$. The $S_v$ and $T_{v,w}$ represent whether the corresponding vertices and edges are on a winning path for~$\even$ (according to Lemma~\ref{def:smt-condition}).
+
+A CNF formula can then capture the simple path conditions of Lemma~\ref{def:smt-condition}:
+
+\begin{itemize}
+    \item $\Phi_\exists = \bigwedge_{v \in V_{\subeven}} (S_v \rightarrow \bigvee_{w \in vE} T_{(v,w)})$
+    \item $\Phi_\forall = \bigwedge_{v \in V_{\subodd}} (S_v \rightarrow \bigwedge_{w \in vE} T_{(v,w)})$
+    \item $\Phi_V = \bigwedge_{w \in V, w \neq v_0} \left( \left(\bigvee_{v \in Ew} T_{(v,w)}\right) \rightarrow S_w \right)$
+\end{itemize}
+
+These constraints state that for all vertices controlled by \even, if a vertex is on the winning path, then at least one outgoing edge must be on the winning path ($\Phi_\exists$); for all vertices controlled by $\odd$, if the vertex is on the winning path (for $\even$), then all outgoing edge must be on the winning path ($\Phi_\forall$); and for all vertices, if an edge leading to the vertex is on the winning path for \even, then the vertex itself is on the winning path ($\Phi_V$).
+% I don't think this is correct, at least the interpretation that I'm giving to this explanation
+
+The final condition is slightly more difficult to implement: there must be an \textit{infinite} winning path where the lowest priority is even. This can be locally encoded using a \textit{progress measure}~\cite{Heljanko:2012,Jurdziński:2000} expressed with additional integer variables. A variable $x_p^v$ is introduced for every $v \in V$ and every $p \in \textit{Odd}(G)$, corresponding to the set of all odd priorities in the game, defined as $\textit{Odd}(G) = \{ p\in {\mathbb N} \mid p \text{ is odd and } \Omega(v) = p \text{ for some } v \in V \}$. These variables track \textit{progress} along every $ t \in \textit{Inf}(\pi) $, the set of priorities that appear infinitely often in $\pi$, ensuring that $x_p^v > x_p^w$ if the priority is odd, or $x_p^v \geq x_p^w$ if the priority is even. Since odd priorities require a strictly increasing chain of integers, cycles with odd priorities are ruled out by this constraint. On the other hand, for even priorities, only a non-strict inequality is enforced.
+%
+The formal definition of the progress measure constraints is as follows:
+
+\begin{itemize}
+\item $\Phi_A = \bigwedge_{(v,w) \in E} \left(T_{(v,w)} \rightarrow \Psi_{(v,w)}\right)$
+\item $\Psi_{(v,w)} = \bigwedge_{p \in \textit{Odd}^{<\Omega(w)}(G)} (x_p^v \geqslant x_p^w), \textit{ if } \Omega(w) \textit{ is even}$
+\item $\Psi_{(v,w)} = (x_{\Omega(w)}^v > x_{\Omega(w)}^w) \land \bigwedge_{p \in \textit{Odd}^{<\Omega(w)}(G)} (x_p^v \geqslant x_p^w), \textit{ if } \Omega(w) \textit{ is odd}$
+\end{itemize}
+% Last expression must be checked. Are you sure the last expression is correct? 
+
+These constraints are instances of {\em difference logic}, which is supported by some SMT solvers. Thus, an SMT solver can determine the satisfiability of~$(S_{v_0} \wedge \Phi_{\exists} \wedge \Phi_{\forall} \wedge \Phi_V \wedge \Phi_A)$, and, consequentially, decide whether or not player~\even has a winning strategy.
+
+\paragraph*{Reduction to SAT}
+
+The difference logic constraints of the progress measure can be encoded into pure CNF, which enables the use of modern SAT solvers to decide the winner of a parity game. This was the approach chosen in the paper that introduced the SMT encoding~\cite{Heljanko:2012}. Every integer variable $x_p^v$ is represented as its binary encoding using Boolean variables $X_{p,m}^v$ for every $m$ in the set of bits required to represent $x_p^v$.  Indeed, difference logic constraints $X_p^v \geqslant X_p^w$ and $X_p^v > X_p^w$ can then be translated into simple lexicographic constraints as follows:
+
+\begin{itemize}
+    \item $\mathsf{GreatOrEq}(v, w, p, 0) = x_{p,0}^w \rightarrow x_{p,0}^v$
+    \item $\mathsf{GreatOrEq}(v, w, p, m) = (x_{p,m}^w \rightarrow x_{p,m}^v) \wedge ((x_{p,m}^w \vee x_{p,m}^v)) \rightarrow \mathsf{GreatOrEq}(v, w, p, m-1)$
+    \item $\mathsf{StrictGr}(v, w, p, 0) = x_{p,0}^v \wedge x_{p,0}^v$
+    \item $\mathsf{StrictGr}(v, w, p, m) = (x_{p,m}^w \rightarrow x_{p,m}^v) \wedge ((x_{p,m}^w \vee x_{p,m}^v)) \rightarrow \mathsf{StrictGr}(v, w, p, m-1)$\end{itemize}
+
+The encoding introduces up to $O(n^2)$ integer variables, for $n$ vertices and $|\textit{Odd}(G)|\ \in\ O(n)$. Each integer variable requires up to $\lceil \log(n+1) \rceil$ Boolean variables for its binary representation. The lexicographic constraints are linear size in the number of bits. The worst-case size of the encoding is therefore cubic in the size of the arena, both in terms of variables and clauses in the CNF.
+
+\section{A Constraint-Based Approach Using a No-Odd-Cycle Propagator}
+
+In this section, we will present our approach to solving parity games, by encoding them into a Constraint Satisfaction Problem (CSP) with a specialised propagator for the winning condition. Our method closely follows the framework presented in the previous section, determining satisfiability by evaluating whether a game, starting at $v_0$, is won by player \even.
+
+%In the following subsections, we first analyze the mechanism for characterizing winning strategies locally using progress measures, and propose a more efficient alternative approach that replaces this mechanism a with a global constraint.
+
+
+
+%\subsection{Expensive progress measures}
+
+%A progress measure requires maintaining a constant relation between every possible vertex in the graph for each odd color occurring in the game. This requires at most $n^2$ integer variables to track progress in a game with $n$ nodes. Furthermore, to encode these values in SAT, each integer variable requires $\lceil \log(n+1) \rceil$ boolean variables. 
+
+However, while we retain the constraints $\Phi_\exists$, $\Phi_\forall$, and $\Phi_V$ to ensure connectivity within the arena, we observe that the $\Phi_A$ constraints, based on progress measures, lead to poor scalability of SAT-based approaches. 
+As discussed above, the size of the encoding is, in the worst case, cubic in the size of the arena. In practice, the encoding sizes are typically not cubic, but still prohibitive. Instances such as Model Checker Ladder games\footnote{We will discuss these benchmark instances in Section~\ref{sec:experiments}.} with 5,000 nodes can result in more than 110 million Boolean variables; similarly, for a Steady Game with 5,000 nodes, the encoding generates over 215 million clauses.
+Instances that are prohibitive in practice are common, even if $\textit{Odd}(G)$ is small. 
+
+ %-- even though this does not exhibit the cubic behaviour since the cardinality of $\textit{Odd}(G)$ is small, it is clearly at least quadratic, and prohibitive in practice.
+
+
+Our approach is therefore to replace the progress measure with a global constraint that does not rely on the $x_p^v$ integer variables.
+
+%Further details on these experiments are provided in Section \ref{sec:experiments}.
+
+\subsection{Characterising winning strategies globally}
+
+We start by translating the game $\Gamma$ into a constraint satisfaction problem:
+
+\begin{definition}\label{def:csp}
+    The CSP encoding of the parity game $\Gamma$ with arena $G=(V,E,\Omega)$ and starting vertex $v_0$ is defined as $\mathcal{CSP = (X, D, C)}$, where the set of variables is given by $\mathcal{X} = (\mathcal{V}_v)_{v \in V} \cup (\mathcal{E}_e)_{e \in E}$. All of these variables are Boolean, thus, $\mathcal{D} = \{\bot,\top\}$. The set of constraints, denoted by $C$, is defined as follows:
+    \begin{itemize}
+        \item $\mathcal{C}_{v_0} : \mathcal{V}_{v_0} = \top$
+        \item $\mathcal{C}_{\subeven} : \bigwedge_{v \in V_{\subeven}} (\mathcal{V}_v \rightarrow \bigvee_{w \in vE} \mathcal{E}_{(v,w)})$
+        \item $\mathcal{C}_{\subodd} : \bigwedge_{v \in V_{\subodd}} (\mathcal{V}_v \rightarrow \bigwedge_{w \in vE} \mathcal{E}_{(v,w)})$
+        \item $\mathcal{C}_E : \bigwedge_{w \in V, w \neq v_0} ((\bigvee_{v \in Ew} \mathcal{E}_{(v,w)}) \rightarrow \mathcal{V}_w)$
+        \item $\mathcal{C}_{NOC} : \bigwedge_{\pi \in \Pi} ( \textit{min}\{   \Omega(v) \mid v \in \textit{Inf}(\pi) \wedge \exists w \in V : \mathcal{E}_{(v,w)} \} \textit{ is even})$
+    \end{itemize}
+    Where $vE=\{w \mid (v,w)\in E\}$ and $Ew=\{v \mid (v,e)\in E\}$ denote the adjacent vertices at outgoing and incoming edges, respectively.
+\end{definition}
+
+The $\mathcal{C}_{\subeven}$, $\mathcal{C}_{\subodd}$ and $\mathcal{C}_E$ constraints directly correspond to the 
+$\Phi_\exists$, $\Phi_\forall$ and $\Phi_V$ constraints in the SMT encoding. We replace the progress measure $\Phi_A$ with a global constraint $\mathcal{C}_{NOC}$, where $NOC$ stands for \textit{No Odd Cycle}, which forbids any cycle where the minimum priority occurring infintely often is odd. 
+Therefore, player \even is guaranteed to win if, after eliminating all possible winning strategies for player \odd, the CSP remains satisfiable with player \even as the winner.
+
+Let us illustrate the filtering we want to achieve using this global constraint with an example.
+
+\begin{example}\label{exa:jurd-2-1-f0}
+    Let us again consider the parity game from Example \ref{exa:jurd-2-1}. Figure \ref{fig:jurd-2-1b} shows the same arena, but with additional labels for the edges and vertices. Starting at vertex $V_0$ and after enforcing constraints $\mathcal{C}_{v_0}, \mathcal{C}_{\subeven}, \mathcal{C}_{\subodd}, \mathcal{C}_E$ from Definition \ref{def:csp}, let us assume
+    that the solver makes an initial assignment of $\mathcal{V}_0 = \mathcal{V}_1 = \mathcal{V}_2 = \mathcal{E}_0 = \mathcal{E}_1 = \mathcal{E}_2 = \mathcal{E}_3 = \top$, while the remaining variables are unassigned. At this point, player \odd has a winning strategy because edges $\mathcal{E}_0$, $\mathcal{E}_2$ and $\mathcal{E}_3$ form a cycle where the minimum priority occurring infinitely often is 1.
+
+    A minimal but correct version of the constraint $\mathcal{C}_{NOC}$ would, in this situation, report unsatisfiability of the problem, triggering a backtrack and a search for an alternative assignment. The solver would continue the search, possibly exploring another assignment, $\mathcal{V}_0 = \mathcal{V}_1 = \mathcal{V}_2 = \mathcal{V}_3 = \mathcal{E}_0 = \mathcal{E}_2 = \mathcal{E}_4 = \mathcal{E}_6 = \top$. Here, another cycle is formed, but the minimum priority occurring infinitely often is 2, which satisfies all constraints, making the problem satisfiable. As a result, starting from $V_0$, this game is won by player \even.
+
+    Stronger versions of the $\mathcal{C}_{NOC}$ constraint will filter assignments to variables that \textit{necessarily} lead to cycles with odd minimum priority. For instance, if the search had produced the partial assignment $\mathcal{V}_0 = \mathcal{V}_1 = \mathcal{V}_2 = \mathcal{E}_0 = \mathcal{E}_1 = \mathcal{E}_2 = \top$, the constraint can determine that $\mathcal{E}_3$ \textit{must} be $\bot$, since otherwise an odd cycle would be present.
+
+\end{example}
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=0.6\textwidth]{images/game-2-1b.png}
+    \caption{Parity Game, Vertices = \{0..6\}, Edges = \{0..11\}, Colors = \{1..4\}}
+    \label{fig:jurd-2-1b}
+\end{figure}
+
+\subsection{A No-Odd-Cycle Checker}
+
+To enforce $\mathcal{C}_{NOC}$, we propose a propagator based on a Depth-First Search (DFS) algorithm to explore the arena graph. The resulting depth-first tree captures all possible paths from $v_0$, and can be used to detect all existing and potential
+cycles. We define the propagator in the context of a \textit{Lazy Clause Generation} solver~\cite{DBLP:journals/constraints/OhrimenkoSC09}, to take advantage of the strong performance of this type of solver, in particular for problems that contain a large number of Boolean clauses. Algorithm~\ref{alg:no-odd-cycle-f0} presents the basic version of the propagator, which checks for cycles and reports failure if a cycle with minimum odd priority is detected.
+
+\begin{algorithm}
+    \caption{Implementation of \noc as checker ($\mathsf{Checker}$)}
+    \small
+    \begin{algorithmic}[1]
+    \Function{noOddCycle}{ $\mathit{path}_V, \mathit{path}_E, v, \mathcal{E}, e$ }
+        \If{$v \in \mathit{path}_V$} \label{alg:checker1:pathcheck}
+            \State $i_v \gets \text{index}(v, \mathit{path}_V)$
+            \State $m \gets \min\{f(v') \mid v' \in \mathit{path}_V[i_v:]\}$
+            \If{$m \mod 2 = 1$} \label{alg:checker1:checkodd}
+                \State $\text{reason} \gets \text{clausify}(\neg \mathit{path}_E[i_v:])$ \label{alg:checker1:reason}
+                \State $\mathcal{E}[e] \gets (\bot, \text{reason})$
+            \EndIf
+        \Else \label{alg:checker1:pathcheck:else}
+            \For{$e' \in \text{edges}(v) \textbf{ where } \mathcal{E}[e'] = \top$}
+                \State $\Call{noOddCycle}{\mathit{path}_V \cup \{v\}, \mathit{path}_E \cup \{e'\}, \text{target}(e'), \mathcal{E}, e'}$
+            \EndFor
+        \EndIf
+    \EndFunction
+    \end{algorithmic}
+    \label{alg:no-odd-cycle-f0}
+\end{algorithm}
+
+The algorithm is written as a recursive depth-first search. The arguments $\mathit{path}_V$ and $\mathit{path}_E$ are the currently explored path in the DFS (in terms of both vertices and edges), $v$ is the current node, $\mathcal{E}$ is the array of Boolean variables for the edges of the graph, and $e$ is the currently explored edge. The \noc propagator would call this function with an empty path, a starting vertex, the edge variables and an arbitrary edge $e$.
+
+First, consider the case where the current node $v$ is not in the current path (the else case 
+ in line~\ref{alg:checker1:pathcheck:else}). This means that no cycle has been detected, and the algorithm recursively calls itself for each outgoing edge of $v$ that is already $\top$, extending the paths accordingly.
+
+If the current node $v$ has already been seen before (line~\ref{alg:checker1:pathcheck}), it means that the current edge closes a cycle. In this case, the minimum priority of the nodes on the cycle is determined, and if it is odd (line~\ref{alg:checker1:checkodd}), the last edge is set to $\bot$ (which will cause failure, since the algorithm only follows edges that are $\top$). Since LCG solvers require a reason for each propagation to enable clause learning, all the edges on the cycle are collected into a clause that states that at least one of them has to be $\bot$ (line~\ref{alg:checker1:reason}). For the case in Example~\ref{exa:jurd-2-1-f0}, for instance, the clause $(\neg \mathcal{E}_0 \vee \neg \mathcal{E}_2 \vee \neg \mathcal{E}_3)$ would be added.
+
+In contrast to the SMT or SAT encoding approach based on progress measures, \noc does not introduce any integer variables or lexicographic clauses to encode the winning property.
+
+\subsection{Improved Filtering for the No-Odd-Cycle Constraint}
+\label{sec:improved}
+To strengthen this propagator, we will now implement filtering rules in addition to merely checking whether an odd cycle exists. As we saw in Example~\ref{exa:jurd-2-1}, for a partial assignment such as $\mathcal{V}_0 = \mathcal{V}_1 = \mathcal{V}_2 = \mathcal{E}_0 = \mathcal{E}_1 = \mathcal{E}_2 = \top$, a filtering propagator should determine that the edge that would close the cycle, $\mathcal{E}_3$, must be $\bot$.
+
+% The strategy therefore focuses on preventing cycles from closing rather than simply detecting them.
+
+% \begin{example}\label{exa:jurd-2-1-f1}
+% Using the same setup from Example \ref{exa:jurd-2-1}, we now begin the play at vertex $V_1$. A possible assignment is $\mathcal{V}_0 = \mathcal{V}_1 = \mathcal{V}_2 = \mathcal{E}_1 = \mathcal{E}_2 = \mathcal{E}_3 = \top$, but in this case, $\mathcal{C}_{NOC}$ can be applied in two scenarios: when the cycle is closed using $E_0$ or $E_1$.
+% \end{example}
+
+%In the new scenario described in Example \ref{exa:jurd-2-1-f1}, Algorithm \ref{alg:no-odd-cycle-f1} achieves better performance, as the propagator can proactively set $\mathcal{E}_0 = \bot$ before evaluating $\mathcal{E}_1$. The experiments presented in Section \ref{sec:experiments} demonstrate that this filtering approach outperforms the purely checking-based version.
+
+Algorithm~\ref{alg:no-odd-cycle-f1} implements this filter. Instead of following edges that are $\top$, in line~\ref{alg:no-odd-cycle-f1:edgecheck} the algorithm now follows edges that are \textit{not yet $\bot$}. In addition, it keeps track of whether the last edge that it followed was $\top$, in the $\textit{defined}$ parameter, and it only goes into recursion for defined edges (line~\ref{alg:no-odd-cycle-f1:defcheck}). The rest of the algorithm is unchanged.
+
+This algorithm can therefore detect a single edge that is currently unassigned, but which, if assigned $\top$, would close an odd cycle.
+
+\begin{algorithm}
+    \caption{Implementation of \noc as filter ($\mathsf{Basic}$)}
+    \small
+    \begin{algorithmic}[1]
+    \Function{noOddCycle}{ $path_V, path_E, v, \mathcal{E}, e, \textit{defined}$ }
+        \If{$v \in path_V$} 
+            \State $i_v \gets \text{index}(v, path_V)$
+            \State $m \gets \min\{f(v') \mid v' \in path_V[i_v:]\}$
+            \If{$m \mod 2 = 1$} 
+                \State $\text{reason} \gets \text{clausify}(\neg path_E[i_v:])$
+                \State $\mathcal{E}[e] \gets (\bot, \text{reason})$
+            \EndIf
+        \Else 
+            \If{$\textit{defined}$} \label{alg:no-odd-cycle-f1:defcheck}
+                \For{$e' \in \text{edges}(v) \textbf{ where } \mathcal{E}[e'] \ne \bot$} \label{alg:no-odd-cycle-f1:edgecheck}
+                    \State $\text{noOddCycle}(path_V \cup \{v\}, path_E \cup \{e'\}, \text{target}(e'), \mathcal{E}, e', \mathcal{E}[e'] = \top)$
+                \EndFor
+            \EndIf        
+        \EndIf
+    \EndFunction
+    \end{algorithmic}
+    \label{alg:no-odd-cycle-f1}
+\end{algorithm}
+
+
+
+To enhance the filtering capability, we conducted experiments with a new version similar to $\mathsf{NOC\textit{-}Basic}$. The goal was to explore additional potential cycles beyond the current set of known vertices. This was achieved by restarting the filter each time with a different starting vertex $v_0$. 
+
+Algorithm \ref{alg:no-odd-cycle-f2} introduces a new set of Boolean variables for this purpose, passed as parameters, to track which vertices have been evaluated. These variables, denoted as $(T_i)_{i \in V}$, are initialized as $\bot$ (line 7) before \noc begins. Each time a vertex $v$ is analyzed, its corresponding $T_v$ is updated to $\top$ (line 2), and \noc will be restarted on every $T_v = \bot$ (lines 8 and 9).  The rest of the code of \noc remains unchanged; we have hidden the remaining lines (line 3).
+
+However, we will see in the experiments in Section~\ref{sec:experiments} that the additional filtering strength is outweighed by the overhead of performing more depth-first searches, at least for the parity games we have tested.%structure of these graphs and the behavior of parity games do not benefit from this approach. %Algorithm \ref{alg:no-odd-cycle-f2} summarizes the most relevant modifications compared to Algorithm \ref{alg:no-odd-cycle-f1}.
+
+\begin{algorithm}
+    \caption{Implementation of \noc searching for potential new odd cycles ($\mathsf{MultiStart}$)}
+    \small
+    \begin{algorithmic}[1]
+    \Function{noOddCycle}{ $path_V, path_E, v, \mathcal{E}, e, \textit{defined}, T$ }
+        \State $T[v] \gets \top$
+        \State ...
+    \EndFunction
+    \\
+    \Function{propagate}{}
+        \State $T \gets \{\bot \mid v \in V\}$
+        \While {$\exists v \in T (v=\bot)$} 
+            \State $noOddCycle([],[],v,\mathcal{E},-1,\top,T)$
+        \EndWhile
+    \EndFunction
+    \end{algorithmic}
+    \label{alg:no-odd-cycle-f2}
+\end{algorithm}
+
+We can further improve the performance of the propagator by remembering some information about subgraphs between invocations of the propagator, in order to avoid redundant depth-first searches in the graph. We will illustrate this using the following example.
+
+\begin{example}\label{exa:jurd-2-1-f3}
+Figure \ref{fig:jurd-2-1c} illustrates an arena that is very similar to our earlier example, except that the priority of $V_5$ has changed from 3 to 5. In this case, player \odd no longer has a viable strategy in the game. 
+ 
+Starting at $V_0$, the solver could try an initial assignment of $\mathcal{V}_0 = \mathcal{V}_1 = \mathcal{V}_2 = \mathcal{V}_4 = \mathcal{V}_5 = \mathcal{V}_6 = \mathcal{E}_0 = \mathcal{E}_2 = \mathcal{E}_5 = \mathcal{E}_7 = \mathcal{E}_9 = \mathcal{E}_{10} = \mathcal{E}_{11} = \top$. At this stage, $\mathcal{C}_{NOC}$ identifies two cycles: one closing with $E_7$ and another with $E_{11}$, namely, $\pi = \langle V_0,V_1,V_2,V_5,V_4,V_5,V_4,\dots\rangle$ and $\pi' = \langle V_0,V_1,V_2,V_5,V_6,V_5,V_6,\dots\rangle$. Since both cycles are even, our propagator does not perform any filtering.  However, the search could subsequently explore an assignment that is identical except for $\mathcal{V}_1$, $\mathcal{E}_0$ and $\mathcal{E}_2$. The propagator would have to explore the same DFS subtree again as before starting from vertex $V_2$, leading to unnecessary computational overhead.
+
+\end{example}
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=0.6\textwidth]{images/game-2-1c.png} % Adjust the path to your figure file
+    \caption{Parity Game, Vertices = \{0..6\}, Edges = \{0..11\}, Colors = \{1,2,4,5\}}
+    \label{fig:jurd-2-1c}
+\end{figure}
+
+Algorithm \ref{alg:no-odd-cycle-f3} incorporates a parameter $\textit{best}$, which can store, for each edge, the starting node of an infinite path and the associated minimum priority. This information is updated whenever a cycle is found (line~\ref{alg:no-odd-cycle-f3:update}). If $\textit{best}$ does not contain information about the next edge $e'$, or a new minimum was found, then the propagator proceeds recursively as before (line~\ref{alg:no-odd-cycle-f3:check}). Otherwise, it uses the stored information for the new edge (line~\ref{alg:no-odd-cycle-f3:update}).
+
+In the case of Example \ref{exa:jurd-2-1-f3}, the updated version of \noc stores a tuple $(v=5, m=4)$ on edge $E_5$, indicating that the best priority reachable from this edge is 4 and that the infinite path starts at $V_5$. This prevents the exploration of the subgraph $\{V_4, V_5, V_6\}$ in future stages. %To invoke this propagator, the new parameter is initialized as: $\textit{best} \gets \{(-1,-1) \mid e \in E\}$.
+
+This memorization of cycles is particularly useful in games where the number of even cycles exceeds that of odd cycles, as shown in the experiments in Section~\ref{sec:experiments}.
+
+
+\begin{algorithm}
+    \caption{Implementation of \noc as filter remembering best payoffs ($\mathsf{Memo}$)}
+    \small
+    \begin{algorithmic}[1]
+    \Function{noOddCycle}{ $path_V, path_E, v, \mathcal{E}, e, \textit{defined}, \textit{best}^v, \textit{best}^m$ }
+
+        \If{$v \in path_V$} 
+
+            \State $i_v \gets \text{index}(v, path_V)$
+            \State $m \gets \min\{f(v') \mid v' \in path_V[i_v:]\}$
+            \State $(\textit{best}^v,\textit{best}^m)_e \gets (v,m)$ \label{alg:no-odd-cycle-f3:update}
+            \If{$m \mod 2 = 1$} 
+                \State $\text{reason} \gets \text{clausify}(\neg path_E[i_v:])$
+                \State $\mathcal{E}[e] \gets (\text{false}, \text{reason})$
+            \EndIf
+        \Else 
+            \If{$\textit{defined}$}
+                \For{$e' \in \text{edges}(v) \textbf{ where } \mathcal{E}[e'] \ne \bot$}
+%                    \If{$(\textit{best}_{e'}).1 < 0 \text{ or } \min\{f(v') \mid v' \in path_V[(\textit{best}_{e'}).1:]\} < (\textit{best}_{e'}).2$}
+                    \If{$e'\notin (\textit{best}^v,\textit{best}^m) \text{ or } \min\{f(v') \mid v' \in path_V[best^v_{e'}:]\} < best^m_{e'}$} \label{alg:no-odd-cycle-f3:check}
+                        \State $\text{noOddCycle}(path_V \cup \{v\}, path_E \cup \{e'\}, \text{target}(e'), \mathcal{E}, e', \mathcal{E}[e'] = \top, \textit{best}^v,\textit{best}^m)$
+                    \Else
+                            \State $(\textit{best}^v,\textit{best}^m)_e \gets (\textit{best}^v,\textit{best}^m)_{e'}$
+                    \EndIf
+                \EndFor
+            \EndIf
+        \EndIf    
+    
+    \EndFunction
+    \end{algorithmic}
+    \label{alg:no-odd-cycle-f3}
+\end{algorithm}
+
+\section{Experiments and Evaluation}\label{sec:experiments}
+
+To evaluate the performance of our approach, we implemented the \noc propagator using the LCG solver Chuffed (version 0.12.1)~\cite{chuffed:2018}. Additionally, some experiments were conducted using MiniZinc~\cite{DBLP:conf/cp/NethercoteSBBDT07} to compare with other constraint programming (CP) solvers and to implement additional constraints. For experiments with SAT solvers, we used CaDiCaL (version 2.1.3) \cite{Biere:Cadical:2024}, MiniSAT (version 2.2.0) \cite{Een:MiniSat:2003}, Kissat (version 4.0.2) \cite{Biere:Kissat:2024}, and zChaff (version 2007.3.12) \cite{Moskewicz:zChaff:2001}. For SMT, we used Z3 (version 4.14.1.0).
+
+All experiments were run on an Intel Xeon 8260 CPU (24 cores, non-hyperthreaded) with 268.55 GB of RAM, running Linux. The complete source code, including implementations and experimental setups, is available at [link removed to preserve double-blind reviewing].
+
+We evaluate the different approaches on similar benchmark sets as previous related work. In particular, we have selected as a main benchmark source the Jurdziński graphs \cite{Jurdziński:2022,Keiren:2015}, which allow us to easily create graphs of varying size based on two parameters (level and blocks). In addition, we use the parity game generator from the PGSolver library \cite{Friedmann:2017}, which can create random parity games based on a number of different structural types of games.
+
+\subsection{Comparison of filtering strength}
+
+Section~\ref{sec:improved} introduced four different levels of filtering for the \noc propagator:
+
+%Given the high degree of non-determinism in Parity Games and the inherent motivation for improvement, we implemented four different versions of the \noc propagator to evaluate their performance.
+
+\begin{itemize}
+    \item \nocchecker: Employs a basic depth-first search from the given starting vertex and only checks cycles that have already been closed.
+    \item \nocbasic: Employs a depth-first search from the given starting vertex and propagates that edges must be $\bot$ if they would close an odd cycle.
+    \item \nocmultistart: Starts the depth-first search from all possible vertices in order to find potential odd cycles earlier; requires additional computational resources.
+    \item \nocmemo: Remembers previously tested infinite plays to eliminate redundant calculations; requires additional memory and computational resources.
+\end{itemize}
+
+In our first set of experiments, we will evaluate which of these versions achieves the best performance on a set of graphs with different properties. We tested the propagators on two Jurdziński graphs and two randomly generated graphs, and on a random selection of four different starting vertices for each graph.
+
+Table \ref{tab:filters} presents the results. In all instances, \nocmemo 
+(remembering the best strategies) is the most effective. The other filters proved particularly ineffective in games that lack odd plays, such as in the model checker ladder games.
+
+\begin{table}
+    \centering
+    \begin{tabular}{l|rrrr|rrrr}
+        \hline
+        & \multicolumn{4}{c|}{\textbf{Jurdzinzky$_{20,20}$}} &
+        \multicolumn{4}{c}{\textbf{Jurdzinzky$_{30,15}$}} \\
+        \hline
+        \textbf{filter\textbackslash start} & 0 \even & 480 \even & 294 \even & 817 \even 
+                                            & 0 \even & 96 \even & 1042 \even & 627 \even \\
+        \hline
+        \nocchecker  & - & 0.055 & 0.056 & 2.143 & 15.378 & 0.243 & 0.312 & 0.061 \\
+        \nocbasic  & 80.276 & 0.055 & 0.056 & 0.871 & 1.976 & 0.264 & 0.066 & 0.061 \\
+        \nocmultistart  & - & 1.150 & 1.132 & 9.402 & 18.315 & 3.015 & 1.040 & 1.047 \\
+        \nocmemo  & 0.068 & 0.057 & 0.058 & 0.063 & 0.069 & 0.064 & 0.065 & 0.062 \\
+        \hline
+    \end{tabular}\\
+
+    \vspace{5mm}
+
+    \begin{tabular}{l|rrrr|rrrr}
+        \hline
+        & \multicolumn{4}{c|}{\textbf{modelcheckerladder(500).gm}} &
+        \multicolumn{4}{c}{\textbf{modelcheckerladder(2000).gm}} \\
+        \hline
+        \textbf{filter\textbackslash start} & 407 \even & 151 \even & 39 \even & 290 \even 
+                                            & 1434 \even & 529 \even & 499 \even & 1153 \even \\
+        \hline
+        \nocchecker  & - & - & - & - & - & - & - & - \\
+        \nocbasic  & - & - & - & - & - & - & - & - \\
+        \nocmultistart  & - & - & - & - & - & - & - & - \\
+        \nocmemo  & 0.214 & 0.223 & 0.241 & 0.218 & 3.268 & 3.445 & 3.453 & 3.317 \\
+        \hline
+    \end{tabular}\\
+
+    \vspace{5mm}
+
+    \caption{Solving time (in seconds) comparing various filtering strategies across four different games, starting from randomized vertices. Empty spaces represent times exceeding 3 minutes.}
+    \label{tab:filters}
+\end{table}
+
+\subsection{Comparing \protect\noc to other constraint solving technologies}
+
+In the following, we will compare our $\mathsf{NOC\textit{-}Memo}$ approach to CP, SAT and SMT solving.
+
+The first experiment focuses on CP and SMT solvers. We have selected Jurdziński graphs for this experiment, which allows us to vary the size of the graphs. We selected graphs with 10 blocks and between 10 and 80 levels (in steps of 10).
+
+Table \ref{tab:cp-cp} presents the solving time in seconds of four approaches: \noc, a MiniZinc CP model (expressing the progress measure using integer variables and constraints) solved by Gecode and Google CP-SAT, and an SMT model using difference logic to implement the progress measure, solved using Z3. The results provide strong evidence that Chuffed with the \noc propagator clearly outperforms the other approaches by several orders of magnitude on these graphs. Furthermore, some solutions, such as MiniZinc with Gecode, used over 256 GB of memory to complete the task.
+
+\begin{center}
+    \begin{table}
+        % \centering
+        \footnotesize
+        \begin{tabular}{crrrr}
+            \hline
+            \textbf{\#level} & \textbf{Chuffed}(\nocmemo) & \textbf{Mzn(Gecode)} & \textbf{Mzn(CP-SAT)} & \textbf{Z3} \\
+            \hline
+            % 5  & 0.00  & 0.25   & 0.56   & 0.04   \\
+            10 & 0.01  & 0.59   & 0.71   & 0.22   \\
+            % 15 & 0.01  & 1.40   & 1.44   & 0.27   \\
+            20 & 0.02  & 3.06   & 2.59   & 0.58   \\
+            % 25 & 0.02  & 5.94   & 4.11   & 1.41   \\
+            30 & 0.03  & 10.57  & 6.15   & 2.64   \\
+            % 35 & 0.04  & 17.92  & 8.97   & 4.93   \\
+            40 & 0.05  & 28.53  & 12.52  & 7.76   \\
+            % 45 & 0.06  & 43.29  & 17.09  & 12.07  \\
+            50 & 0.07  & 63.77  & 22.47  & 18.11  \\
+            % 55 & 0.08  & 90.87  & 29.30  & 25.91  \\
+            60 & 0.10  & 126.88 & 37.41  & 35.76  \\
+            % 65 & 0.11  & 175.59 & 46.95  & 48.75  \\
+            70 & 0.13  & 231.51 & 58.22  & 65.62  \\
+            % 75 & 0.14  & -      & 72.51  & 86.05  \\
+            80 & 0.17  & -      & 88.89  & 111.80 \\
+            \hline
+        \end{tabular}
+        \caption{Solving time on the Jurdziński Graphs $J_{level,10}$ CP-CP. Empty spaces represent times exceeding 5 minutes.}
+        \label{tab:cp-cp}
+    \end{table}        
+\end{center}
+
+The next set of experiments compares the \noc propagator to SAT-based encodings using three different solvers: CaDiCaL, MiniSAT, and Kissat. Additionally, we included results for zChaff, since it was used in previous work \cite{Heljanko:2012}, even though it is clearly not competitive.
+
+Table \ref{tab:cp-sat} presents the resulting solving times in seconds. Note that for this experiment, we expanded the range of levels (and thus problem size) up to 410. The \noc propagator again outperforms the SAT-based approaches by at least two orders of magnitude. Note that the runtimes we report do not include the time required to create the SAT encodings, which is in fact significant for the larger problem instances. 
+The CP-based approaches (including Chuffed with \noc) do not suffer from this overhead.
+
+%As the number of levels increased, \noc outperformed CaDiCaL, MiniSAT, and Kissat. Also, the results for zChaff were less favorable, as the solver was unable to solve games with more than 80 levels.
+
+\begin{table}
+    \centering
+    \footnotesize
+    \begin{tabular}{rrrrrr}
+        \hline
+        \textbf{\#level} & \textbf{Chuffed}(\noc) & \textbf{Cadical} & \textbf{Minisat} & \textbf{Kissat} & \textbf{zChaff} \\
+        \hline
+        10  & 0.006  & 0.130   & 0.292   & 1.040   & 0.156   \\
+        % 30  & 0.030  & 1.700   & 3.073   & 8.670   & 0.670   \\
+        50  & 0.069  & 5.680   & 9.329   & 15.550  & 1.558   \\
+        % 70  & 0.129  & 12.940  & 19.726  & 26.320  & 2.930   \\
+        90  & 0.201  & 93.150  & 34.565  & 41.140  & -       \\
+        % 110 & 0.322  & 134.840 & 55.368  & 62.930  & -       \\
+        130 & 0.461  & 193.500 & 80.627  & 85.320  & -       \\
+        % 150 & 0.628  & 260.590 & 111.662 & 115.420 & -       \\
+        170 & 0.801  & 342.000 & 148.768 & 147.460 & -       \\
+        % 190 & 1.023  & 437.110 & 192.320 & 182.210 & -       \\
+        210 & 1.292  & 539.770 & 244.924 & 230.440 & -       \\
+        % 230 & 1.533  & 655.450 & 297.770 & 283.340 & -       \\
+        250 & 1.772  & 749.670 & 368.385 & 341.040 & -       \\
+        % 270 & 2.107  & 879.440 & 447.689 & 395.860 & -       \\
+        290 & 2.360  & 1057.340 & 539.538 & 468.190 & -       \\
+        % 310 & 2.648  & 1207.110 & 623.698 & 540.090 & -       \\
+        330 & 2.989  & 1403.980 & 717.835 & 585.110 & -       \\
+        % 350 & 3.373  & 1588.480 & 809.985 & 630.480 & -       \\
+        370 & 3.916  & 1767.350 & 928.425 & 711.390 & -       \\
+        % 390 & 4.146  & 2113.110 & 1039.260 & 818.460 & -       \\
+        410 & 4.878  & 2341.200 & 1157.990 & 897.660 & -       \\
+        % 430 & 5.246  & 2612.670 & 1387.010 & 991.170 & -       \\
+        \hline
+    \end{tabular}
+    \caption{Solving time on the Jurdziński Graphs $J_{level,10}$ CP-SAT. Empty spaces indicate the solver's inability to find a solution.}
+    \label{tab:cp-sat}
+\end{table}
+
+For the final set of experiments, we use the parity game generator from the PGSolver library \cite{Friedmann:2017}, employing pre-generated random games with up to 5,000 vertices, starting each play from four randomly selected vertices. We selected one representative game from each structural type. We compare the performance of \noc to the same SAT solvers as before, and again report solver runtimes (excluding time required for the SAT encoding).
+
+Table \ref{tab:random} presents the solving times in seconds for a random game, a steady game, a clique game, and a model checker ladder game. The experiment shows that \noc is the most effective approach. While the performance gain is not always as pronounced as in the previous cases, it can still reach several orders of magnitude for the majority of the instances.
+
+%particularly when the problem is unsatisfiable (i.e., when the game is won by player \odd), which is observed in the random game starting at vertices 3335 or 3789. Also, SAT-based approaches were outperformed when the problem is satisfiable (the game is won by player \even), as seen in the clique game starting at vertices 184 or 176. 
+
+\begin{table}
+    \centering
+    % \setlength{\tabcolsep}{4pt}
+    \begin{tabular}{l|rrrr|rrrr}
+        \hline
+        & \multicolumn{4}{c|}{\textbf{random(5000,10,1,20)id=8.gm}} &
+        \multicolumn{4}{c}{\textbf{steadygame(5000,1,20)id=3.gm}} \\
+        \hline
+        \textbf{solver\textbackslash start} & 1945 \even & 4857 \even & 3335 \odd & 3789 \odd 
+                                            & 1899 \even & 1215 \odd & 1493 \even & 1577 \odd\\
+        \hline
+        \nocmemo  &  4.393 & 4.628 &  0.013 &  0.013 & 3.906 &  0.011 & 3.867 &  0.011 \\
+        Cadical & 11.140 & 7.970 &  8.150 &  8.220 & 131.660  &  62.010  & 131.090  &  62.930  \\
+        Minisat & 15.296 & 15.398 &  6.190 &  6.172 & 231.938  &  29.459  & 232.218  &  29.705  \\
+        Kissat  &  8.980  & 6.480  &  13.060 &  13.070 & 156.850  &  32.650 & 154.820  &  32.900  \\
+        \hline
+    \end{tabular}\\
+
+    \vspace{5mm}
+
+    \begin{tabular}{l|rrrr|rrrr}
+        \hline
+        & \multicolumn{4}{c|}{\textbf{cliquegame(200).gm}} &
+        \multicolumn{4}{c}{\textbf{modelcheckerladder(5000).gm}} \\
+        \hline
+        \textbf{solver\textbackslash start} &  184 \even &  176 \even &   64 \even &  161 \odd 
+                                            & 4668 \even & 2041 \even & 1219 \even & 1151 \even \\
+        \hline
+        \nocmemo & 0.096 & 0.095 & 0.095 & 0.005 & 19.864 & 21.105 & 21.518 & 21.534 \\
+        Cadical    & 4.680 & 4.670 & 4.670 & 1.760 & 154.600 & 106.010 & 108.730 & 112.330 \\
+        Minisat    & 9.662 & 9.414 & 9.454 & 0.714 & 141.174 & 144.535 & 140.785 & 143.989 \\
+        Kissat     & 3.690 & 3.690 & 3.700 & 0.880 & 150.840 & 149.090 & 151.060 & 149.690 \\
+        \hline
+    \end{tabular} \\
+
+    \vspace{5mm}
+
+    \caption{Solving time on random games with different structures starting in randomized vertices}
+    \label{tab:random}
+\end{table}
+
+\subsection{Resource utilization analysis}
+
+Our main motivation for developing a dedicated \noc propagator was to avoid the resource overhead of introducing the Boolean literals and clauses required for the progress measure variables and constraints. Our final set of experiments evaluates the memory consumption of \noc compared to other solving approaches.
+
+%One the best features of \noc is the ability to control the resources used by the solver. We have tested the solver using the same set of games and we have measured and memory used by the solver.
+
+The results of the experiments are summarised in Figure \ref{fig:peakofmemory}. While \noc requires a maximum of 700 MB of memory when level 430 is reached, SAT-based approaches consume significantly more resources. Specifically, CaDiCaL, MiniSAT, and Kissat report memory usage exceeding 39 GB for the same instance.
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=0.7\textwidth]{images/peakofmemory.png} % Adjust the path to your figure file
+    \caption{Memory usage on the Jurdziński graphs $J_{level,10}$, constrained to 13K vertices}
+    \label{fig:peakofmemory}
+\end{figure}
+
+
+\section{Enhancing the Framework with Additional Constraints}
+
+So far, we have shown that our method efficiently determines the winner in large parity games (in our experiments, in graphs with thousands of nodes). Here we show how our approach  can also solve parity game-related problems that involve additional constraints, for instance, including quantitative constraints. These can be seamlessly integrated without modifying the core method, ensuring flexibility and ease of adaptation. In contrast, non-CP-based methods require specific modifications in order to include particular extra requirements.
+
+\subsection{Automated Synthesis of Reactive Systems}
+
+For model checking applications, it is sufficient to determine the winner of a parity game starting from a specified vertex (i.e., satisfiable if won by $\even$, unsatisfiable if won by $\odd$). However, other applications of parity games require extracting strategy profiles, i.e., the decisions to make at each vertex. One such application is automated synthesis~\cite{Bruyere:2022,Finkbeiner:2018,Luttenberger:2020}, where the objective is to describe the expected behaviour of a system in terms of a parity game, and then automatically generate code that implements a system with that behaviour.
+
+Solutions to the satisfiability problem as introduced so far can capture multiple winning plays at once.
+As an example, consider the graph in Figure~\ref{fig:jurd-2-1d} (related to Example \ref{exa:jurd-2-1-f0}). The graph represents a solution of the satisfiability problem, where vertices $\mathcal{V}_0$ to $\mathcal{V}_3$ are $\top$, and edges $\mathcal{E}_0$, $\mathcal{E}_1$, $\mathcal{E}_2$, $\mathcal{E}_4$ and $\mathcal{E}_6$ are $\top$. This solution captures two possible winning plays: the first one uses edges $\mathcal{E}_0$, $\mathcal{E}_2$, $\mathcal{E}_4$ and $\mathcal{E}_6$, while the other play uses edges $\mathcal{E}_1$, $\mathcal{E}_4$ and $\mathcal{E}_6$.
+
+In order to extract individual winning plays, we will define some additional variables and constraints such that each solution of the CSP corresponds to exactly one winning play, and enumerating all solutions thus yields all possible winning plays. We can construct every play by defining a sequence of integer variables, $(\mathcal{P}_s)_{s \in \{0..\lvert V \rvert - 1\}}$, to represent the sequence of vertices visited along the winning path. For simplicity, we use the term \textit{cycle} to refer to an infinite path. Additionally, we introduce a variable $\mathsf{h}$ to track the position where the \textit{history} ends (i.e., the finite, non-repeating or periodic prefix of the infinite path), and a variable $\mathsf{t} $ to denote the \textit{tail} of the path, the position where the path closes a cycle.
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=0.6\textwidth]{images/game-2-1d.png} % Adjust the path to your figure file
+    \caption{Parity Game \even, Active vertices = \{0..3\}, Active edges = \{0,1,2,4,6\}, Colors = \{1..2\}.}
+    \label{fig:jurd-2-1d}
+\end{figure}
+
+We then introduce three additional constraints that link the new variables to the vertex and edge variables in the parity game, as follows:
+
+\begin{itemize}
+    \item $\mathcal{C}_{\text{path}}$ ensures that two consecutive positions in $\mathcal{P}$ have a common edge $E$:\\
+    $\mathsf{t}  \in \{0..\lvert V \rvert -1 \} \wedge  \bigwedge_{s \in \{1.. \mathsf{t}  \}}  \bigvee_{e=(v,w) \in E} (\mathcal{E}_e \wedge \mathcal{P}_{s-1} = v \wedge \mathcal{P}_s = w )$;
+    \item $\mathcal{C}_{\text{cycle}}$ evaluates when the sequence has closed the cycle:\\
+    $\mathsf{h} \in \{0..\mathsf{t} \} \wedge \mathcal{P}_{\mathsf{t} +1} = \mathcal{P}_\mathsf{h}$;
+    \item $\mathcal{C}_{\text{unique}}$ ensures that the path up to $\mathsf{t}$ only contains one cycle:\\
+    $\bigwedge_{i,j \in  \{0..\mathsf{t} \}, i \neq j} (\mathcal{P}_i \neq \mathcal{P}_j)$
+\end{itemize}
+
+The flexibility of the Constraint Programming framework makes it easy to add these constraints without any changes to the \noc algorithm. Since the Chuffed solver can be used as a MiniZinc backend, we simply implemented the additional variables and constraints in MiniZinc. Enumerating all solutions of this model will then produce all winning plays, expressed directly as the integer vertex numbers. Below, we will see how the $\mathcal{P}_s$ variables can be used to express interesting additional constraints on winning plays.
+
+%To evaluate this feature, we implemented a FlatZinc interface that integrates our method with MiniZinc. Using this interface, we conducted several experiments, incorporating additional constraints on small instances of parity games, where our results were successful. We plan to further develop this interface to support other types of games, such as those generated in \cite{Friedmann:2017}. The source code for these experiments will be shared along with the final version of this paper.
+
+\subsection{Energy Conditions/Games}
+
+We now turn to parity games with additional quantitative conditions. Energy Games combine qualitative and quantitative requirements \cite{Chatterjee:2010}. In addition to satisfying the (qualitative) parity conditions, each edge now has an additional \textit{energy level} (or \textit{weight}), and winning the game also requires that the sum of energy levels is always above zero, for any (infinite) play, and at any point during the play.
+%
+% \begin{definition}
+%     Energy objectives: $\mathsf{PosEnergy}_G(c_0) = \{ \rho \in \mathsf{Plays}(G) \mid \forall n \geq 0 : c_0 + \mathsf{EL}(\rho(n)) \geq 0\}$, for a given initial credit $c_0 \in \mathbb{N} \cup \{\infty\} $.
+% \end{definition}
+%
+% Here,  $\rho$ represents a play, and $\mathsf{Plays}(G)$   denotes the set of all possible plays in $G$.
+%
+For memoryless parity games, we can express this additional winning condition in terms of the $\mathcal{P}$ variables introduced above. 
+%
+Given a finite set of energy levels, $(L_e)_{e \in E}$ for each edge, we introduce a finite set of integer variables $(\mathcal{I}_s)_{s \in \{0..\mathsf{t} -\mathsf{h}+1\}}$ to represent the edges that take part in the infinite cycle, the tail, of the play generated by both players in the game. We can define these variables using the following constraint:
+\begin{itemize}
+    \item $\mathcal{C}_{\text{infEdges}} : \forall s \in \{0..\mathsf{t} -\mathsf{h}+1\} (\mathcal{I}_s = E(\mathcal{P}_{\mathsf{s}+\mathsf{h}},\mathcal{P}_{s+\mathsf{h}+1}) )$
+\end{itemize}
+
+Based on these edge variables, we can then constrain the total energy level of the infinite cycle to be non-negative, which is an additional quantitative requirement in Energy games:
+
+%store the segment of edges in the cycle, we introduce two constraints: $\mathcal{C}_{infEdges}$ to ensures that $\mathcal{I}$ corresponds to the set of infinitely occurring edges in the play $\textit{Inf}(\pi)$, and $\mathcal{C}_{energy}$ to enforces that the sum of the energy levels along the edges in the cycle is non-negative.
+
+\begin{itemize}
+    \item $\mathcal{C}_{\text{energy}} : \sum_{e \in \mathcal{I}} (L_e) \geq 0$
+\end{itemize}
+
+The complete model would also constrain the energy levels of all finite prefixes of edges (up to~$\mathsf{t}$) to be non-negative (or above a given initial threshold), which we omit here for brevity. In combination, these constraints are sufficient for modelling the energy condition.
+
+%By deduction, ensuring a non-negative energy level along the infinite path is sufficient, allowing the initial credit to be disregarded. Additionally, the source code for this experiment will be included in the final version of this paper.
+
+Several other extensions could potentially be implemented in a similar way, as additional constraints, or as an additional objective function to be optimised. Some examples of such extensions are discussed in \cite{bozzelly:2020, Fijalkow:2014, Mogavero:2015, Weinert:2016}. However, further work is needed to precisely define each requirement and establish the appropriate set of constraints.% We will continue working on these requirements and providing solutions with this feature.
+
+\section{Conclusions}
+
+
+We have introduced a novel constraint-based approach for solving parity games using a No-Odd-Cycle propagator that does not require integer-based progress measures. Our experiments demonstrate that this method significantly outperforms existing constraint-based approaches, reducing runtime significantly, and improving memory consumption by over 95\% on large instances with up to 5,000 vertices, thus achieving much better results in performance (both running time and space consumption) with respect to previous work. 
+
+Our key innovation, replacing a lexicographic encoding with a global constraint, not only improves performance but also provides a flexible framework that can be easily extended to accommodate additional constraints.  These improvements can enable practical verification of large-scale systems while maintaining the modularity and expressiveness of CP methods.
+
+Our work goes beyond solving parity games by easily enabling new solutions to synthesis and providing the flexibility to adapt our core to solve multiplayer games, including more general games (e.g.,  \wregulargames \cite{Chatterjee:2012}). Our results demonstrate that constraint-based approaches with carefully designed global constraints offer a promising direction for practical formal verification tools that balance expressiveness and computational efficiency.
+
+\bibliography{main.bib}
+
+\appendix
+
+\end{document}

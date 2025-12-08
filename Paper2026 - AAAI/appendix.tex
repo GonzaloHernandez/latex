@@ -1,0 +1,268 @@
+%File: anonymous-submission-latex-2026.tex
+\documentclass[letterpaper]{article} % DO NOT CHANGE THIS
+\usepackage[submission]{aaai2026}  % DO NOT CHANGE THIS
+\usepackage{times}  % DO NOT CHANGE THIS
+\usepackage{helvet}  % DO NOT CHANGE THIS
+\usepackage{courier}  % DO NOT CHANGE THIS
+\usepackage[hyphens]{url}  % DO NOT CHANGE THIS
+\usepackage{graphicx} % DO NOT CHANGE THIS
+\urlstyle{rm} % DO NOT CHANGE THIS
+\def\UrlFont{\rm}  % DO NOT CHANGE THIS
+\usepackage{natbib}  % DO NOT CHANGE THIS AND DO NOT ADD ANY OPTIONS TO IT
+\usepackage{caption} % DO NOT CHANGE THIS AND DO NOT ADD ANY OPTIONS TO IT
+\frenchspacing  % DO NOT CHANGE THIS
+\setlength{\pdfpagewidth}{8.5in} % DO NOT CHANGE THIS
+\setlength{\pdfpageheight}{11in} % DO NOT CHANGE THIS
+
+\usepackage{algorithm}
+\usepackage[noend]{algorithmic}
+\usepackage{amssymb}
+\usepackage{subcaption}
+\usepackage{tabularx}
+\usepackage{booktabs} 
+\usepackage[table]{xcolor}
+\usepackage{amsmath} 
+\usepackage{multirow}
+
+\input{macros.tex}
+
+\usepackage{newfloat}
+\usepackage{listings}
+
+\DeclareCaptionStyle{ruled}{labelfont=normalfont,labelsep=colon,strut=off} % DO NOT CHANGE THIS
+\lstset{%
+	basicstyle={\footnotesize\ttfamily},% footnotesize acceptable for monospace
+	numbers=left,numberstyle=\footnotesize,xleftmargin=2em,% show line numbers, remove this entire line if you don't want the numbers.
+	aboveskip=0pt,belowskip=0pt,%
+	showstringspaces=false,tabsize=2,breaklines=true}
+\floatstyle{ruled}
+\newfloat{listing}{tb}{lst}{}
+\floatname{listing}{Listing}
+
+\pdfinfo{
+/TemplateVersion (2026.1)
+}
+
+\setcounter{secnumdepth}{0} %May be changed to 1 or 2 if section numbers are desired.
+
+\title{No-Opponent-Cycle Propagators for Solving Parity Games}
+
+\iffalse
+%Example, Multiple Authors, ->> remove \iffalse,\fi and place them surrounding AAAI title to use it
+\title{No-Opponent-Cycle Propagators for Solving Parity Games}
+\author {
+    Gonzalo Hernandez\textsuperscript{\rm 1,2},
+    Julian Garcia\textsuperscript{\rm 1},
+    Julian Gutierrez\textsuperscript{\rm 3},
+    Guido Tack\textsuperscript{\rm 1,4}
+}
+\affiliations {
+    \textsuperscript{\rm 1}Monash University, Australia\\
+    \textsuperscript{\rm 2}Universidad de Nariño, Colombia\\
+    \textsuperscript{\rm 3}University of Sussex, United Kingdom\\
+    \textsuperscript{\rm 4}OPTIMA ARC ITTC\\
+    gonzalo.hernandez@monash.edu\footnote{Also reachable at \texttt{gonzalo.hernandez@udenar.edu.co}},\\
+    julian.garcia@monash.edu,
+    J.Gutierrez@sussex.ac.uk,
+    guido.tack@monash.edu
+}
+\fi
+
+\usepackage{bibentry}
+
+\begin{document}
+
+% -----------------------------------------------------------------------------------------------
+
+\section*{Appendix A: Supplementary Proofs}
+This experiment focuses on CP and SMT solvers. We have selected Jurdziński graphs for this experiment, which allows us to vary the size of the graphs. We selected graphs with 10 blocks and between 10 and 80 levels (in steps of 10).
+
+Table \ref{tab:cp-cp} presents the solving time in seconds of four approaches: \noc, a MiniZinc CP model (expressing the progress measure using integer variables and constraints) solved by Gecode and Google CP-SAT, and an SMT model using difference logic to implement the progress measure, solved using Z3. The results provide strong evidence that Chuffed with the \noc propagator clearly outperforms the other approaches by several orders of magnitude on these graphs. Furthermore, some solutions, such as MiniZinc with Gecode, used over 256 GB of memory to complete the task.
+
+\begin{table}[H]
+\centering
+\caption{Solving time on the Jurdziński Graphs $J_{level,10}$ CP-CP. (*) Represent times exceeding 5 minutes.}
+\tiny
+\begin{tabular}{r|>{\itshape}r|r|rrr}
+\toprule
+\textbf{d} & \multicolumn{2}{c|}{\textbf{No-Opponent-Cycle}} & \multicolumn{3}{c}{\textbf{Other Solvers}} \\
+& \odd Eager & \even Memo & Mzn(Gecode) & Mzn(CP-SAT) & Z3\\
+\midrule
+\textbf{10} & 0.000 & \cellcolor{gray!30}0.008  & 0.59   & 0.71   & 0.22   \\
+\textbf{20} & 0.000 & \cellcolor{gray!30}0.025  & 3.06   & 2.59   & 0.58   \\
+\textbf{30} & 0.000 & \cellcolor{gray!30}0.039  & 10.57  & 6.15   & 2.64   \\
+\textbf{40} & 0.000 & \cellcolor{gray!30}0.087  & 28.53  & 12.52  & 7.76   \\
+\textbf{50} & 0.001 & \cellcolor{gray!30}0.089  & 63.77  & 22.47  & 18.11  \\
+\textbf{60} & 0.001 & \cellcolor{gray!30}0.097  & 126.88 & 37.41  & 35.76  \\
+\textbf{70} & 0.001 & \cellcolor{gray!30}0.158  & 231.51 & 58.22  & 65.62  \\
+\textbf{80} & 0.001 & \cellcolor{gray!30}0.185  & *      & 88.89  & 111.80 \\
+\bottomrule
+\end{tabular}
+\label{tab:cp-cp}
+\end{table}        
+
+% -----------------------------------------------------------------------------------------------
+
+\section*{Appendix B: Energy Conditions/Games}
+
+We now consider parity games with additional quantitative objectives. In \textit{Energy Games}~\cite{Chatterjee:2010}, each edge carries an energy level (a weight), and a play is winning if the running sum of these levels remain non-negative at all times, in addition to satisfying the parity condition.
+%
+%For memoryless parity games, 
+This requirement can be encoded using the $\mathcal{P}$ variables introduced earlier. Given a set of energy levels $(L_e)_{e \in E}$, we define integer variables $(\mathcal{I}_s)_{s \in \{0..\mathsf{t} - \mathsf{h} + 1\}}$ to represent the edges in the infinite cycle (tail) of the play:
+
+\begin{itemize}
+    \item $\mathcal{C}_{\textit{infEdges}} : \forall s \in \{0..\mathsf{t} - \mathsf{h} + 1\} (\mathcal{I}_s = E(\mathcal{P}_{s+\mathsf{h}}, \mathcal{P}_{s+\mathsf{h}+1}))$
+\end{itemize}
+
+We then impose the following constraint to ensure the total energy level in the cycle is non-negative:
+
+\begin{itemize}
+    \item $\mathcal{C}_{\textit{energy}} : \sum_{e \in \mathcal{I}} L_e \geq 0$
+\end{itemize}
+
+While a complete model would also enforce energy constraints over all finite prefixes (up to $\mathsf{t}$), we omit these here for brevity. Together, these constraints suffice to model the energy condition.
+
+Several other extensions—such as multi-dimensional energy bounds or payoff constraints—can be modelled similarly using additional constraints or objective functions~\cite{bozzelly:2020,Fijalkow:2014,Mogavero:2015,Weinert:2016}. Further work is needed to precisely define each requirement and establish the appropriate constraints.
+
+% -----------------------------------------------------------------------------------------------
+
+\section*{Appendix C: Full Version of tables}
+
+\begin{table}[H]
+\centering
+\caption{Full version of Table: Average solving times (in seconds) on special game classes, categorized by winner.}
+\tiny
+\setlength{\tabcolsep}{3.5pt}
+\begin{tabular}{l|c|r|rr|rr|rrr}
+\toprule
+\textbf{Game} & \textbf{Win} & \multicolumn{1}{c|}{\textbf{ZRA}} & \multicolumn{2}{c|}{\textbf{NOC from \even}} & \multicolumn{2}{c|}{\textbf{NOC from \odd}} & \multicolumn{3}{c}{\textbf{SAT Solvers}} \\
+\textbf{class} & &  & Eager & Memo & Eager & Memo & CaDiCal & MiniSat & Kissat \\
+\midrule
+\textbf{RaG} & \even & 0.009 & 0.040 & 0.800 & \cellcolor{gray!30}0.003 & 0.004 & 10.393 &  16.069 &  14.936 \\
+\textbf{RaG} & \odd  & 0.008 & \cellcolor{gray!30}0.004 & 0.004 & 0.035 & 0.776 &  9.216 &   6.189 &  13.369 \\
+\\ [-3pt]
+\textbf{StG} & \even & 0.009 & 0.032 & 0.680 & \cellcolor{gray!30}0.003 & 0.003 & 132.217 & 233.167 & 158.103 \\
+\textbf{StG} & \odd  & 0.009 & \cellcolor{gray!30}0.002 & 0.003 & 0.028 & 0.627 &  62.470 &  29.582 &  32.775 \\
+\\ [-3pt]
+\textbf{ClG} & \even & 0.010 & 0.142 & 1.725 & \cellcolor{gray!30}0.001 & 0.002 &  20.548 &  57.217 &  22.362 \\
+\textbf{ClG} & \odd  & 0.026 & \cellcolor{gray!30}0.005 & 0.006 & 0.472 & 5.632 &  22.856 &   8.702 &  11.572 \\
+\bottomrule
+\end{tabular}
+\label{tab:pgsolver-appendix}
+\end{table}
+
+\begin{table}[H]
+\centering
+\caption{Full version of Table: Average solving times (in seconds) on the RandomGamesSet-500, grouped by game size and winner.}
+\tiny
+\setlength{\tabcolsep}{3.5pt}
+\begin{tabular}{l|c|r|rrr|rrrr}
+\toprule
+\textbf{Game Size} & \textbf{Win} & \textbf{ZRA} & \multicolumn{3}{c|}{\textbf{NOC from \even}} & \multicolumn{3}{c}{\textbf{NOC from \odd}} \\
+$|V| \times |E|$ & & & Checker & Eager & Memo & Checker & Eager & Memo \\
+\midrule
+\textbf{8K} $\times$ 20   & \even & 0.020 & 26.041 & 0.125 & 2.759 & 60.000 & \cellcolor{gray!30}0.009 & 0.011 \\
+\textbf{8K} $\times$ 20   & \odd  & 0.020 & 60.000 & \cellcolor{gray!30}0.011 & 0.013 & 36.396 & 0.186 & 3.532 \\
+\\ [-3pt]
+\textbf{20K} $\times$ 20  & \even & 0.061 & 31.347 & 0.502 & 14.493 & 60.000 & \cellcolor{gray!30}0.026 & 0.029 \\
+\textbf{20K} $\times$ 20  & \odd  & 0.062 & 60.000 & 0.\cellcolor{gray!30}032 & 0.037 & 27.250 & 0.485 & 14.268 \\
+\\ [-3pt]
+\textbf{50K} $\times$ 20  & \even & 0.209 & 23.382 & 2.323 & 60.000 & 26.437 & \cellcolor{gray!30}0.076 & 0.087 \\
+\textbf{50K} $\times$ 20  & \odd  & 0.205 & 23.085 & \cellcolor{gray!30}0.084 & 0.096 & 21.387 & 2.422 & 60.000 \\
+\\ [-3pt]
+\textbf{90K} $\times$ 20  & \even & 0.427 & 60.000 & 6.905 & 60.000 & 60.000 & \cellcolor{gray!30}0.148 & 0.163 \\
+\textbf{90K} $\times$ 20  & \odd  & 0.422 & 60.000 & \cellcolor{gray!30}0.172 & 0.196 & 60.000 & 7.129 & 60.000 \\
+\\ [-3pt]
+\textbf{150K} $\times$ 10 & \even & 0.331 & 60.000 & 6.050 & 60.000 & 60.000 & \cellcolor{gray!30}0.138 & 0.147 \\
+\textbf{150K} $\times$ 10 & \odd  & 0.317 & 60.000 & \cellcolor{gray!30}0.244 & 0.254 & 60.000 & 13.221 & 60.000 \\
+\bottomrule
+\end{tabular}
+\label{tab:rand500-average-appendix}
+\end{table}
+
+\begin{table}[H]
+\centering
+\caption{Full version of Table: Solving times on Jurdziński graphs $J_{d,10}$. Symbol (*) represents unsolvable by the solver. \cite{Jurdziński:2000}.}
+\tiny
+\setlength{\tabcolsep}{3.5pt}
+\begin{tabular}{r|r|>{\itshape}r|r|rrrr}
+\toprule
+\textbf{d} & \textbf{ZRA} & \multicolumn{2}{c|}{\textbf{No-Opponent-Cycle}} & \multicolumn{4}{c}{\textbf{SAT Solvers}} \\
+& & \odd Eager & \even Memo & CaDiCaL & MiniSat & Kissat & zChaff \\
+\midrule
+\textbf{10}  & 0.009   & 0.000 & \cellcolor{gray!30}0.008 & 0.130   & 0.292   & 1.040   & 0.156 \\
+\textbf{30}  & 0.140   & 0.000 & \cellcolor{gray!30}0.039 & 1.700   & 3.073   & 8.670   & 0.670 \\
+\textbf{50}  & 0.564   & 0.001 & \cellcolor{gray!30}0.089 & 5.680   & 9.329   & 15.550  & 1.558 \\
+\textbf{70}  & 1.451   & 0.001 & \cellcolor{gray!30}0.158 & 12.940  & 19.726  & 26.320  & 2.930 \\
+\textbf{90}  & 2.975   & 0.001 & \cellcolor{gray!30}0.240 & 93.150  & 34.565  & 41.140  & *     \\
+\textbf{110} & 5.309   & 0.001 & \cellcolor{gray!30}0.344 & 134.840 & 55.368  & 62.930  &       \\
+\textbf{130} & 8.616   & 0.001 & \cellcolor{gray!30}0.468 & 193.500 & 80.627  & 85.320  & *     \\
+\textbf{150} & 13.070  & 0.002 & \cellcolor{gray!30}0.610 & 260.590 & 111.662 & 115.420 &       \\
+\textbf{170} & 18.826  & 0.002 & \cellcolor{gray!30}0.769 & 342.000 & 148.768 & 147.460 & *     \\
+\textbf{190} & 26.131  & 0.002 & \cellcolor{gray!30}0.956 & 437.110 & 192.320 & 182.210 &       \\
+\textbf{210} & 35.045  & 0.002 & \cellcolor{gray!30}1.145 & 539.770 & 244.924 & 230.440 & *     \\
+\textbf{230} & 45.780  & 0.002 & \cellcolor{gray!30}1.363 & 655.450 & 297.770 & 283.340 &       \\
+\textbf{250} & 58.552  & 0.002 & \cellcolor{gray!30}1.599 & 749.670 & 368.385 & 341.040 & *     \\
+\textbf{270} & 73.619  & 0.003 & \cellcolor{gray!30}1.866 & 879.440 & 447.689 & 395.860 &       \\
+\textbf{290} & 90.890  & 0.003 & \cellcolor{gray!30}2.127 & 1057.340& 539.538 & 468.190 & *     \\
+\textbf{310} & 110.554 & 0.003 & \cellcolor{gray!30}2.420 & 1207.110& 623.698 & 540.090 &       \\
+\textbf{330} & 132.978 & 0.003 & \cellcolor{gray!30}2.819 & 1403.980& 717.835 & 585.110 & *     \\
+\textbf{350} & 158.433 & 0.003 & \cellcolor{gray!30}3.197 & 1588.480& 809.985 & 630.480 &       \\
+\textbf{370} & 187.527 & 0.004 & \cellcolor{gray!30}3.562 & 1767.350& 928.425 & 711.390 & *     \\
+\textbf{390} & 219.209 & 0.004 & \cellcolor{gray!30}3.941 & 2113.110& 1039.260& 818.460 &       \\
+\textbf{410} & 254.540 & 0.004 & \cellcolor{gray!30}4.348 & 2341.200& 1157.990& 897.660 & *     \\
+\textbf{430} & 292.778 & 0.004 & \cellcolor{gray!30}4.742 & 2612.670& 1387.010& 991.170 &       \\
+\bottomrule
+\end{tabular}
+\label{tab:jurd-appendix}
+\end{table}
+
+% -----------------------------------------------------------------------------------------------
+
+\section*{Appendix D: Statistical Evaluation}
+
+\begin{table}[H]
+\centering
+\caption{Statistical analysis based on Table: Average solving times (in seconds) on the RandomGamesSet-500, comparing ZRA and \noceager from \odd's perspective. The table includes mean (AVG) and standard deviation (SD) of solving times, along with Wilcoxon signed-rank test statistics (Samples, WR+, WR-).}
+\tiny
+\setlength{\tabcolsep}{3.5pt}
+\begin{tabular}{l|c|rr|rr|rrr}
+\toprule
+\textbf{Game Size} & \textbf{Win} & \multicolumn{2}{c|}{\textbf{ZRA}} & \multicolumn{2}{c|}{\textbf{NOC from \odd}} & \multicolumn{3}{c}{\textbf{Wilcoxon SR}}\\
+$|V| \times |E|$ & & AVG & SD & AVG & SD & Samples & WR+ & WR- \\
+\midrule
+\textbf{8K} $\times$ 20   & \even & 0.020 & 0.001 & \cellcolor{gray!30}0.009 & 0.001 & 84 & 0 & -3570 \\
+\textbf{20K} $\times$ 20  & \even & 0.061 & 0.061 & \cellcolor{gray!30}0.026 & 0.002 & 55 & 0 & -1540 \\
+\textbf{50K} $\times$ 20  & \even & 0.209 & 0.025 & \cellcolor{gray!30}0.076 & 0.006 & 44 & 0 &  -990 \\
+\textbf{90K} $\times$ 20  & \even & 0.427 & 0.094 & \cellcolor{gray!30}0.148 & 0.019 & 50 & 0 & -1275 \\
+\textbf{150K} $\times$ 10 & \even & 0.331 & 0.082 & \cellcolor{gray!30}0.138 & 0.006 & 24 & 0 &  -520 \\
+\bottomrule
+\end{tabular}
+\label{tab:rand500-statisticalanalysis-even}
+\end{table}
+
+\begin{table}[H]
+\centering
+\caption{Statistical analysis based on Table: Average solving times (in seconds) on the RandomGamesSet-500, comparing ZRA and \noceager from \even's perspective. The table includes mean (AVG) and standard deviation (SD) of solving times, along with Wilcoxon signed-rank test statistics (Samples, WR+, WR-).}
+\tiny
+\setlength{\tabcolsep}{3.5pt}
+\begin{tabular}{l|c|rr|rr|rrr}
+\toprule
+\textbf{Game Size} & \textbf{Win} & \multicolumn{2}{c|}{\textbf{ZRA}} & \multicolumn{2}{c|}{\textbf{NOC from \even}} & \multicolumn{3}{c}{\textbf{Wilcoxon SR}}\\
+$|V| \times |E|$ & & AVG & SD & AVG & SD & Samples & WR+ & WR- \\
+\midrule
+\textbf{8K} $\times$ 20   & \odd  & 0.020 & 0.001 & \cellcolor{gray!30}0.011 & 0.004 & 74 & 75 & -2700 \\
+\textbf{20K} $\times$ 20  & \odd  & 0.062 & 0.004 & \cellcolor{gray!30}0.032 & 0.014 & 45 & 10 & -1025 \\
+\textbf{50K} $\times$ 20  & \odd  & 0.205 & 0.028 & \cellcolor{gray!30}0.084 & 0.018 & 56 &  0 & -1596 \\
+\textbf{90K} $\times$ 20  & \odd  & 0.422 & 0.100 & \cellcolor{gray!30}0.172 & 0.052 & 46 &  1 & -1080 \\
+\textbf{150K} $\times$ 10 & \odd  & 0.317 & 0.040 & \cellcolor{gray!30}0.244 & 0.148 & 22 & 33 &  -220 \\
+\bottomrule
+\end{tabular}
+\label{tab:rand500-statisticalanalysis-odd}
+\end{table}
+The statistical evidence presented in Table~\ref{tab:rand500-statisticalanalysis-even} and Table~\ref{tab:rand500-statisticalanalysis-odd}, suggests that \noceager achieves comparable performance to ZRA, with a consistent trend in its favor. In all cases, \noceager records lower average solving times with smaller standard deviations, indicating slightly more stable behavior. The Wilcoxon signed-rank test supports this observation: the number of positive ranks (WR+) is generally low, and the negative rank sums (WR--) are consistently large, providing statistically significant—though not drastic—evidence that \noceager tends to perform better across the tested instances.
+
+
+\bibliography{aaai2026}
+
+\end{document} 

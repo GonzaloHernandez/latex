@@ -1,0 +1,119 @@
+\documentclass{article}
+\usepackage[top=1.5cm, left=1.5cm, right=1.5cm, bottom=1.5cm]{geometry}
+\usepackage{xcolor}
+
+\begin{document}
+
+\section*{Review3 by xzkk - 3:Weak reject,  4:Confident }
+The experimental results are excellent. I believe that CP makes sense for problems of this kind, which are hard to encode concisely in either SAT or linear programming. The global constraint itself is new (as far as I can tell) and appears to do some work. The application is interesting and may help popularizing CP.
+
+The definition of the new constraint does not appear to be proper, which leads to inconsistencies. Does uppercase Pi denote the set of all plays starting from v0, or all plays in general?
+
+\textcolor{red}{$\Pi$ denotes the set of all plays in reachable from $V_0$}
+
+In the former case, Algorithm 3 may prune values incorrectly (for example, when it starts from a vertex not reachable from v0). In the latter case, Algorithm 1 is not a complete checker when invoked only on v0. 
+
+\textcolor{red}{Alg-3 does not prune values incorrectly; it may simply be invoked in situations where it has no useful effect}
+
+The No-Odd-Cycle constraint should be defined on its own (rather than hidden in a CP model), with all variables and parameters listed, ideally from a structural property rather than universal quantification over all plays. For instance, "the directed graph represented by these Boolean variables does not contain a cycle whose minimum vertex weight is odd", possibly with a condition on reachability from a fixed vertex v0, should work. This is important, even for an application paper, as it should be possible to reuse the constraint on a very different problem. 
+
+\textcolor{red}{yes, see bellow}
+
+This also paves the way for an analysis of the propagator — does Algorithm 4 achieve arc consistency?
+
+\textcolor{red}{No Domain consistency}
+
+Incidentally, there might be a small issue with Algorithm 3. The instruction at Line 2 sets T[v] to true for all explored nodes v, but v might have been reached via a recursive call on an undefined edge. In that case, I think the algorithm incorrectly skips v as a potential starting point.
+
+\textcolor{red}{You are correct — this instruction should be moved to after Line 10, within the \texttt{if defined then} block, consistent with the structure of Algorithm 2.}
+
+I could not quite make sense of Lemma 3. How does the condition "every v has at least one outgoing edge…" depend on v0? Surely it is only those vertices that can be reached by the winning strategy, as suggested by the variable Sv in the model. I did not find this lemma, or its proof, in the reference [16].
+
+\textcolor{red}{Exactly, this condition must hold for the vertices in the winning region for EVEN; otherwise, the model becomes unsatisfiable, and the winning region shifts to ODD.}
+
+I do not have much to say about the CP model itself, except for the second type of constraints. Would it be worse to impose that exactly one edge, among those outgoing from v, is set to 1? Using a disjunction there makes sense for SAT, but "exactly one" is more in line with the problem definition and might help if there are additional constraints that can exploit the extra propagation.
+
+\textcolor{red}{I didn't understand this concern}
+
+The experimental setup seems OK but would benefit from a more detailed exposition of the context. The paper repeatedly states that comparison is only made with "constraint-based" approaches (54, 61, 333, 439). Are there other published models, using e.g. LP or dynamic programming, that are not considered there? 
+
+\textcolor{red}{Julian Gutierrez, do you know? \\
+From Parity and Payoff Games to Linear Programming, Schewe, Sven, 2009 (not about performance) \\
+}
+
+
+Did you set a priority for the No-Odd-Cycle constraint, given that propagating this constraint is much more expensive than propagating the others?
+
+\textcolor{red}{No for this experiments}
+
+The presentation needs some work. There are many small issues, listed below. I struggled to understand 142-154 (luckily, this is not very important for the rest of the paper) and 290-300.
+
+Small comments
+
+Definition 1 and Example 2: I would advise skipping the term ‘color’ altogether.\\
+122: " approache "\\
+134-136: the notation vE, Ew is not defined yet (until 200).\\
+137-141: the text repeatedly says " the winning path ", as if it were unique. As I understand the problem, there could be as many paths as there are strategies for player Odd.\\
+148: " the priority is odd " I assume it is the priority of w.\\
+153,154: the superscript " < Omega(w) " is undefined I think.\\
+199: capitalized Pi is not defined.\\
+204-205: " infintely ", although this word should be removed (what would it mean for a priority to occur finitely often in a cycle?)\\
+215: see above\\
+Table 2: what does CP-CP mean there?\\
+
+\subsection*{Pros And Cons:}
+\textbf{pros}:\\
+Good practical results on a well-known problem via CP, beats a published SAT approach\\
+\textbf{cons}:\\
+Lacks mathematical rigor, some improper definitions\\
+Main contribution is a very specialized propagator, with little analysis provided
+\subsection*{Questions To Authors:}
+What would be a clean definition of the No-Odd-Cycle constraint, independent of the CP model?
+\\
+\textcolor{red}{
+$
+NOC(V,\mathcal{V},\mathcal{E},v,f) =\\ \forall k\in 1\dots|V|, 
+\langle t_0,t_1, \dots t_k \rangle, 
+\mathcal{V}_{t_0} = v,  \exists i \leq k : t_i = t_k :\\
+\forall i<k, \mathcal{E}_{(t_i,t_{i+1})} = \top 
+\rightarrow \min_{i\leq j\leq k} f(V_{t_j})\textit{ is even}
+$
+}
+
+Are there any competitive non-CP/SAT/SMT algorithms?
+
+\textcolor{red}{The standard approach employs the Zielonka Recursive Algorithm (ZRA), which is designed specifically to solve parity games. However, it is not easily extensible or adaptable to accommodate new requirements although it outperforms to CP methods}
+
+%-----------------------------------------------------------------------------------------------
+
+\section*{Rebuttal}
+
+We greatly appreciate your valuable feedback. We agree that mathematical rigour is crucial in this area, and we plan to refine this aspect when we revise our paper. We will also carefully review and correct the small errors identified in the current version to ensure greater clarity and consistency throughout the paper.
+
+**Q. What would be a clean definition of the No-Odd-Cycle constraint?**
+
+$
+NOC(V,\mathcal{E},v,f) =\\ \forall k\in 1\dots|V|, 
+\langle t_0,t_1, \dots t_k \rangle\in V^k, 
+t_0 = v,  \exists i \leq k : t_i = t_k :\\
+\forall i<k, \mathcal{E}_{(t_i,t_{i+1})} = \top 
+\rightarrow \min_{i\leq j\leq k} f(V_{t_j})\textit{ is even}
+$
+
+$\forall i<k, \mathcal{E}_{(t_i,t_{i+1})} = \top \rightarrow \min_{i\leq j\leq k} f(V_{t_j})\textit{ is even}$
+
+
+In other words, for any path of length $k$ starting from $v$, if all edges on the path are $\top$, then the minimum priority must be even.
+
+This definition, along with our response to Reviewer 1 (rKWe) regarding the complexity of the NOC constraint, highlights that Algorithms 1, 2 and 4 explore only plays reachable from the initial node $v_0$, whereas Algorithm 3 (MultiStart) considers all plays in the game, including in parts of the graph that may be disconnected. We acknowledge that we did not discuss reachability in detail, which indeed distinguishes these approaches. However, for our purposes, we can ignore disconnected graphs, since they have no effect on the satisfiability of the problem (whether Player Even has a winning strategy from $v_0$). In fact, we can add a constraint to enforce connectedness, which would essentially break this symmetry. We will add a discussion of this to the paper.
+
+**Q. there might be a small issue with Algorithm 3.**
+
+Thank you for pointing this out. Specifically, the instructions in line 2 should be moved to follow line 10, within the if defined then block, to maintain consistency with the structure of Algorithm 2. This correction will be incorporated in the revised version.
+
+**Q. Are there any competitive non-CP/SAT/SMT algorithms?**
+
+Please see our response to reviewer 2 (nLPg).
+
+
+\end{document}

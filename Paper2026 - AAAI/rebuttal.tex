@@ -1,0 +1,254 @@
+\documentclass{article}
+\usepackage[letterpaper, margin=1in]{geometry}
+\setlength{\parskip}{1em}
+\setlength\parindent{0pt}
+\usepackage{xcolor}
+\usepackage{fvextra}
+
+\definecolor{darkblue}{rgb}{0.0, 0.0, 0.60}
+
+\DefineVerbatimEnvironment{reviewer}{Verbatim}
+  {formatcom=\color{darkblue}, breaklines=true, breaksymbolleft={}}
+
+\newcommand{\reviewer}[1]{%
+  {\color{darkblue}\ttfamily\raggedright\obeylines #1}%
+}
+
+\begin{document}
+
+%-----------------------------------------------------------------------------------------------
+
+\section{Reviewer yjSS - 6/4}\label{rev:yjss}
+
+\begin{reviewer}
+experimental results are only convincing in Table 3, but do not look that strong in Tables 1 and 2, where the results are clearly mixed
+\end{reviewer}
+
+The main objective of our paper was to evaluate the performance of our approach against other CP-based methods, where our method consistently outperforms existing techniques, as shown in Tables 1 and 2. However, as discussed in the paper, we did not claim to outperform ZRA. Instead, we explicitly stated that our variants achieve performance comparable to ZRA. This aligns with our goal of demonstrating that CP-based methods can reach competitive performance levels relative to state-of-the-art specialized solvers while retaining the flexibility inherent to general constraint-based approaches.
+
+\begin{reviewer}
+it's important that the authors elaborate on the importance of parity games further, and if possible also its relevance to AI (given the theme of the conference)? 
+\end{reviewer}
+
+\textcolor{red}{Julian}
+
+\begin{reviewer}
+explain well for what reasons parity games are important to solve and how they emerge from the need to solve any kind of practical problem.
+\end{reviewer}
+
+\textcolor{red}{Julian}
+
+\begin{reviewer}
+the NOC constraint in Definition 3 does not read very easily,  The reason is that it is not stated what k is (it's undefined as far as I see), implication that states that v_j = v_k.  I think a discussion on this constraint is needed where you break down what the logic here really means.
+\end{reviewer}
+
+The logic is as follows: For all possible sequences of vertices $v_0, \ldots, v_k$ (for any $1\leq k\leq |V|$) such that an edge exists from $v_i$ to $v_{i+1}$, if a subsequence $v_j,\ldots v_k$ contains a cycle ($v_j=v_k$), then the maximum priority on that cycle is not the opponent's.
+
+\begin{reviewer}
+I don't think the acronym CP has been defined (including in the abstract).
+\end{reviewer}
+
+Due to the strict space limitations of the conference format, we omitted a detailed introduction to Constraint Programming (CP), assuming it was familiar to the target audience. However, we agree that defining the acronym improves clarity. In the revised version, we will include a brief sentence introducing CP at its first mention in the abstract and main text.
+
+\begin{reviewer}
+I believe that when it comes to parity games, it is a very remarkable property that they are quasi-polynomially solvable. I think a discussion of this fact, and the various papers that present quasi-polynomial time algorithms for this problem, should be included in the literature discussion.
+\end{reviewer}
+
+\textcolor{red}{Julian}
+
+%-----------------------------------------------------------------------------------------------
+
+\section{Reviewer TzZD - 6/3}\label{rev:TzZD}
+
+\begin{reviewer}
+The evaluation omits state-of-the-art tools such as Oink and PGSolver, nor does it compare against symbolic/BDD-based approaches (see, e.g., [a],[b]).
+[a] Lisette Sanchez, Wieger Wesselink, Tim A. C. Willemse: A Comparison of BDD-Based Parity Game Solvers. GandALF 2018: 103–117.
+[b] Maurice Laveaux, Wieger Wesselink, Tim A. C. Willemse: On-The-Fly Solving for Symbolic Parity Games. TACAS (2) 2022: 137-155.
+\end{reviewer}
+
+The main objective of our paper was to evaluate the performance of our approach against other CP-based methods, where our method clearly outperforms existing techniques.
+
+In addition, to ensure a fair comparison with the state of the art, we followed the most recent and comprehensive evaluation presented in Aggarwal, Stuckey, De La Banda, Yang, \& Gutierrez (2023). In that work, the Algorithm (ZRA) with an improved attractor strategy—the same variant we used—was directly compared against Oink and other leading solvers. It is important to note that Oink itself is based on the ZRA framework. Therefore, our experimental setup indirectly includes a comparison with Oink through those previously validated results. Earlier tools such as PGSolver were not considered, as they represent older approaches that are no longer regarded as state of the art.
+
+\begin{reviewer}
+** The paper does not discuss limitations. When would NOC propagators fail or become inefficient?
+\end{reviewer}
+
+\begin{reviewer}
+The relative contributions of the different propagator variants remain unclear.
+\end{reviewer}
+
+We do not fully agree with this observation, as we already discuss its relative contribution in the section “Improved Filtering Strategy for the No-Opponent-Cycle Propagator.” However, we acknowledge that this may not be entirely clear. In the revised version, we will include a brief explanation emphasizing that our goal was to design an algorithm that is efficient in practice while avoiding exponential behavior in theory. Specifically, NOC-Memo is required only in very strict cases, whereas NOC-Eager is generally sufficient to achieve efficient propagation in most instances.
+
+\begin{reviewer}
+Z3 is mentioned in the main paper, but its results are relegated to the appendix.
+\end{reviewer}
+
+That is correct, due to space limitations, we placed the detailed Z3 results in the appendix. In the revised version, we will add a short note in the main text explicitly directing readers to the appendix for those results.
+
+\begin{reviewer}
+Figure 1 could be enhanced by explicitly illustrating a winning strategy for each player.
+\end{reviewer}
+
+%-----------------------------------------------------------------------------------------------
+
+\section{Reviewer Hjoy - 6/3}
+
+\begin{reviewer}
+So it is unfair that the authors only apply the duality for the proposed CP model in the experiments.
+\end{reviewer}
+
+We have consistently aimed to ensure fairness in our experiments.
+For the other CP-based methods, we used them exactly as described in their original publications and compared them under the same player of interest (player EVEN). Although we were aware that applying duality (switching to player ODD) could lead to faster results for our method, we reported both configurations for completeness: Table 3 in the main paper presents results for player EVEN, while Table 4 in the appendix shows the improved performance obtained when switching to player ODD.
+
+Regarding SOTA methods based on the ZRA framework, these solvers cannot exploit duality. As shown in Tables 1 and 2, their performance remains consistent regardless of which player is winning. We verified this by running experiments on both the original games and their complements using ZRA, confirming that duality has no effect on their execution speed.
+
+\begin{reviewer}
+much better if the authors can test some well-known parity game solvers, such as the oink solver. In particular, parity games also have quasi-polynomial time algorithms. The ZRA method tested in the experiments may be not very convincing.
+\end{reviewer} 
+
+See reviewer \ref{rev:TzZD}
+ 
+\begin{reviewer}
+Various notions used in the paper are not well explained, e.g. "<\Omega(w)" used in the progress measure constraints.
+\end{reviewer}
+
+That is correct,due to space limitations, we only provided references for the formal definitions from which these formulas were taken (Heljanko et al., 2012; Cotton et al., 2004). However, we agree that this part can be clarified. In the revised version, we will include a brief explanation, for example: "$\Omega : V \rightarrow \mathbb{N}$" to make the notation and its meaning clearer to the reader.
+
+\begin{reviewer}
+In the formula of the C_{NOC} constraint, what is the meaning of v0,...,vk? 
+\end{reviewer}
+
+\begin{reviewer}
+In Algorithm 2, 3, the notions: defined, f(v'), path_V[i_v :], ..., are not well explained
+\end{reviewer}
+
+\begin{reviewer}
+The invocation NOCEager(\emptyset, \emptyset, start, E, -1, \top) is not very clear, what is the meaning of -1?
+\end{reviewer}
+
+There is indeed a typo in the order of the parameters. The correct invocation will be updated in the final version as $NOCEager(\emptyset, \emptyset, start, -1, \mathcal{E}, \top)$, where –1 indicates that no edge has been selected yet from E, as valid edges are indexed with $e \ge 0$.
+
+\begin{reviewer}
+The section "Games with Additional Constraints" is very dense. Why does the solution in Figure 2b has 2 winning plays? It seems the "unassigned vertices" V4 and V6 only have one possible outgoing edge.
+\end{reviewer}
+
+The two winning plays are $E_0, E_2, E_4, E_6$ and $E_1, E_4, E_6$.
+
+%-----------------------------------------------------------------------------------------------
+
+\section{Reviewer 4Xx3 - 3/4}
+
+\begin{reviewer}
+The complete algorithm for solving parity games is not presented anywhere. Backtracking is mentioned, but a full algorithm description is missing.
+\end{reviewer}
+
+Our method is embedded within a Constraint Programming (CP) framework, where the complete solving procedures—such as backtracking search, lazy clause generation, and heuristic-based decision making—are already well established and widely known in the CP community. The algorithm presented for our propagator is therefore almost complete, as it focuses on the novel components introduced in this work. In addition, we have provided the full source code, including instructions for running the solver, as supplementary material.
+
+We agree that due to the strict space limitations of the conference format, we omitted a detailed introduction to Constraint Programming (CP), assuming it was familiar to the target audience. However, we agree that defining the
+acronym improves clarity. In the revised version, we will include a brief sentence introducing CP at its first
+mention in the abstract and main text.
+
+\begin{reviewer}
+No correctness proof is provided anywhere in the paper. This is a major issue, since the paper is introducing novel theoretical approaches for solving parity games, but the theoretical correctness of the methods is not shown. Ideally, each algorithm should correspond to a theorem stating the correctness and complexity of the algorithm, followed by a formal proof.
+\end{reviewer}
+
+???
+The correctness of our method is guaranteed by the underlying Constraint Programming (CP) framework, which ensures soundness and completeness of the solving process. In this paper, we extend this foundation by providing explanations about the completeness of our propagator, highlighting how it preserves correctness within the CP framework. While we do not provide a separate formal theorem for the overall algorithm, the combination of the CP framework guarantees and our detailed propagator analysis ensures the theoretical validity of our approach.
+
+\begin{reviewer}
+Definition 2 is not really a definition. A “proposition” with proper citation seems more plausible.
+\end{reviewer}
+
+\begin{reviewer}
+In definition of \Phi_V (page 2), the disjunction should be over v \in Ew (currently it is v \in Ev which is typo)
+\end{reviewer}
+
+That is right, we are going to fix this definition in the final version.
+
+\begin{reviewer}
+In definition of \Psi_{(v,w)} (page 3), there seems to be a slight definition inconsistency. A path is winning if the highest (maximum) priority visited infinitely is even but the formulas here consider a path winning if the lowest (minimum) priority visited is even.
+\end{reviewer}
+
+That is correct. We were following the original definition from (Heljanko et al., 2012; Cotton et al., 2004) where the approach was to minimize the parity condition. However, we agree that the notation should be consistent with the definitions used in our paper. Therefore, we will revise the definition to maintain consistency by changing $Odd^{<\Omega(w)}$ by $Odd^{>\Omega(w)}$.
+
+\begin{reviewer}
+In table 2 of the experiments section, the runtime of Memo is written as 60.000 seconds several times. Are these supposed to be timeouts? If so, it would be better to mark them as timeouts rather than reporting 60 seconds as their runtime.
+\end{reviewer}
+
+The table is reporting average runtimes over many instances, which include timeouts. We did not apply a penalty to timeouts (such as a PAR2 or PAR10 score), but we will consider changing this to make it clearer in the paper.
+
+%-----------------------------------------------------------------------------------------------
+
+\section{Reviewer wii7 - 6/3}
+
+\begin{reviewer}
+Some variants like NOC Eager) can still potentially exponentially blow-up depending on structure. (-2)
+\end{reviewer}
+
+\begin{reviewer}
+Scope limited to 2 player parity games, and generalization only discussed. (–1 )
+\end{reviewer}
+
+\begin{reviewer}
+The breadth of claims is somewhat limited as the evaluation does not include some specialized SOTA solvers such as priority promotion and strategy improvement (–1)
+\end{reviewer}
+
+See reviewer \ref{rev:TzZD}
+
+\begin{reviewer}
+Presentation could be more crisp, algorithms sometimes seem repeated. (-1)
+\end{reviewer}
+
+\begin{reviewer}
+How does the proposed method perform on very sparse or very dense graphs? Is there a point where NOC's effectiveness begins to drop?
+\end{reviewer}
+
+\begin{reviewer}
+Can you clarify whether the current propagators will need require major modifications to accommodate multiple player parity games, or can the exiting framework be adapted with minimal changes?
+\end{reviewer}
+
+We are not aware of a straightforward extension to multi-player games.
+
+\begin{reviewer}
+For synthesis applications, what is the cost of extracting explicit strategies compared to only solving for the winner? Does the parallel perspective lead to redundant computations or scalability overhead on very large graphs?
+\end{reviewer}
+
+\begin{reviewer}
+Comments:
+See openreview.net
+\end{reviewer}
+
+\section{Final Rebuttal}
+
+Thank you for your feedback. We address each point below.
+***
+## yjSS + TzZD + Hjoy + wii7
+Parity games are central to automated formal verification, where most solution techniques are non-CP, making this a key research opportunity.
+
+The main objective of our paper was to evaluate our approach against other CP-based methods, where NOC clearly outperforms existing techniques (Tables 1-2).
+
+We agree that Oink would have been a better comparison, however, it usually is only 2-3x faster than the version of ZRA we used (Aggarwal et al, 2023), while NOC can achieve two orders of magnitude of speedup (Tables 3 main / 4 appendix).
+***
+## yjSS + Hjoy
+Clarification: For all possible sequences of vertices $v_0,\ldots,v_k$ (for any $1\leq k\leq |V|$) such that an edge exists from $v_i$ to $v_{i+1}$, if a subsequence $v_j,\ldots v_k$ contains a cycle ($v_j=v_k$), then the maximum priority on that cycle is not the opponent's.
+***
+## Hjoy
+We aimed to ensure fairness in our experiments. CP-based methods were used exactly as described in their original publications and compared under the same player of interest (EVEN), as shown in Table 2. Table 4 (in the appendix) presents the results obtained when applying duality. SOTA methods (ZRA) cannot exploit duality. As shown in Tables 1-2, their performance remains consistent regardless of which player wins. We have also verified this for all original games and their complements (but did not include those results in the appendix).
+
+The two winning plays are $E_0,E_2,E_4,E_6$ and $E_1,E_4,E_6$.
+
+Typo: The correct invocation is $NOCEager(\emptyset,\emptyset,start,-1,\mathcal{E},\top)$, where –1 indicates that no edge has been selected yet from E, as valid edges are indexed with $e \ge 0$.
+***
+## 4Xx3
+CP is a well-established framework with proven correctness. This paper focuses on the novel components introduced in our approach, which are presented in full. The complete source code is also provided in the supplementary material.
+
+Typo: Yes, $Odd^{>\Omega(w)}$ and $v \in Ew$ are correct.
+***
+## TzZD + wii7
+NOCEager reaches its worst-case performance in very dense arenas where all vertices are controlled by the player of interest and none of the priorities favour the opponent. However, by flipping the game, this worst case becomes the best case.
+***
+## wii7
+In model checking and synthesis, parity games are defined for two players. We are not aware of any straightforward extension of this framework to multi-player settings.
+
+\end{document}

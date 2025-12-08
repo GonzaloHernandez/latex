@@ -1,0 +1,20 @@
+
+
+\definition{
+    $\Gamma^c$ & $ = $&$ (N,(V_i)_{i \in N},E,(C_i)_{i \in N},\textit{f},v_0) $
+}
+\definition{
+    $N$ & $ = $&$ \{\even,\odd\}$
+    \\ & $V_{\subeven}$ & $ = $&$ \{v \in V \mid owner(v) = \even\}$
+    \\ & $V_{\subodd}$ & $ = $&$ \{v \in V \mid owner(v) = \odd\}$
+    \\ & $E$ & $ = $&$ \{(v,u) \mid v, u \in V\}$
+    \\ & $f$ & $ : $&$ V \rightarrow \mathbb{N} $
+    \\ & $C_{\subeven}$ & $ = $&$ v_0 \textit{ } \wedge $
+    \\ & & & $ \bigwedge_{v \in V_{\subeven}} (V_v \rightarrow \bigvee_{u \in vE} E_{(v,u)}) \textit{ } \wedge $
+    \\ & & & $ \bigwedge_{v \in V_{\subodd}} (V_v \rightarrow \bigwedge_{u \in vE} E_{(v,u)}) \textit{ } \wedge $
+    \\ & & & $ \bigwedge_{v \in V} ((\bigvee_{u \in vE} E_{(v,u)}) \rightarrow V_v) \textit{ } \wedge $
+    \\ & & & $ \bigwedge_{u \in V, u \neq v_0} ((\bigvee_{v \in Eu} E_{(v,u)}) \rightarrow V_u) \textit{ } \wedge $
+    \\ & & & $ \{ \omega \in \Omega \mid min\{f(v) \mid v \in $ \textit{Inf($\omega$)}$\}$ is even$\} \textit{ } \wedge $
+    \\ & & & $ \{\langle v_0,v_1,\ldots \rangle \in \Omega \mid v_{k \geqslant 0}\}$
+    \\ & $C_{\subodd}$ & $ = $&$ \neg C_{\subeven}$
+}
