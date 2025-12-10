@@ -85,33 +85,33 @@ Since new constraints can be easily added, our method provides a flexible framew
 %
 This feature can also be used to solve parity games where additional quantitative constraints ({\em e.g.}, cost or resource-bounded requirements) need to be satisfied. 
 We present the theoretical foundations of our approach, an experimental evaluation, and a discussion of the results, including an analysis of different versions of the new propagator.
-\keywords{Constraint programming  \and Parity games \and Model checking.}
+\keywords{Constraint programming  \and Parity games \and Verification.}
 \end{abstract}
 %
 \section{Introduction}
 
-Parity games are two-player zero-sum infinite-duration games played on a labelled directed graph, where vertices represent different states of the players in the game, and edges represent their possible available actions at every state. 
+Parity games are two-player zero-sum infinite-duration games played on a labelled directed graph, where vertices represent states of the players in the game and edges represent their possible available actions at every state. 
 Solving these games is central to several techniques in automated formal verification, in particular, when solving model checking and automated synthesis problems.
 
 Since parity games are zero-sum, perfect-information games, solving them amounts to finding which player (usually called Player Even, or $\even$, and Player Odd, or $\odd$) has a winning strategy, from a given starting vertex in the graph. 
 It is known that deciding the winner in parity games is an $\mathsf{NP} \cap \mathsf{co\textit{-}NP}$ problem~\cite{Jurdziński:1998}, but it is not known whether or not they can be solved in polynomial time; a problem that has remained open for nearly 50 years. 
 % (Done) Remove Arcucci's reference and add, instead, a reference to priority promotion and the latest result on its coplexity, where it is shown that they are quasi-polynomial, especially this last one is important as it is the main complexity result at the moment. 
-Due to the importance of parity games in formal verification, several algorithms have been developed \cite{Aggarwal:2023,Benerecetti:2025,Jurdziński:2000,Jurdziński:2022,Zielonka:1998}, all of them suffering from exponential running time limitations for different classes of parity games. 
+Due to the importance of parity games in formal verification, several algorithms have been developed \cite{Aggarwal:2023,Benerecetti:2025,Jurdziński:2000,Jurdziński:2022,Zielonka:1998}, all of them suffering from exponential running time limitations for specific classes of games. 
 One such approach involves reducing the solution of a parity game to the solution of a SAT instance representing the game. The generated SAT instance is satisfiable if and only if Player Even has a winning strategy in the original game. 
 This idea has a lot of potential given the advances in SAT-solving technology, but, as we will show later, it suffers from poor scalability due to the large size of the generated CNF formula for a given game.
 
 In this paper, we address these scalability issues by developing a specialised propagator that takes into account the structure of parity games, resulting in significant improvements in performance and modelling power. 
-In particular, we show that our methodology outperforms all other state-of-the-art constraint-based solvers.
+In particular, we show that our method outperforms all other state-of-the-art constraint-based solvers.
 %
-More specifically, in this paper we propose replacing the SAT-based encoding used to forbid cycles corresponding to Player Odd wins in the game graph \cite{Heljanko:2012} with a set of efficient global constraint propagators. This substitution significantly reduces the encoding size of the problem. Two of the proposed propagators are based on depth-first search, and a third is a checker that analyses the strongly connected components (SCCs) of the game graph. These propagators filter edges that would close winning cycles for a selected opponent player and generate explanations for each filtering step, enabling their integration into a Lazy Clause Generation solver~\cite{DBLP:journals/constraints/OhrimenkoSC09}.
+Specifically, we propose replacing the SAT-based encoding used to forbid cycles corresponding to Player Odd wins in the game graph \cite{Heljanko:2012} with a set of efficient global constraint propagators; this significantly reduces the encoding size of the problem. Two of the proposed propagators are based on depth-first search, and a third is a checker that analyses the strongly connected components (SCCs) of the game graph. These propagators filter edges that would close winning cycles for a selected opponent player and generate explanations for each filtering step, enabling their integration into a Lazy Clause Generation solver~\cite{DBLP:journals/constraints/OhrimenkoSC09}.
 
-We show that our implementation not only outperforms existing SAT and CP-based approaches but also achieves performance comparable to that of state-of-the-art specialized non-CP-based algorithms, often matching or exceeding their results. This work contributes to establishing the CP framework as a practical and extensible tool for solving both general and specialized classes of parity games.
+We show that our implementation not only outperforms existing SAT and CP-based approaches but also achieves performance comparable to that of state-of-the-art specialized non-CP-based algorithms, often matching or exceeding their results. This work contributes to establishing the CP framework as a practical tool for solving both general and specialized classes of parity games.
 
-The remainder of this paper is organized as follows. We first present the theoretical foundations and necessary definitions used in further sections, and then introduce our proposed approach -- including the design and implementation of the \noc propagators. After that, we provide different experimental results, a comparative analysis against state-of-the-art solvers, and present the extension of our method with additional constraints. At the end of the paper, we present a number of concluding remarks, a discussion of our findings, and potential future research directions.
+The remainder of this paper is organized as follows. We first present the theoretical foundations and necessary definitions used in further sections, and then introduce our proposed approach -- including the design and implementation of the \noc propagators. After that, we provide different experimental results, a comparative analysis against state-of-the-art solvers, and present the extension of our method with additional constraints. At the end of the paper, we focus on the presentation of a number of concluding remarks, a discussion of our main findings, and some proposals for potential future research directions.
 
 \section{Preliminaries and Related work}
 
-This section introduces parity games and gives an overview of the existing translations into Boolean Satisfiability (SAT) and Satisfiability Modulo Theories (SMT).
+This section introduces parity games and overviews the existing translations into Boolean Satisfiability (SAT) and Satisfiability Modulo Theories (SMT).
 
 \subsection{Parity Games}
 
@@ -137,26 +137,28 @@ The game starts with a token at an initial vertex $v_0 \in V$. Player Even is re
 \end{figure}
 
 \subsection*{Strategies, Plays, and Winning Conditions}
-A memoryless or {\em positional strategy} for Player Even (Odd) is a function $f_{\subeven} : V_{\subeven} \to V$ ($f_{\subodd} : V_{\subodd} \to V$) that dictates how the player should move the token when it is in one of the vertices the player controls. Every pair of memoryless strategies, one for each player, uniquely determines an infinite path $\pi$, called a {\em play}, in the game. Accordingly, $\Omega \pi$ is an infinite sequence of priorities. Let $\pi_k$ be the $(k+1)$th element in such a sequence of vertices, that is, in such a path. Because arenas are finite, such an infinite sequence of priorities has a (possibly empty) finite prefix $\Omega(\pi_0) \Omega(\pi_1) \ldots \Omega(\pi_h)$ of length $h$ and an infinite tail $\Omega(\pi_{h+1}) \Omega(\pi_{h+2}) \ldots$ of priorities that are seen infinitely often (given that the graph is finite and the strategies are memoryless/positional). We say that a play~$\pi$ is {\em winning} for player $\even$ (player $\odd$) if the highest priority that appears infinitely often in its associated sequence of priorities $\Omega \pi$ is even (odd). 
+A memoryless or {\em positional strategy} for player Even (player Odd) is a function $f_{\subeven} : V_{\subeven} \to V$ ($f_{\subodd} : V_{\subodd} \to V$) that dictates how the player should move the token when it is in one of the vertices the player controls. Every pair of memoryless strategies, one for each player, uniquely determines an infinite path $\pi$, called a {\em play}, in the game. Accordingly, $\Omega \pi$ is an infinite sequence of priorities. Let $\pi_k$ be the $(k+1)$th element in such a sequence of vertices, that is, in such a path. Because arenas are finite, such an infinite sequence of priorities has a (possibly empty) finite prefix $\Omega(\pi_0) \Omega(\pi_1) \ldots \Omega(\pi_h)$ of length $h$ and an infinite tail $\Omega(\pi_{h+1}) \Omega(\pi_{h+2}) \ldots$ of priorities that are seen infinitely often (given that the graph is finite and the strategies are memoryless/positional). We say that a play~$\pi$ is {\em winning} for player $\even$ (player $\odd$) if the highest priority that appears infinitely often in its associated sequence of priorities $\Omega \pi$ is even (odd). 
 
 Given an initial vertex $v_0$, a strategy is said to be winning from $v_0$ for player~$\even$ (player~$\odd$) if it only generates winning plays for player~$\even$ (player~$\odd$) starting at $v_0$ for all strategies of the other player. It is known that for every vertex~$v\in V$ in a parity game, one of the two players always has a memoryless winning strategy from that vertex~$v$. Solving a parity game means deciding, for every vertex~$v\in V$, which player has a memoryless winning strategy from that vertex.
 
 \subsection{Solving parity games using SAT-Modulo-Theories}
 
 Besides dedicated methods for parity games, algorithms have been developed to \textit{encode} a given game into constraint-based formalisms, in order to apply off-the-shelf solvers. One such approach~\cite{Heljanko:2012} uses Satisfiability Modulo Theories (SMT) solvers to do so. 
-That encoding is based on the following result:
-
-\begin{definition}\label{def:smt-condition}
-    A game is won by player \even if, starting at $v_0$, every $v \in V_{\subeven}$ has at least one outgoing edge leading to an infinite path where the highest priority is even. Furthermore, every $v \in V_{\subodd}$ must have all of its outgoing edges leading to infinite paths with the same condition.
-\end{definition}
-
-The idea is to construct a CNF formula that is satisfiable if and only if the condition given by Definition~\ref{def:smt-condition} holds. Determining satisfiability therefore is equivalent to proving that Player~\even has a winning strategy, while unsatisfiability proves the same but for Player~\odd.
+That encoding is based on the following observation:
 %
-This approach introduces Boolean variables for the vertices and edges of the arena: $S_v$ for every $v \in V$ and $T_{v,w}$ for every $(v, w) \in E$. Variables $S_v$ and $T_{v,w}$ represent whether the corresponding vertices and edges are on a winning path for~$\even$ (cf., Definition~\ref{def:smt-condition}).
+%\begin{definition}\label{def:smt-condition}
+    A game is won by player \even if, starting at $v_0$, every $v \in V_{\subeven}$ has at least one outgoing edge leading to an infinite path where the highest priority is even. Furthermore, every $v \in V_{\subodd}$ must have all of its outgoing edges leading to infinite paths with the same condition.
+%\end{definition}
+%
+The idea, then, is to construct a CNF formula that is satisfiable if and only if the above condition for winning
+%given by Definition~\ref{def:smt-condition} 
+holds. Determining satisfiability therefore is equivalent to proving that Player~\even has a winning strategy, while unsatisfiability proves the same but for Player~\odd.
+%
+This approach introduces Boolean variables for the vertices and edges of the arena: $S_v$ for every $v \in V$ and $T_{v,w}$ for every $(v, w) \in E$. Variables $S_v$ and $T_{v,w}$ represent whether the corresponding vertices and edges are on a winning path for~$\even$. % (cf., Definition~\ref{def:smt-condition}).
 %
 %If needed, we can do the same for every vertex, while remaining within the same complexity class, to solve the whole graph. 
 %
-A CNF formula can then capture the simple path conditions of Definition~\ref{def:smt-condition}:
+A CNF formula can then capture the above simple path conditions for winning a game in the following way: % of Definition~\ref{def:smt-condition}:
 
 \begin{itemize}
     \item $\Phi_\exists = \bigwedge_{v \in V_{\subeven}} (S_v \rightarrow \bigvee_{w \in vE} T_{(v,w)})$
@@ -169,7 +171,7 @@ These constraints state that for all vertices controlled by player~\even, if a v
 
 The final condition is slightly more difficult to implement: every \textit{infinite} path must satisfy the parity condition, that is, the highest priority that occurs infinitely often along the path must be even. This can be locally encoded using a \textit{progress measure}~\cite{Heljanko:2012,Jurdziński:2000} expressed with additional integer variables. A variable $x_p^v$ is introduced for every $v \in V$ and every $p \in \textit{Odd}(G)$, corresponding to the set of all odd priorities in the game, defined as $\textit{Odd}(G) = \{ p\in {\mathbb N} \mid p \textit{ is odd and } \Omega(v) = p, \textit{ for some } v \in V \}$. These variables track \textit{progress} along every $ t \in \textit{Inf}(\pi) $, the set of priorities that appear infinitely often in $\pi$, ensuring that $x_p^v > x_p^w$ if the priority is odd, or $x_p^v \geq x_p^w$ if the priority is even. Since odd priorities require a strictly increasing chain of integers, cycles with odd priorities are ruled out by this constraint. On the other hand, for even priorities, only a non-strict inequality is required.
 %
-The definition of the progress measure constraints is as follows: \cite{Heljanko:2012,Cotton:2004}
+The definition of the progress measure constraints is as follows (\cite{Heljanko:2012,Cotton:2004}):
 
 \begin{itemize}
 \item $\Phi_A = \bigwedge_{(v,w) \in E} \left(T_{(v,w)} \rightarrow \Psi_{(v,w)}\right)$
@@ -183,7 +185,7 @@ These constraints are instances of {\em difference logic}, which is supported by
 
 The difference logic constraints of the progress measure can also be encoded into pure CNF, which enables the use of modern SAT solvers to decide the winner of a parity game. This was the approach chosen in the paper that introduced the SMT encoding~\cite{Heljanko:2012}. 
 
-\section{A Constraint-Based Approach Using a No-Opponent-Cycle Propagator}
+\section{A Constraint-Based Approach Using an Efficient No-Opponent-Cycle Propagator}
 
 In this section, we present our approach to solving parity games by encoding them into a Constraint Satisfaction Problem (CSP) with three specialised propagators for the winning condition. Our method closely follows the framework presented in the previous section, determining satisfiability by evaluating if a game, starting at $v_0$, is won by player \even.
 
@@ -196,7 +198,7 @@ Our approach, then, replaces the progress measure with a global constraint that 
 
 We first translate the game into a CSP.
 %
-Let \( \player \in \{ \even, \odd \} \) be a player and \( \opponent \in \{ \even, \odd \} \), \( \opponent \neq \player \) its opponent. %, i.e., \( \opponent = 1 - \player \).
+Thus, let \( \player \in \{ \even, \odd \} \) be a player and \( \opponent \in \{ \even, \odd \} \), with \( \opponent \neq \player \), be its opponent. %, i.e., \( \opponent = 1 - \player \).
 
 \begin{definition}\label{def:csp}
     The CSP encoding of the parity game with arena $G=(V,E,\Omega)$, starting vertex $v_0$ and searching for the perspective of player $\player$ is defined as $\mathcal{CSP = (X, D, C)}$, where the set of variables is given by $\mathcal{X} = (\mathcal{V}_v)_{v \in V} \cup (\mathcal{E}_e)_{e \in E}$. All of these variables are Boolean, thus, $\mathcal{D} = \{\bot,\top\}$. The set of constraints, denoted by $C$, is defined as:
@@ -211,7 +213,7 @@ Let \( \player \in \{ \even, \odd \} \) be a player and \( \opponent \in \{ \eve
     \end{itemize}
 \end{definition}
 
-The constraints $\mathcal{C}_{v_0}$, $\mathcal{C}_{\opponent}$ and $\mathcal{C}_{\!E}$ directly correspond to the $S_{v_0}$, $\Phi_\forall$ and $\Phi_V$ constraints in the SMT encoding. We have adapted the $\Phi_\exists$ constraint into $\mathcal{C}_{\player}$ to enforce that \emph{exactly one} outgoing edge must be activated for each vertex of player $\player$. Additionally, we replace the progress measure constraint $\Phi_A$ with a global constraint $\mathcal{C}_{\!N\!O\!C}$, where \textit{NOC} stands for \noc. This constraint holds iff for every path $v_0,\ldots,v_k$ where $1\leq k\leq |V|$, if a cycle is formed by $v_j = v_k$ (for any $j < k$), then the parity of the maximum  priority value on that cycle must differ from the $\opponent$ value. This constraint forbids any cycle in which the highest priority that occurs infinitely often has the same parity as the opponent. Unlike previous formulations that assumed player $\odd$ as the default opponent, our construction generalizes to any arbitrary pair of players $\player$ and $\opponent$. This ensures that player $\player$ is guaranteed to win if, after ruling out all possible winning strategies for $\opponent$, the CSP remains satisfiable with $\player$ as the winner.
+Constraints $\mathcal{C}_{v_0}$, $\mathcal{C}_{\opponent}$ and $\mathcal{C}_{\!E}$ directly correspond to the $S_{v_0}$, $\Phi_\forall$ and $\Phi_V$ constraints in the SMT encoding. We have adapted the $\Phi_\exists$ constraint into $\mathcal{C}_{\player}$ to enforce that \emph{exactly one} outgoing edge must be activated for each vertex of player $\player$. Additionally, we replace the progress measure constraint $\Phi_A$ with a global constraint $\mathcal{C}_{\!N\!O\!C}$, where \textit{NOC} stands for \noc. This constraint holds iff for every path $v_0,\ldots,v_k$ where $1\leq k\leq |V|$, if a cycle is formed by $v_j = v_k$ (for any $j < k$), then the parity of the maximum  priority value on that cycle must differ from the $\opponent$ value. This constraint forbids any cycle in which the highest priority that occurs infinitely often has the same parity as the opponent. Unlike previous formulations that assumed player $\odd$ as the default opponent, our construction generalizes to any arbitrary pair of players $\player$ and $\opponent$. This ensures that player $\player$ is guaranteed to win if, after ruling out all possible winning strategies for $\opponent$, the CSP remains satisfiable with $\player$ as the winner.
 %
 Let us illustrate the filtering we want to achieve using this global constraint with an example.
 
@@ -243,7 +245,7 @@ Stronger versions of the $\mathcal{C}_{\!N\!O\!C}$ constraint can filter out ass
 
 \subsection{A No-Opponent-Cycle checker} \label{sec:nocchecker}
 To enforce $\mathcal{C}_{\!N\!O\!C}$, we propose a propagator based on recursively decomposing the graph into Strongly Connected Components (SCCs). By definition, all vertices inside an SCC of size greater than 1 are part of at least one cycle, while single-vertex SCCs may still contain self-loops.
-
+%
 Each resulting subgraph is then evaluated: if it contains a cycle in which the highest priority occurring infinitely often favors $\opponent$, the current assignment is rejected. Otherwise, the maximum priorities favouring $\player$ are removed from the SCC, and new SCCs are computed on the reduced graph.
 %
 If, in the end, all remaining single vertices lack both self-loops and $\opponent$ priorities, the assignment is accepted.
@@ -280,7 +282,7 @@ If the SCC contains more than one vertex, the algorithm identifies the set of ve
 The complexity of the \nocchecker propagator is polynomial in the size of the input graph. Each call to Tarjan's algorithm computes the SCCs in linear time, i.e., $\mathcal{O}(|V| + |E|)$. In the worst case, the algorithm may recursively remove and reprocess subsets of vertices with maximal priority multiple times. However, each vertex can only be part of an attracting set and removed once per recursive level, ensuring that the total number of Tarjan calls remains linear in the number of vertices. As a result, the overall time complexity of the propagator remains $\mathcal{O}(|V| \cdot (|V| + |E|))$ in the worst case.
 
 \subsection{A No-Opponent-Cycle filter} \label{sec:nocfilter}
-In addition to \nocchecker, we propose a complete propagator based on Depth-first Search (DFS) to explore the arena. The resulting DFS tree captures all possible paths from $v_0$, and can be used to detect all existing cycles. We define the propagator in the context of a \textit{Lazy Clause Generation} solver~\cite{DBLP:journals/constraints/OhrimenkoSC09}, to take advantage of the strong performance of this type of solver, in particular for problems that contain a large number of Boolean clauses. Algorithm~\ref{alg:noc-eager} presents this version of the propagator, which checks for cycles and reports failure if a cycle with highest priority in favour of $\opponent$ is detected.
+In addition to \nocchecker, we also propose a complete propagator based on Depth-first Search (DFS) to explore the arena. The resulting DFS tree captures all possible paths from $v_0$, and can be used to detect all existing cycles. We define the propagator in the context of a \textit{Lazy Clause Generation} solver~\cite{DBLP:journals/constraints/OhrimenkoSC09}, to take advantage of the strong performance of this type of solver, in particular for problems that contain a large number of Boolean clauses. Algorithm~\ref{alg:noc-eager} presents this version of the propagator, which checks for cycles and reports failure if a cycle with highest priority in favour of $\opponent$ is detected.
 
 \begin{algorithm}[htb]
 \small
@@ -323,15 +325,15 @@ In contrast, if the current vertex $v$ has appeared in the path (line~\ref{alg:n
 
 Since Lazy Clause Generation (LCG) solvers require a justification for each propagation step (to enable clause learning), all edges in the detected cycle are collected to form a clause stating that at least one must be assigned $\bot$ (line~\ref{alg:noc-eager:reason}). For instance, in the scenario shown in Figure~\ref{fig:game02b}, the clause $(\neg \mathcal{E}_0 \vee \neg \mathcal{E}_2 \vee \neg \mathcal{E}_4 \vee \neg \mathcal{E}_6 \vee \neg \mathcal{E}_3)$ would be added to prevent the opponent cycle.
 
-The complexity of the \noceager propagator is primarily driven by the DFS traversal over the graph, with additional work performed when a cycle is detected. In the worst case, the algorithm explores every simple path in the graph starting from the initial vertex. This may result in an exponential number of recursive calls in the number of vertices since each branching decision adds a new path to explore. However, in practice, the number of recursive calls is bounded by the number of edges assigned to $\top$ and at most one unassigned edge, significantly reducing the branching factor. Each recursive call performs a constant number of operations, except when a cycle is found (line~\ref{alg:noc-eager:pathcheck}). Nevertheless, because the algorithm may visit multiple paths and cycles, and because each edge can potentially trigger multiple clause generation steps before being fixed, the overall worst-case complexity remains exponential in the size of the graph. This trade-off is justified by the early pruning capabilities enabled by detecting potentially winning opponent cycles before they are fully formed, especially in graphs with many unassigned edges or nondeterminism. In typical solver applications, where assignments propagate quickly and many edges are fixed early, the practical runtime of the propagator is significantly better than the theoretical worst case—as demonstrated by the experimental results presented in section \ref{sec:experiments}, where this approach consistently outperforms alternatives in both speed and effectiveness.
+The complexity \noceager is primarily driven by the DFS traversal over the graph, with additional work performed when a cycle is detected. In the worst case, the algorithm explores every simple path in the graph starting from the initial vertex. This may result in an exponential number of recursive calls in the number of vertices since each branching decision adds a new path to explore. However, in practice, the number of recursive calls is bounded by the number of edges assigned to $\top$ and at most one unassigned edge, significantly reducing the branching factor. Each recursive call performs a constant number of operations, except when a cycle is found (line~\ref{alg:noc-eager:pathcheck}). Nevertheless, because the algorithm may visit multiple paths and cycles, and because each edge can potentially trigger multiple clause generation steps before being fixed, the overall worst-case complexity remains exponential in the size of the graph. This trade-off is justified by the early pruning capabilities enabled by detecting potentially winning opponent cycles before they are fully formed, especially in graphs with many unassigned edges or nondeterminism. In typical solver applications, where assignments propagate quickly and many edges are fixed early, the practical runtime of the propagator is significantly better than the theoretical worst case—as demonstrated by the experimental results presented in section \ref{sec:experiments}, where this approach consistently outperforms alternatives in both speed and effectiveness.
 
 \subsection{Improved Filtering Strategy for the No-Opponent-Cycle Propagator}
 
-In order to avoid the exponential behavior of \noceager, we have developed a variant that memorizes cycles and can quickly remove some new cycles. Algorithm \ref{alg:noc-memo} incorporates a parameter $\textit{memo}$ that stores, for each edge, the starting node of an infinite path and the associated highest priority. This information is updated whenever a cycle is found (line~\ref{alg:noc-memo:update}). If $\textit{memo}$ does not contain information about the next edge $e'$, or a new highest priority was found, then the propagator proceeds recursively as before (lines~\ref{alg:noc-memo:check1} and \ref{alg:noc-memo:check2}). Otherwise, it uses the stored information for the new edge (line~\ref{alg:noc-memo:update}). 
+In order to mitigate the exponential behavior of \noceager, we have developed a variant that memorizes cycles and can quickly remove some new cycles. To do so, one can use Algorithm \ref{alg:noc-memo}, which incorporates a parameter $\textit{memo}$ that stores, for each edge, the starting node of an infinite path and the associated highest priority. This information is updated whenever a cycle is found (line~\ref{alg:noc-memo:update}). If $\textit{memo}$ does not contain information about the next edge $e'$, or a new highest priority was found, then the propagator proceeds recursively as before (lines~\ref{alg:noc-memo:check1} and \ref{alg:noc-memo:check2}). Otherwise, it uses the stored information for the new edge (line~\ref{alg:noc-memo:update}). 
 This results in polynomial worst-case runtime, since the recursion is now bounded by the number of edges and the number of different priorities. However, the memoization only captures cycles with the same starting node. The propagator may therefore miss some cycles, rendering it incomplete. To preserve completeness, this variant is therefore used in conjunction with the \nocchecker introduced earlier.
 
 For the example of Figure \ref{fig:game02}, the updated version of \noc stores a tuple $(v=5, m=3)$ on edge $E_5$, indicating that the best priority reachable from this edge is 3 and that the infinite path starts at $V_5$. This prevents the exploration of the subgraph $\{V_4, V_5, V_6\}$ in future stages. %To invoke this propagator, the new parameter is initialized as: $\textit{best} \gets \{(-1,-1) \mid e \in E\}$.
-
+%
 Remembering cycles is particularly effective in games where the number of cycles favoring $\player$ exceeds those favoring $\opponent$, as demonstrated below in the section on experiments.
 
 \begin{algorithm}[htb]
@@ -381,7 +383,7 @@ The three versions of the \noc propagator can be used to solve parity games, wit
 
 As our experiments will demonstrate, solver performance is heavily dependent on the game's underlying structure. A key observation is the asymmetry in computational cost inherent in game structure: properties that challenge $\player$'s solution often simplify $\opponent$'s, and vice versa. This problem duality allows us to transform and simplify the solution. By exploiting this, we can avoid a worst-case scenario for one player by solving the game from the opposite perspective. Consequently, solving the game from both perspectives in parallel significantly improves overall efficiency. This acceleration is largely attributed to the \noc propagator's capacity to rapidly prune the search space by eliminating $\opponent$'s winning options, effectively proving $\player$ has no winning strategy. We execute both perspectives concurrently and utilize the result obtained by the faster computation.
 
-As confirmed by additional experiments (see the $\text{\href{[https://figshare.com/s/38b43592b1047a9b893a](https://figshare.com/s/38b43592b1047a9b893a)}{Online Appendix}}$), we confirm that state-of-the-art methods cannot exploit this duality, demonstrating consistent performance regardless of which player wins.
+As confirmed by additional experiments (available on the \href{https://figshare.com/s/38b43592b1047a9b893a}{Online Appendix}), we confirm that state-of-the-art methods cannot exploit this duality, demonstrating consistent performance regardless of which player wins.
 
 \section{Experiments and Evaluation}\label{sec:experiments}
 
@@ -493,13 +495,21 @@ To extract individual winning plays, we extend the CSP with variables and constr
 \noindent 
 We then introduce three new constraints:
 \begin{itemize}
-\item ($\mathcal{C}_{\textit{path}}$): ensures each step follows a valid edge; \\
+\item ($\mathcal{C}_{\textit{path}}$): 
 $\mathsf{t} \in \{0..\mid V \mid -1\} \wedge \bigwedge_{s \in \{1..\mathsf{t}\}} \bigvee_{e=(v,w) \in E} (\mathcal{E}_e \wedge \mathcal{P}_{s-1} = v \wedge \mathcal{P}_s = w)$;
+This ensures each step follows a valid edge;
+\end{itemize}
 
-\item ($\mathcal{C}_{\textit{cycle}}$): ensures the cycle closes at position $\mathsf{t} + 1$;
-$\mathsf{h} \in \{0..\mathsf{t}\} \wedge \mathcal{P}_{\mathsf{t}+1} = \mathcal{P}_\mathsf{h}$;
+\begin{itemize}
+\item ($\mathcal{C}_{\textit{cycle}}$): 
+$\mathsf{h} \in \{0..\mathsf{t}\} \wedge \mathcal{P}_{\mathsf{t}+1} = \mathcal{P}_\mathsf{h}$; \\
+It ensures the cycle closes at position $\mathsf{t} + 1$;
+\end{itemize}
 
-\item ($\mathcal{C}_{\textit{unique}}$): enforces only one cycle: $\bigwedge_{i \neq j \in \{0..\mathsf{t}\}} (\mathcal{P}_i \neq \mathcal{P}_j)$.
+\begin{itemize}
+\item ($\mathcal{C}_{\textit{unique}}$): 
+$\bigwedge_{i \neq j \in \{0..\mathsf{t}\}} (\mathcal{P}_i \neq \mathcal{P}_j)$; \\
+This constraint enforces only one cycle.
 \end{itemize} 
 
 These constraints can be added in MiniZinc without modifying the \noc algorithm. Using Chuffed as the backend, we enumerate all solutions to obtain the set of winning plays, represented as vertex sequences. 
