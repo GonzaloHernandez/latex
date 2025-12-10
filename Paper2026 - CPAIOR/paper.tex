@@ -387,22 +387,24 @@ As confirmed by additional experiments (available on the \href{https://figshare.
 
 \section{Experiments and Evaluation}\label{sec:experiments}
 
-To evaluate our approach, we implemented the \noc propagators using the Constraint Programming (CP) solver Chuffed (version 0.12.1) \cite{chuffed:2018}. We utilized MiniZinc \cite{DBLP:conf/cp/NethercoteSBBDT07} to model additional constraints in select experiments.
+To evaluate our approach, we implemented the \noc propagators using the Constraint Programming (CP) solver Chuffed (version 0.12.1) \cite{chuffed:2018}. We utilized MiniZinc \cite{DBLP:conf/cp/NethercoteSBBDT07} to model additional constraints in selected experiments.
 
 For comparison, we employed several external state-of-the-art solvers: 
 \begin{itemize}
     \item SAT Solvers (Reduction SAT): We used \textbf{CaDiCaL} (v2.1.3) \cite{Biere:Cadical:2024}, \textbf{MiniSat} (v2.2.0) \cite{Een:MiniSat:2003}, \textbf{Kissat} (v4.0.2) \cite{Biere:Kissat:2024}, and zChaff (v2007.3.12) \cite{Moskewicz:zChaff:2001}.
-    \item State-of-the-Art (SOTA) Parity Game Solvers: We incorporated Oink (fresh GitHub version) \cite{vanDijk:2018}, which includes several high-performance algorithms like Priority Promotion ($\textbf{PP}$ and $\textbf{PP+}$) and Parys' improvements ($\textbf{PAR}$). We also included the Zielonka Recursive Algorithm ($\textbf{ZRA}$) with an improved attractor strategy as detailed in \cite{Aggarwal:2023}.
+    \item State-of-the-Art (SOTA) Parity Game Solvers: We incorporated Oink (fresh GitHub version) \cite{vanDijk:2018}, which includes several high-performance algorithms like Priority Promotion ($\textbf{PP}$ and $\textbf{PP+}$) and Parys' improvements ($\textbf{PAR}$). We also included the Zielonka Recursive Algorithm ($\textbf{ZRA}$), with an improved attractor strategy as detailed in \cite{Aggarwal:2023}, which offers better perfonmance. 
 \end{itemize}
 
-All experiments were conducted on an Intel Xeon 8260 CPU (24 cores, non-hyperthreaded) with 268.55 GB of RAM, running Linux. The complete source code, including implementations and experimental setups, is available at \href{https://github.com/GonzaloHernandez/NoOpponentCycle}{http://github.com/GonzaloHernandez/NoOpponentCycle}
-
-We evaluated the approaches using a standard benchmark set commonly employed in parity game research, drawing from the PGSolver Library \cite{Friedmann:2017} and the Benchmarks for Parity Games \cite{Keiren:2015}. The games were classified into four categories:
+All experiments were conducted on an Intel Xeon 8260 CPU (24 cores, non-hyperthreaded) with 268.55 GB of RAM, running Linux. The complete source code, including implementations and experimental setups, is available at 
+\cite{Hernandez:Github:NoOppnentCycle:2025}.
+%\href{https://github.com/GonzaloHernandez/NoOpponentCycle}{http://github.com/GonzaloHernandez/NoOpponentCycle}
+%
+We evaluated all algorithms using a standard benchmark set commonly employed in parity game research, drawing from the PGSolver Library \cite{Friedmann:2017} and the Benchmarks for Parity Games \cite{Keiren:2015}. The games were classified into four categories:
 
 \begin{itemize}
     \item Equivalence Checking ($\textbf{EqC}$): This group contains 77 games derived from formal equivalence checking problems, including strong bisimulation, weak bisimulation, and stuttering equivalence. These games are characterized by complex, structured connectivity patterns reflecting system design.
     \item Model Checking ($\textbf{MoC}$): This set consists of 106 games originating from temporal logic model checking ($\mu$-calculus) against system models. These instances are considered organic and reflect real-world verification challenges.
-    \item PGSolver Collection ($\textbf{PGS}$): This collection comprises 161 games sourced from the hardest known families of parity games, including ladder games, recursive ladder games, elevator verification, clique games, steady games, and Jurdziński games \cite{Benerecetti:2016}.
+    \item PGSolver Collection ($\textbf{PGS}$): This collection comprises 161 games sourced from the hardest known families of parity games, including ladder games, recursive ladder games, elevator verification, clique games, steady games, and Jurdziński games \cite{Benerecetti:2016}, likely to expose some of the worst performance.
     \item Random Games ($\textbf{RaG}$): This category includes 125 randomly generated games with varying sizes and priority distributions, designed primarily to test the general robustness and average-case performance of solving algorithms.
 \end{itemize}
 
@@ -427,8 +429,7 @@ The benchmark sets were partitioned into two distinct size categories for evalua
 }
 \label{tab:smallgames}
 \end{table}
-
-In Table \ref{tab:smallgames}, we compare the performance of our \noc propagators against other constraint-based approaches (PP, PP+, PAR of Oink) and the \zra algorithm (Improved Attractor) on small benchmark games. The goal of this evaluation is to assess the effectiveness of our filtering techniques relative to existing SAT-based methods, which is the primary focus of this paper. Overall, \noc outperforms the SAT-based methods by up to three orders of magnitude. Furthermore, we observe that the Memoization approach (\nocmemo) does not significantly improve performance over the Eager approach (\noceager). Moreover, \noceager achieves performance comparable to the best non-CP-based algorithms in practice: it is at most one order of magnitude slower on the hardest games (from the PGSolver Collection) and no more than a factor of two slower on all other instances. Additional comparative results with other CP methods are provided in the \href{https://figshare.com/s/38b43592b1047a9b893a}{Online Appendix}.
+{\bf Check bold.} In Table \ref{tab:smallgames}, we compare the performance of the \noc propagators against {\bf other constraint-based approaches (PP, PP+, PAR of Oink)} and the \zra algorithm (Improved Attractor) on small benchmark games. The goal of this evaluation is to assess the effectiveness of the filtering techniques relative to existing SAT-based methods, which is the primary focus of this paper. Overall, \noc outperforms the SAT-based methods by up to three orders of magnitude. Furthermore, we observe that the Memoization approach (\nocmemo) does not significantly improve performance over the Eager approach (\noceager). Moreover, \noceager achieves performance comparable to the best non-CP-based algorithms in practice: it is at most one order of magnitude slower on the hardest games (from the PGSolver Collection) and no more than a factor of two slower on all other instances. Additional comparative results with other CP methods are provided in the \href{https://figshare.com/s/38b43592b1047a9b893a}{Online Appendix}.
 
 \begin{table}[ht]
 \centering
@@ -450,7 +451,7 @@ Random Games            &  0.016 &  0.015 & \textbf{0.015} &    0.053 &   0.078 
 \label{tab:biggames}
 \end{table}
 
-Table \ref{tab:biggames} presents the results for large benchmark games, where we evaluate the scalability of our \noc approach in comparison to \zra and the Oink family of algorithms. SAT-based approaches are omitted, as they are unable to solve these larger instances within reasonable resource limits and therefore do not contribute to a meaningful scalability analysis. Overall, \noc shows strong and robust performance: in the Equiv Checking and Model Checking benchmarks, it is within a small constant factor of \zra, which remains the fastest method. In the PGSolver Collection, \noc clearly outperforms all Oink algorithms and also surpasses \zra by a large margin. For Random Games, all algorithms solve the instances almost instantly, making performance differences negligible. These results demonstrate that \noc scales effectively and remains competitive with the best non-CP-based solvers on large games.
+Table \ref{tab:biggames} presents the results for large games, where we evaluate the scalability of the \noc technique in comparison to \zra and the Oink family of algorithms. SAT-based approaches are omitted, as they were unable to solve these larger instances within reasonable resource limits and therefore do not contribute to a meaningful scalability analysis. Overall, \noc shows strong and robust performance: in the Equivalence and Model Checking benchmarks, it is within a small constant factor of \zra, which remains the fastest method, which is consistent with the main results reported in \cite{Aggarwal:2023}. In the PGSolver Collection, \noc  outperforms all Oink algorithms and also surpasses \zra by a large margin. For Random Games, all algorithms solve the instances almost instantly, making performance differences negligible. These results demonstrate that \noc scales effectively and remains competitive with the best non-CP-based (dedicated) solvers on large games.
 
 The runtime metrics for the \noc and \zra approaches include both the solver execution time and the internal problem-preparation time (excluding I/O operations such as file reading). In contrast, for the SAT-based approaches we report only the solving time. This distinction is made because the preparation phase for the SAT-based methods—particularly the encoding generation—is substantially more expensive and was not a primary target of optimization in this work. Additional experiments comparing \noceager, \nocmemo, \nocchecker with \zra, together with their statistical analysis (AVG, SD, WR) presented in the \href{https://figshare.com/s/38b43592b1047a9b893a}{Online Appendix}, indicate that the \nocmemo implementation does not provide a significant performance advantage over the \noceager implementation on these benchmark instances.
 
