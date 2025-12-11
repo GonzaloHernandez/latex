@@ -429,7 +429,7 @@ The benchmark sets were partitioned into two distinct size categories for evalua
 }
 \label{tab:smallgames}
 \end{table}
-{\bf Check bold.} In Table \ref{tab:smallgames}, we compare the performance of the \noc propagators against {\bf other constraint-based approaches (PP, PP+, PAR of Oink)} and the \zra algorithm (Improved Attractor) on small benchmark games. The goal of this evaluation is to assess the effectiveness of the filtering techniques relative to existing SAT-based methods, which is the primary focus of this paper. Overall, \noc outperforms the SAT-based methods by up to three orders of magnitude. Furthermore, we observe that the Memoization approach (\nocmemo) does not significantly improve performance over the Eager approach (\noceager). Moreover, \noceager achieves performance comparable to the best non-CP-based algorithms in practice: it is at most one order of magnitude slower on the hardest games (from the PGSolver Collection) and no more than a factor of two slower on all other instances. Additional comparative results with other CP methods are provided in the \href{https://figshare.com/s/38b43592b1047a9b893a}{Online Appendix}.
+In Table \ref{tab:smallgames}, we compare the performance of the \noc propagators against two groups of competing approaches on small benchmark games: (1) other constraint-based methods that use Reduction to SAT, and (2) non-constraint-based methods, such as the $\text{\zra}$ algorithm (Improved Attractor) and the Oink algorithms (PP, PP+, PAR). The goal of this evaluation is to assess the effectiveness of the filtering techniques relative to existing SAT-based methods, which is the primary focus of this paper. Overall, \noc outperforms the SAT-based methods by up to three orders of magnitude. Furthermore, we observe that the Memoization approach (\nocmemo) does not significantly improve performance over the Eager approach (\noceager). Moreover, \noceager achieves performance comparable to the best non-CP-based algorithms in practice: it is at most one order of magnitude slower on the hardest games (from the PGSolver Collection) and no more than a factor of two slower on all other instances. Additional comparative results with other CP methods are provided in the \href{https://figshare.com/s/38b43592b1047a9b893a}{Online Appendix}.
 
 \begin{table}[ht]
 \centering
@@ -441,10 +441,10 @@ The benchmark sets were partitioned into two distinct size categories for evalua
 \textbf{Benchmark} & \multicolumn{3}{c|}{\textbf{Oink}} & \multicolumn{1}{c|}{\textbf{ZRA}} & \multicolumn{2}{c}{\textbf{\cellcolor{gray!15}NOC}} \\
  & PP & PP+ & PAR & ImpAttr & Eager & Memo \\
 \midrule
-Equivalence Checking    & 24.775 & 24.876 &  24.159 & \textbf{14.490} &  16.169 & 82.902 \\
-Model Checking          &  9.547 &  9.557 &   8.718 & \textbf{ 3.929} &   8.838 &  8.912\\
-PGSolver Collection     & 44.949 & 44.922 & 182.643 & 201.804 & \textbf{32.189} & 55.464 \\
-Random Games            &  0.016 &  0.015 & \textbf{0.015} &    0.053 &   0.078 &  0.099 \\
+\textbf{EqC} & 24.775 & 24.876 &  24.159 & \textbf{14.490} &  16.169 & 82.902 \\
+\textbf{MoC} &  9.547 &  9.557 &   8.718 & \textbf{ 3.929} &   8.838 &  8.912\\
+\textbf{PGS} & 44.949 & 44.922 & 182.643 & 201.804 & \textbf{32.189} & 55.464 \\
+\textbf{RaG} &  0.016 &  0.015 & \textbf{0.015} &    0.053 &   0.078 &  0.099 \\
 \bottomrule
 \end{tabular}
 }
@@ -457,14 +457,15 @@ The runtime metrics for the \noc and \zra approaches include both the solver exe
 
 \subsection{Resource Utilization Analysis}
 
-A key motivation for developing the \noc propagator was to avoid the resource overhead associated with introducing the Boolean literals and clauses required for the progress measure variables and constraints. In our experiments, we also evaluated the memory consumption of \noc compared to other methods.
+A key motivation for developing the \noc propagator was to avoid the resource overhead associated with introducing the Boolean literals and clauses required for the progress measure variables and constraints. %In our experiments, 
+We also evaluated the memory consumption of \noc compared to other methods.
 
-The results of the experiments are summarised in Figure~\ref{fig:peakofmemory}. While \noc requires at most 700MB of memory games for 13 thousand vertices, and \zra up to 17MB, the SAT-based approaches consume significantly more. In particular, we see that CaDiCaL, MiniSat, and Kissat report memory usage exceeding 39~GB for the same instance.
+The results of these additional experiments are summarised in Figure~\ref{fig:peakofmemory}. While \noc requires at most 700MB of memory games for 13 thousand vertices, and \zra up to 17MB, the SAT-based approaches consume significantly more. In particular, we see that CaDiCaL, MiniSat, and Kissat report memory usage exceeding 39~GB for the same instances.
 
 \begin{figure}[ht]
     \centering
     \includegraphics[width=0.7\textwidth]{images/peakmemory-short.png} % Adjust the path to your figure file
-    \caption{Memory usage on Gb for solving the Jurdziński games, constrained to 13 thousand vertices.}
+    \caption{Memory usage on Gb for solving  Jurdziński parity games (one of the hardest games in the PGSolver collection), constrained to 13 thousand vertices.}
     \label{fig:peakofmemory}
 \end{figure}
 
@@ -477,12 +478,12 @@ The results of the experiments are summarised in Figure~\ref{fig:peakofmemory}. 
 
 \section{Games with Additional Constraints}
 
-As we will see in this section, our method flexibly integrates additional constraints—such as quantitative or structural requirements—without any modification to the core algorithm. This inherent adaptability to various constraints is a decisive advantage over non-CP approaches, which necessitate custom adaptations for every new constraint.
+As we will see in this section, our method flexibly integrates additional constraints—such as quantitative or structural requirements—without any modification to the core algorithm. This inherent adaptability to various constraints is a decisive advantage over non-CP approaches, which necessitate custom adaptations for every additional set of constraints in the problem.
 
 
 \subsection{Automated Synthesis of Reactive Systems}
 
-In (local) model checking, it suffices to determine the winner from a given vertex (satisfiable if won by Player~$\even$, unsatisfiable if won by Player~$\odd$). However, applications like automated synthesis~\cite{Bruyere:2022,Finkbeiner:2018,Luttenberger:2020} require explicit strategies -- that is, decisions at each vertex.
+In (local) model checking, it suffices to determine the winner from a given vertex (satisfiable if won by Player~$\even$, unsatisfiable if won by Player~$\odd$). However, applications like automated synthesis~\cite{Bruyere:2022,Finkbeiner:2018,Luttenberger:2020} require explicit winning strategies, that is, a description of the decisions to be made by the winner at each vertex.
 
 Our satisfiability encoding can capture multiple winning plays simultaneously. For instance, in Figure~\ref{fig:game02b}, a solution assigning $\top$ to vertices $\mathcal{V}_0$ to $\mathcal{V}_3$ and edges $\mathcal{E}_0$, $\mathcal{E}_1$, $\mathcal{E}_2$, $\mathcal{E}_4$, and $\mathcal{E}_6$ captures two distinct plays.
 %
@@ -513,11 +514,11 @@ $\bigwedge_{i \neq j \in \{0..\mathsf{t}\}} (\mathcal{P}_i \neq \mathcal{P}_j)$;
 This constraint enforces only one cycle.
 \end{itemize} 
 
-These constraints can be added in MiniZinc without modifying the \noc algorithm. Using Chuffed as the backend, we enumerate all solutions to obtain the set of winning plays, represented as vertex sequences. 
+These constraints can be added in MiniZinc without modifying the core algorithm of \noc. Using Chuffed as the backend, we enumerate all solutions to obtain the set of winning plays, represented as vertex sequences. 
 
 \subsection{Energy Conditions/Games}
 
-We now consider parity games with additional quantitative objectives. In \textit{Energy Games}~\cite{Chatterjee:2010}, each edge carries an energy level (a weight), and a play is winning if the running sum of these levels remains non-negative at all times, in addition to satisfying the parity condition.
+We now consider games with additional quantitative objectives. In \textit{Energy Games}~\cite{Chatterjee:2010}, each edge carries an energy level (a weight), and a play is winning if the running sum of these levels remains non-negative at all times, in addition to satisfying the parity condition.
 %
 %For memoryless parity games, 
 This requirement can be encoded using the $\mathcal{P}$ variables introduced earlier. Given a set of energy levels $(L_e)_{e \in E}$, we define integer variables $(\mathcal{I}_s)_{s \in \{0..\mathsf{t} - \mathsf{h} + 1\}}$ to represent the edges in the infinite cycle (tail) of the play:
@@ -532,14 +533,14 @@ We then impose the following constraint to ensure the total energy level in the 
     \item $\mathcal{C}_{\textit{energy}} : \sum_{e \in \mathcal{I}} L_e \geq 0$
 \end{itemize}
 
-While a complete model would also enforce energy constraints over all finite prefixes (up to $\mathsf{t}$), we omit these here for brevity. Together, these constraints suffice to model the energy condition.
+While a complete model would also enforce energy constraints over all finite prefixes (up to $\mathsf{t}$), we omit these here for brevity. Together, these constraints suffice to model the energy condition, useful in several verification settings. 
 
-Several other extensions—such as multi-dimensional energy bounds or payoff constraints—can be modelled similarly using additional constraints or objective functions~\cite{bozzelly:2020,Fijalkow:2014,Mogavero:2015,Weinert:2016}. Further work is needed to precisely define each requirement and establish the appropriate constraints.
+Many other extensions—-such as multi-dimensional energy bounds and other quantitative payoff constraints—-can be modelled similarly using additional constraints or objective functions~\cite{bozzelly:2020,Fijalkow:2014,Mogavero:2015,Weinert:2016}. Further work is needed to precisely define each requirement and establish the appropriate constraints.
 
 \section{Conclusions}
-We have introduced a novel constraint-based approach for parity games which does not require integer-based progress measures. The experiments show that our method significantly outperforms existing constraint-based approaches reducing runtime significantly, and improving on memory consumption by over 95\% on large instances, achieving much better results in performance (time and space) compared to previous work, and is competitive with non-CP-based solvers. 
+We have introduced a novel constraint-based approach for parity games which does not require integer-based progress measures. The experiments show that our method significantly outperforms existing constraint-based approaches reducing runtime significantly, and improving on memory consumption by over 95\% on large instances, achieving much better results in performance (time and space) compared to previous work, and is competitive against non-CP-based solvers. 
 
-Our key innovation, replacing a SAT encoding with a global constraint, not only improves performance but also provides a flexible framework that can be easily extended to accommodate additional constraints, and therefore more complex requirements.  These improvements can enable practical verification of large-scale systems while maintaining the modularity and expressiveness of CP methods.
+Our key innovation, replacing a SAT encoding with a global constraint, not only improves performance but also provides a flexible framework that can be easily extended to accommodate additional constraints, and therefore more complex requirements.  In this paper, we have shown that these improvements can enable practical verification of large-scale systems while maintaining the modularity and expressiveness of CP-based methods using a modern technology. 
 
 Our work goes beyond parity games by easily enabling new solutions to synthesis and providing the flexibility to adapt our core to solve multiplayer games, including more general games (e.g.,  \wregulargames \cite{Chatterjee:2012}). Our results demonstrate that constraint-based approaches with carefully designed global constraints offer a promising direction for practical formal verification tools that balance expressiveness and computational efficiency.
 
