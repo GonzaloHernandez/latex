@@ -1,0 +1,624 @@
+% This is samplepaper.tex, a sample chapter demonstrating the
+% LLNCS macro package for Springer Computer Science proceedings;
+% Version 2.21 of 2022/01/12
+%
+\documentclass[runningheads]{llncs}
+%
+\usepackage[T1]{fontenc}
+% T1 fonts will be used to generate the final print and online PDFs,
+% so please use T1 fonts in your manuscript whenever possible.
+% Other font encondings may result in incorrect characters.
+%
+\usepackage{graphicx}
+% If you use the hyperref package, please uncomment the following two lines
+% to display URLs in blue roman font according to Springer's eBook style:
+%\usepackage{color}
+%\renewcommand\UrlFont{\color{blue}\rmfamily}
+%\urlstyle{rm}
+%
+
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage[hyphens]{url}
+\usepackage{algorithm}
+\usepackage[noend]{algorithmic}
+\usepackage{amssymb}
+\usepackage{subcaption}
+\usepackage{tabularx}
+\usepackage{booktabs}
+\usepackage[table]{xcolor}
+\usepackage{amsmath}
+\usepackage{multirow}
+% \usepackage{bibentry}
+\usepackage[skip=5pt]{caption}
+\usepackage{hyperref}
+
+\hypersetup{
+    colorlinks=true,
+    linkcolor=black,
+    filecolor=black,      
+    urlcolor=black,
+    citecolor=black
+}
+
+\input{macros.tex}
+
+\setlength{\textfloatsep}{10pt plus 1.0pt minus 2.0pt}
+\setlength{\intextsep}{10pt plus 1.0pt minus 2.0pt}
+
+\begin{document}
+%
+\title{NOCQ: A Constraint-Based Toolchain for Solving Parity Games with Quantitative Conditions}
+
+% \author{Authors' Names Omitted for Double-Blind Review}
+\author{
+    Gonzalo Hernandez\inst{1,3} \and
+    Julian Garcia\inst{1} \and
+    Julian Gutierrez\inst{2} \and
+    Guido Tack\inst{1}
+}
+%
+
+% \authorrunning{Anonymized Submission}
+\authorrunning{G. Hernandez et al.}
+% First names are abbreviated in the running head.
+% If there are more than two authors, 'et al.' is used.
+%
+
+% \institute{Affiliations Omitted for Double-Blind Review}
+\institute{
+    Monash University, Australia
+    \email{\{gonzalo.hernandez,julian.garcia,guido.tack\}@monash.edu} \and
+    University of Sussex, United Kingdom
+    \email{\{J.Gutierrez\}@sussex.ac.uk} \and
+    Universidad de Nariño, Colombia
+    \email{\{gonzalo.hernandez\}@udenar.edu.co}
+}
+
+%
+\maketitle              % typeset the header of the contribution
+%
+\begin{abstract}
+Solving parity games is a cornerstone problem in formal verification and synthesis, with significant applications across industrial-scale system design. We present NOCQ, an efficient constraint-based toolchain designed to solve parity games under quantitative conditions. By leveraging the inherent duality of parity game players, NOCQ implements several constraint programming (CP) techniques that exploit search space symmetries. Our experimental evaluation demonstrates that NOCQ performs competitively against state-of-the-art specialized solvers—often matching or exceeding their performance—while maintaining the modularity and flexibility of a CP-based framework. This flexibility allows users to easily incorporate additional constraints to search for preferred solutions, such as Mean-payoff requirements. We describe the tool's architecture, provide a comprehensive performance analysis, and discuss its extensibility. NOCQ is open-source and available at: \url{https://github.com/gonzalohernandez/nocq}.
+
+\keywords{Constraint programming \and Parity games \and Verification.}
+\end{abstract}
+%
+\section{Introduction}
+
+Parity games are two-player zero-sum infinite-duration games played on a labelled directed graph, where vertices represent states of the players in the game and edges represent their possible available actions at every state. 
+Solving these games is central to several techniques in automated formal verification, in particular, when solving model checking and automated synthesis problems.
+
+Since parity games are zero-sum, perfect-information games, solving them amounts to finding which player (usually called Player Even, or $\even$, and Player Odd, or $\odd$) has a winning strategy, from a given starting vertex in the graph. 
+It is known that deciding the winner in parity games is an $\mathsf{NP} \cap \mathsf{co\textit{-}NP}$ problem~\cite{Jurdziński:1998}, but it is not known whether or not they can be solved in polynomial time; a problem that has remained open for nearly 50 years. 
+% (Done) Remove Arcucci's reference and add, instead, a reference to priority promotion and the latest result on its coplexity, where it is shown that they are quasi-polynomial, especially this last one is important as it is the main complexity result at the moment. 
+Due to the importance of parity games in formal verification, several algorithms have been developed \cite{Aggarwal:2023,Benerecetti:2025,Jurdziński:2000,Jurdziński:2022,Zielonka:1998}, all of them suffering from exponential running time limitations for specific classes of games. 
+One such approach involves reducing the solution of a parity game to the solution of a SAT instance representing the game. The generated SAT instance is satisfiable if and only if Player Even has a winning strategy in the original game. 
+This idea has a lot of potential given the advances in SAT-solving technology, but, as we will show later, it suffers from poor scalability due to the large size of the generated CNF formula for a given game.
+
+In this paper, we address these scalability issues by developing a specialised propagator that takes into account the structure of parity games, resulting in significant improvements in performance and modelling power. 
+In particular, we show that our method outperforms all other state-of-the-art constraint-based solvers.
+%
+Specifically, we propose replacing the SAT-based encoding used to forbid cycles corresponding to Player Odd wins in the game graph \cite{Heljanko:2012} with a set of efficient global constraint propagators; this significantly reduces the encoding size of the problem. Two of the proposed propagators are based on depth-first search, and a third is a checker that analyses the strongly connected components (SCCs) of the game graph. These propagators filter edges that would close winning cycles for a selected opponent player and generate explanations for each filtering step, enabling their integration into a Lazy Clause Generation solver~\cite{DBLP:journals/constraints/OhrimenkoSC09}.
+
+We show that our implementation not only outperforms existing SAT and CP-based approaches but also achieves performance comparable to that of state-of-the-art specialized non-CP-based algorithms, often matching or exceeding their results. This work contributes to establishing the CP framework as a practical tool for solving both general and specialized classes of parity games.
+
+The remainder of this paper is organized as follows. We first present the theoretical foundations and necessary definitions used in further sections, and then introduce our proposed approach -- including the design and implementation of the \noc propagators. After that, we provide different experimental results, a comparative analysis against state-of-the-art solvers, and present the extension of our method with additional constraints. At the end of the paper, we focus on the presentation of a number of concluding remarks, a discussion of our main findings, and some proposals for potential future research directions.
+
+\section{Background and Overview}
+
+This section introduces parity games and overviews the existing translations into Boolean Satisfiability (SAT) and Satisfiability Modulo Theories (SMT).
+
+\subsection{Parity Games}
+
+Parity games are two-player zero-sum games played on a labeled directed graph, called the \textit{arena}, where two players, \textit{Even} and \textit{Odd} (denoted~\even or 0, and~\odd or 1, respectively), move a token along adjacent vertices depending on which player controls the current vertex. This process generates a path of states visited by the token. In a parity game, each path is winning for either Player \even or Player \odd. The goal of each player is to enforce a winning path in their favour. We now formalize parity games, including the definition of when a given path in the graph is winning for either player.
+
+The game starts with a token at an initial vertex $v_0 \in V$. Player Even is responsible for moving the token when it is on a vertex in $V_{\subeven}$, and Player Odd is responsible for moving the token when it is on a vertex in $V_{\subodd}$. Because every node is required to have at least one outgoing edge, the token travels along the graph generating a path of infinite length. The winner is determined by the highest priority that is visited by the token infinitely often.
+
+\subsection*{Strategies, Plays, and Winning Conditions}
+A memoryless or {\em positional strategy} for player Even (player Odd) is a function $f_{\subeven} : V_{\subeven} \to V$ ($f_{\subodd} : V_{\subodd} \to V$) that dictates how the player should move the token when it is in one of the vertices the player controls. Every pair of memoryless strategies, one for each player, uniquely determines an infinite path $\pi$, called a {\em play}, in the game. Accordingly, $\Omega \pi$ is an infinite sequence of priorities. Let $\pi_k$ be the $(k+1)$th element in such a sequence of vertices, that is, in such a path. Because arenas are finite, such an infinite sequence of priorities has a (possibly empty) finite prefix $\Omega(\pi_0) \Omega(\pi_1) \ldots \Omega(\pi_h)$ of length $h$ and an infinite tail $\Omega(\pi_{h+1}) \Omega(\pi_{h+2}) \ldots$ of priorities that are seen infinitely often (given that the graph is finite and the strategies are memoryless/positional). We say that a play~$\pi$ is {\em winning} for player $\even$ (player $\odd$) if the highest priority that appears infinitely often in its associated sequence of priorities $\Omega \pi$ is even (odd). 
+
+Given an initial vertex $v_0$, a strategy is said to be winning from $v_0$ for player~$\even$ (player~$\odd$) if it only generates winning plays for player~$\even$ (player~$\odd$) starting at $v_0$ for all strategies of the other player. It is known that for every vertex~$v\in V$ in a parity game, one of the two players always has a memoryless winning strategy from that vertex~$v$. Solving a parity game means deciding, for every vertex~$v\in V$, which player has a memoryless winning strategy from that vertex.
+
+\subsection{Solving parity games SMT/SAT encodings}
+
+Besides dedicated methods for parity games, algorithms have been developed to \textit{encode} a given game into constraint-based formalisms, in order to apply off-the-shelf solvers. One such approach~\cite{Heljanko:2012} uses Satisfiability Modulo Theories (SMT) solvers to do so. 
+That encoding is based on the following observation:
+
+A game is won by player \even if, starting at $v_0$, every $v \in V_{\subeven}$ has at least one outgoing edge leading to an infinite path where the highest priority is even. Furthermore, every $v \in V_{\subodd}$ must have all of its outgoing edges leading to infinite paths with the same condition.
+%
+The idea, then, is to construct a CNF formula that is satisfiable if and only if the above condition for winning holds. Determining satisfiability therefore is equivalent to proving that Player~\even has a winning strategy, while unsatisfiability proves the same but for Player~\odd.
+%
+This approach introduces Boolean variables for the vertices and edges of the arena: $S_v$ for every $v \in V$ and $T_{v,w}$ for every $(v, w) \in E$. Variables $S_v$ and $T_{v,w}$ represent whether the corresponding vertices and edges are on a winning path for~$\even$. % (cf., Definition~\ref{def:smt-condition}).
+%
+%If needed, we can do the same for every vertex, while remaining within the same complexity class, to solve the whole graph. 
+%
+A CNF formula can then capture the above simple path conditions for winning a game in the following way: % of Definition~\ref{def:smt-condition}:
+
+\begin{itemize}
+    \item $\Phi_\exists = \bigwedge_{v \in V_{\subeven}} (S_v \rightarrow \bigvee_{w \in vE} T_{(v,w)})$
+    \item $\Phi_\forall = \bigwedge_{v \in V_{\subodd}} (S_v \rightarrow \bigwedge_{w \in vE} T_{(v,w)})$
+    \item $\Phi_V = \bigwedge_{w \in V, w \neq v_0} \left( \left(\bigvee_{v \in Ev} T_{(v,w)}\right) \rightarrow S_w \right)$
+\end{itemize}
+
+These constraints state that for all vertices controlled by player~\even, if a vertex is on the winning path, then at least one outgoing edge must be on the winning path ($\Phi_\exists$); for all vertices controlled by player~$\odd$, if the vertex is on the winning path (for $\even$), then all outgoing edges must be on the winning path ($\Phi_\forall$); and for all vertices, if an edge leading to the vertex is on the winning path for player~\even, then the vertex itself is on the winning path ($\Phi_V$).
+% (Why?) I don't think this is correct, at least the interpretation that I'm giving to this explanation
+
+The final condition is slightly more difficult to implement: every \textit{infinite} path must satisfy the parity condition, that is, the highest priority that occurs infinitely often along the path must be even. This can be locally encoded using a \textit{progress measure}~\cite{Heljanko:2012,Jurdziński:2000} expressed with additional integer variables. A variable $x_p^v$ is introduced for every $v \in V$ and every $p \in \textit{Odd}(G)$, corresponding to the set of all odd priorities in the game, defined as $\textit{Odd}(G) = \{ p\in {\mathbb N} \mid p \textit{ is odd and } \Omega(v) = p, \textit{ for some } v \in V \}$. These variables track \textit{progress} along every $ t \in \textit{Inf}(\pi) $, the set of priorities that appear infinitely often in $\pi$, ensuring that $x_p^v > x_p^w$ if the priority is odd, or $x_p^v \geq x_p^w$ if the priority is even. Since odd priorities require a strictly increasing chain of integers, cycles with odd priorities are ruled out by this constraint. On the other hand, for even priorities, only a non-strict inequality is required.
+%
+The definition of the progress measure constraints is as follows (\cite{Heljanko:2012,Cotton:2004}):
+
+\begin{itemize}
+\item $\Phi_A = \bigwedge_{(v,w) \in E} \left(T_{(v,w)} \rightarrow \Psi_{(v,w)}\right)$
+\item $\Psi_{(v,w)} = \bigwedge_{p \in \textit{Odd}^{>\Omega(w)}(G)} (x_p^v \geqslant x_p^w), \textit{ if } \Omega(w) \textit{ is even}$
+\item $\Psi_{(v,w)} = \bigwedge_{p \in \textit{Odd}^{>\Omega(w)}(G)} (x_p^v \geqslant x_p^w) \land 
+(x_{\Omega(w)}^v > x_{\Omega(w)}^w), \textit{ if } \Omega(w) \textit{ is odd}$
+\end{itemize}
+
+These constraints are instances of {\em difference logic}, which is supported by some SMT solvers. Thus, an SMT solver can determine the satisfiability of~$(S_{v_0} \wedge \Phi_{\exists} \wedge \Phi_{\forall} \wedge \Phi_V \wedge \Phi_A)$, and, as such, decide whether player~\even has a winning strategy.
+
+The difference logic constraints of the progress measure can also be encoded into pure CNF, which enables the use of modern SAT solvers to decide the winner of a parity game. This was the approach chosen in the paper that introduced the SMT encoding~\cite{Heljanko:2012}. 
+
+\subsection{Solving parity games using an Efficient No-Opponent-Cycle Propagator}
+
+In this section, we present our approach to solving parity games by encoding them into a Constraint Satisfaction Problem (CSP) with three specialised propagators for the winning condition. Our method closely follows the framework presented in the previous section, determining satisfiability by evaluating if a game, starting at $v_0$, is won by player \even.
+
+However, while we retain the constraints $\Phi_\exists$, $\Phi_\forall$, and $\Phi_V$ to ensure connectivity within the arena, we observe that the $\Phi_A$ constraints—based on progress measures—significantly hinder the scalability of SAT-based approaches. 
+In the worst case, the size of the encoding grows cubically with the size of the arena. In practice, although the encoding is not always cubic, it is often still prohibitively large. For example, a Steady Game with 5,000 nodes may generate more than 215 million clauses. Such prohibitive instances are common in practice, even when the set $\textit{Odd}(G)$ is small.
+
+Our approach, then, replaces the progress measure with a global constraint that avoids the use of the integer variables $x_p^v$. We also define our model to enable search from both players’ perspectives, aiming to determine, efficiently, if the instance is unsatisfiable for either Player~\even or Player~\odd.
+
+We first translate the game into a CSP.
+%
+Thus, let \( \player \in \{ \even, \odd \} \) be a player and \( \opponent \in \{ \even, \odd \} \), with \( \opponent \neq \player \), be its opponent. %, i.e., \( \opponent = 1 - \player \).
+
+\begin{definition}\label{def:csp}
+    The CSP encoding of the parity game with arena $G=(V,E,\Omega)$, starting vertex $v_0$ and searching for the perspective of player $\player$ is defined as $\mathcal{CSP = (X, D, C)}$, where the set of variables is given by $\mathcal{X} = (\mathcal{V}_v)_{v \in V} \cup (\mathcal{E}_e)_{e \in E}$. All of these variables are Boolean, thus, $\mathcal{D} = \{\bot,\top\}$. The set of constraints, denoted by $C$, is defined as:
+    \begin{itemize}
+        \item $\mathcal{C}_{v_0} : \mathcal{V}_{v_0} = \top$
+        \item $\mathcal{C}_{\player} : \bigwedge_{v \in V_{\player}} (\mathcal{V}_v \rightarrow (\sum_{w \in vE} \mathcal{E}_{(v,w)}= 1))$
+        \item $\mathcal{C}_{\opponent} : \bigwedge_{v \in V_{\opponent}} (\mathcal{V}_v \rightarrow \bigwedge_{w \in vE} \mathcal{E}_{(v,w)})$
+        \item $\mathcal{C}_{\!E} : \bigwedge_{w \in V, w \neq v_0} ((\bigvee_{v \in Ew} \mathcal{E}_{(v,w)}) \rightarrow \mathcal{V}_w)$
+%        \item $\mathcal{C}_{\!N\!O\!C} : \bigwedge_{\pi \in \Pi} ( \textit{max}\{   \Omega(v) \mid v \in \textit{Inf}(\pi) \wedge \exists w \in V : \mathcal{E}_{(v,w)} \} \bmod 2 \ne \opponent)$
+        \item $\mathcal{C}_{\!N\!O\!C} : \bigwedge_{v_0, \dots, v_k} ((\bigwedge_{i\in 0\dots k-1} \mathcal{E}_{(v_i,v_{i+1})}) \rightarrow \bigwedge_{j\in 0\dots k-1}\\ (v_j=v_k \rightarrow \max\{\Omega(v_i) \mid i\in j\dots k\} \bmod 2 \ne \opponent))$
+%        \item $\mathcal{C}_{\!N\!O\!C} : \bigwedge_{(v_0, \dots, v_k)\in\textit{paths}(\mathcal{E})} \bigwedge_{j\in 0\dots k-1}\\ (v_j=v_k \rightarrow \max\{\Omega(v_i) \mid i\in j\dots k\} \bmod 2 \ne \opponent)$
+    \end{itemize}
+\end{definition}
+
+Constraints $\mathcal{C}_{v_0}$, $\mathcal{C}_{\opponent}$ and $\mathcal{C}_{\!E}$ directly correspond to the $S_{v_0}$, $\Phi_\forall$ and $\Phi_V$ constraints in the SMT encoding. We have adapted the $\Phi_\exists$ constraint into $\mathcal{C}_{\player}$ to enforce that \emph{exactly one} outgoing edge must be activated for each vertex of player $\player$. Additionally, we replace the progress measure constraint $\Phi_A$ with a global constraint $\mathcal{C}_{\!N\!O\!C}$, where \textit{NOC} stands for \noc. This constraint holds iff for every path $v_0,\ldots,v_k$ where $1\leq k\leq |V|$, if a cycle is formed by $v_j = v_k$ (for any $j < k$), then the parity of the maximum  priority value on that cycle must differ from the $\opponent$ value. This constraint forbids any cycle in which the highest priority that occurs infinitely often has the same parity as the opponent. Unlike previous formulations that assumed player $\odd$ as the default opponent, our construction generalizes to any arbitrary pair of players $\player$ and $\opponent$. This ensures that player $\player$ is guaranteed to win if, after ruling out all possible winning strategies for $\opponent$, the CSP remains satisfiable with $\player$ as the winner.
+%
+Let us illustrate the filtering we want to achieve using this global constraint with an example.
+
+\begin{example}\label{exa:jurd-2-1-f0}
+    Let us update the game in Figure~\ref{fig:game01}.  Figure~\ref{fig:game02} shows the same arena, but with additional labels for the edges and vertices. Searching from the perspective of Player $\player = \even$ and starting at vertex $V_0$, after enforcing constraints $\mathcal{C}_{v_0}, \mathcal{C}_{\player}, \mathcal{C}_{\opponent}, \mathcal{C}_{\!E}$ from Definition \ref{def:csp}, assume that the solver makes an initial assignment of $\mathcal{V}_0 = \mathcal{V}_1 = \mathcal{V}_2 = \mathcal{E}_0 = \mathcal{E}_1 = \mathcal{E}_2 = \mathcal{E}_3 = \top$ (see Figure~\ref{fig:game02a}), while the remaining variables are unassigned. At this point, Player \odd has a winning strategy because edges $\mathcal{E}_0$, $\mathcal{E}_2$ and $\mathcal{E}_3$ form a cycle where the maximum priority occurring infinitely often is 3.
+
+    A checker of $\mathcal{C}_{N\!O\!C}$ would, in this situation, report unsatisfiability of the problem, triggering a backtrack and a search for an alternative assignment. The solver would continue the search, possibly exploring another assignment, $\mathcal{V}_0 = \mathcal{V}_1 = \mathcal{V}_2 = \mathcal{V}_3 = \mathcal{E}_0 = \mathcal{E}_2 = \mathcal{E}_4 = \mathcal{E}_6 = \top$ (see Figure~\ref{fig:game02b}). Here, another cycle is formed, but the maximum priority occurring infinitely often is 2, which satisfies all constraints, making the problem satisfiable. As a result, starting from $V_0$, this game is won by Player \even.
+\end{example}
+
+\begin{figure}[ht]
+    \centering
+    \begin{subfigure}[b]{0.35\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{images/game02a.png}
+        \caption{Initial assignment}
+        \label{fig:game02a}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.35\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{images/game02b.png}
+        \caption{Satisfiable assignment}
+        \label{fig:game02b}
+    \end{subfigure}
+    \caption{A parity game with vertices $\{0..6\}$, edges $\{0..11\}$, and priorities $\{2,3\}$.}
+    \label{fig:game02}
+\end{figure}
+
+Stronger versions of the $\mathcal{C}_{\!N\!O\!C}$ constraint can filter out assignments that necessarily lead to cycles with an odd maximum priority. For instance, if the former assignment had been considered first, the constraint could have determined in advance that $\mathcal{E}_3$ \textit{must} be $\bot$, since otherwise an odd cycle would be present.
+
+
+\subsubsection{A No-Opponent-Cycle filter} \label{sec:nocfilter}
+We have proposed a complete propagator based on Depth-first Search (DFS) to explore the arena. The resulting DFS tree captures all possible paths from $v_0$, and can be used to detect all existing cycles. We define the propagator in the context of a \textit{Lazy Clause Generation} solver~\cite{DBLP:journals/constraints/OhrimenkoSC09}, to take advantage of the strong performance of this type of solver, in particular for problems that contain a large number of Boolean clauses. Algorithm~\ref{alg:noc-eager} presents this version of the propagator, which checks for cycles and reports failure if a cycle with highest priority in favour of $\opponent$ is detected.
+
+\begin{algorithm}[htb]
+\small
+\caption{\textbf{\textit{NOCEager}}}
+\textbf{Input}: $path_V,\ path_E,\ v,\ e,\ \mathcal{E},\ \textit{defined}$ \\
+\textbf{Output}: $\top$ is valid; $\bot$ otherwise
+\begin{algorithmic}[1]
+    \IF{$v \in path_V$} \label{alg:noc-eager:pathcheck}
+        \STATE $i_v \gets \textit{index}(v, path_V)$
+        \STATE $m \gets \max\{f(v') \mid v' \in path_V[i_v:]\}$
+        \IF{$m \text{ mod } 2 = \opponent$} \label{alg:noc-eager:checkopponent}
+            \STATE $\textit{reason} \gets \textit{clausify}(\neg path_E[i_v:])$ \label{alg:noc-eager:reason}
+            \STATE \textbf{if }not ($\mathcal{E}[e] \gets (\bot, \textit{reason}))$ \textbf{then return $\bot$}
+        \ENDIF
+    \ELSIF{$\textit{defined}$} \label{alg:noc-eager:defcheck}
+        \FOR{$e' \in \textit{edges}(v) \textbf{ where } \mathcal{E}[e'] \ne \bot$} \label{alg:no-opponent-cycle-f1:edgecheck}
+            \STATE $p_V \gets path_V \cup \{v\}$
+            \STATE $p_E \gets path_E \cup \{e'\}$
+            \STATE $w \gets \textit{target}(e')$
+            \STATE $\textit{def} \gets \mathcal{E}[e'] = \top$
+            \STATE \textit{NOCEager}(
+                $p_V$,
+                $p_E$,
+                $w$,
+                $e'$,
+                $\mathcal{E}$,
+                $\textit{def}$\ )
+        \ENDFOR
+    \ENDIF
+    \RETURN $\top$
+\end{algorithmic}
+\label{alg:noc-eager}
+\end{algorithm}
+
+Algorithm~\ref{alg:noc-eager} is written in a recursive style. The arguments $\mathit{path}_V$ and $\mathit{path}_E$ represent the currently explored path in the DFS procedure, expressed in terms of both vertices and edges. The parameter $v$ denotes the current vertex, $e$ is the currently explored edge, and $\mathcal{E}$ is the array of Boolean variables associated with the edges of the graph. The \noc propagator invokes this function as $\textit{NOCEager}(\emptyset,\ \emptyset,\ start,\ -1,\ \mathcal{E},\ \top)$, where –1 indicates that no edge has been selected yet from $\mathcal{E}$, as valid edges are indexed with $e \geq 0$.
+
+First, consider the case where the current vertex $v$ is not already in the current path (i.e., the else case in line~\ref{alg:noc-eager:defcheck}). This indicates that no cycle has been detected so far, and the algorithm recursively explores each outgoing edge from $v$ whose value is not $\bot$, extending the path accordingly. A basic implementation of \noceager would only explore edges for which $\mathcal{E}[e'] = \top$, thus limiting the search to assigned edges. However, the goal of this propagator is to allow the exploration of at most one unassigned edge, in order to proactively eliminate potential cycles before they become committed.
+
+In contrast, if the current vertex $v$ has appeared in the path (line~\ref{alg:noc-eager:pathcheck}), this implies that the current edge closes a cycle. The algorithm then determines the highest priority among the vertices in the cycle, and if this priority favors $\opponent$ (line~\ref{alg:noc-eager:checkopponent}), the current edge is set to $\bot$. If the edge had already been assigned $\top$, this causes a conflict and triggers backtracking.
+
+Since Lazy Clause Generation (LCG) solvers require a justification for each propagation step (to enable clause learning), all edges in the detected cycle are collected to form a clause stating that at least one must be assigned $\bot$ (line~\ref{alg:noc-eager:reason}). For instance, in the scenario shown in Figure~\ref{fig:game02b}, the clause $(\neg \mathcal{E}_0 \vee \neg \mathcal{E}_2 \vee \neg \mathcal{E}_4 \vee \neg \mathcal{E}_6 \vee \neg \mathcal{E}_3)$ would be added to prevent the opponent cycle.
+
+The complexity \noceager is primarily driven by the DFS traversal over the graph, with additional work performed when a cycle is detected. In the worst case, the algorithm explores every simple path in the graph starting from the initial vertex. This may result in an exponential number of recursive calls in the number of vertices since each branching decision adds a new path to explore. However, in practice, the number of recursive calls is bounded by the number of edges assigned to $\top$ and at most one unassigned edge, significantly reducing the branching factor. Each recursive call performs a constant number of operations, except when a cycle is found (line~\ref{alg:noc-eager:pathcheck}). Nevertheless, because the algorithm may visit multiple paths and cycles, and because each edge can potentially trigger multiple clause generation steps before being fixed, the overall worst-case complexity remains exponential in the size of the graph. This trade-off is justified by the early pruning capabilities enabled by detecting potentially winning opponent cycles before they are fully formed, especially in graphs with many unassigned edges or nondeterminism. In typical solver applications, where assignments propagate quickly and many edges are fixed early, the practical runtime of the propagator is significantly better than the theoretical worst case—as demonstrated by the experimental results presented in section \ref{sec:experiments}, where this approach consistently outperforms alternatives in both speed and effectiveness.
+
+\subsection{Solving for $\player$ and $\opponent$ in Parallel}
+
+As our experiments will demonstrate, solver performance is heavily dependent on the game's underlying structure. A key observation is the asymmetry in computational cost inherent in game structure: properties that challenge $\player$'s solution often simplify $\opponent$'s, and vice versa. This problem duality allows us to transform and simplify the solution. By exploiting this, we can avoid a worst-case scenario for one player by solving the game from the opposite perspective. Consequently, solving the game from both perspectives in parallel significantly improves overall efficiency. This acceleration is largely attributed to the \noc propagator's capacity to rapidly prune the search space by eliminating $\opponent$'s winning options, effectively proving $\player$ has no winning strategy. We execute both perspectives concurrently and utilize the result obtained by the faster computation.
+
+As confirmed by additional experiments (available on the \href{https://figshare.com/s/38b43592b1047a9b893a}{Online Appendix}), we confirm that state-of-the-art methods cannot exploit this duality, demonstrating consistent performance regardless of which player wins.
+
+\subsection{Games with quantitative conditions}
+
+As we will see in this section, our method flexibly integrates additional constraints—such as quantitative or structural requirements—without any modification to the core algorithm. This inherent adaptability to evaluate additional conditions is a decisive advantage of this method while others necessitate custom adaptations for every additional set of constraints in the problem.
+
+\section{Tool Description}
+
+In this section, we describe the implementation of NOCQ, a C++ framework developed to model and solve Parity Games with quantitative conditions. Unlike Oink \cite{vanDijk:2018}, which focuses on explicit-state and symbolic algorithms, NOCQ is designed to leverage constraint programming (CP) technologies.
+
+\subsection*{The Core Architecture and Solvers}
+NOCQ implements the CSP model described in Definition~\ref{def:csp} and integrates the \noc propagators outlined in Section~\ref{sec:nocfilter}. A key design principle of NOCQ is solver independence; the underlying model can be interfaced with various CP engines. As a proof of concept, we have integrated two state-of-the-art solvers:
+
+Chuffed \cite{chuffed:2018}: A lazy clause generation solver.
+
+Gecode \cite{Gecode:2019}: A comprehensive constraint-based toolkit.
+
+The architecture is modular, allowing new solvers to be integrated via the cp-nocq directory. Additionally, NOCQ provides a SAT encoding path, allowing parity games to be dispatched to high-performance SAT solvers such as CaDiCaL \cite{Biere:Cadical:2024}, Kissat \cite{Biere:Kissat:2024}, or MiniSat \cite{Een:MiniSat:2003}.
+
+\subsection*{Game Generation and Input Formats}
+NOCQ includes a built-in generator for standard benchmarks, including Random games, Jurdziński games, and MLadder games, following the algorithms proposed by \cite{Keiren:2015}. For external benchmarks, the tool supports two primary input formats:
+
+GM: The standard format used in the PGSolver and Oink suites \cite{Friedmann:2017,Keiren:2015}.
+
+DZN: The data format used in MiniZinc \cite{Minizinc:2020} for constraint modeling.
+
+Both formats have been extended within NOCQ to support edge weights, enabling the modeling of parity games with quantitative constraints (e.g., energy and mean-payoff conditions).
+
+
+\section{Experiments and Evaluation}\label{sec:experiments}
+
+To evaluate our approach, we implemented the \noc propagators using the Constraint Programming (CP) solver Chuffed (version 0.12.1) \cite{chuffed:2018}. We utilized MiniZinc \cite{DBLP:conf/cp/NethercoteSBBDT07} to model additional constraints in selected experiments.
+
+For comparison, we employed several external state-of-the-art solvers: 
+\begin{itemize}
+    \item SAT Solvers (Reduction SAT): We used \textbf{CaDiCaL} (v2.1.3) \cite{Biere:Cadical:2024}, \textbf{MiniSat} (v2.2.0) \cite{Een:MiniSat:2003}, \textbf{Kissat} (v4.0.2) \cite{Biere:Kissat:2024}, and zChaff (v2007.3.12) \cite{Moskewicz:zChaff:2001}.
+    \item State-of-the-Art (SOTA) Parity Game Solvers: We incorporated Oink (fresh GitHub version) \cite{vanDijk:2018}, which includes several high-performance algorithms like Priority Promotion ($\textbf{PP}$ and $\textbf{PP+}$) and Parys' improvements ($\textbf{PAR}$). We also included the Zielonka Recursive Algorithm ($\textbf{ZRA}$), with an improved attractor strategy as detailed in \cite{Aggarwal:2023}, which offers better perfonmance. 
+\end{itemize}
+
+All experiments were conducted on an Intel Xeon 8260 CPU (24 cores, non-hyperthreaded) with 268.55 GB of RAM, running Linux. The complete source code, including implementations and experimental setups, is available at 
+\cite{Hernandez:Github:NoOppnentCycle:2025}.
+%\href{https://github.com/GonzaloHernandez/NoOpponentCycle}{http://github.com/GonzaloHernandez/NoOpponentCycle}
+%
+We evaluated all algorithms using a standard benchmark set commonly employed in parity game research, drawing from the PGSolver Library \cite{Friedmann:2017} and the Benchmarks for Parity Games \cite{Keiren:2015}. The games were classified into four categories:
+
+\begin{itemize}
+    \item Equivalence Checking ($\textbf{EqC}$): This group contains 77 games derived from formal equivalence checking problems, including strong bisimulation, weak bisimulation, and stuttering equivalence. These games are characterized by complex, structured connectivity patterns reflecting system design.
+    \item Model Checking ($\textbf{MoC}$): This set consists of 106 games originating from temporal logic model checking ($\mu$-calculus) against system models. These instances are considered organic and reflect real-world verification challenges.
+    \item PGSolver Collection ($\textbf{PGS}$): This collection comprises 161 games sourced from the hardest known families of parity games, including ladder games, recursive ladder games, elevator verification, clique games, steady games, and Jurdziński games \cite{Benerecetti:2016}, likely to expose some of the worst performance.
+    \item Random Games ($\textbf{RaG}$): This category includes 125 randomly generated games with varying sizes and priority distributions, designed primarily to test the general robustness and average-case performance of solving algorithms.
+\end{itemize}
+
+The benchmark sets were partitioned into two distinct size categories for evaluation, optimizing for the feasibility of the Reduction to SAT approach on smaller instances and focusing on scalability for larger instances:
+
+\begin{table}[ht]
+\centering
+\caption{Time Performance of Algorithms on Small-Scale Instances, Average measured in seconds. (Max vertices: EqC/MoC $\approx 10^6$, PGS/RaG $\approx 10^3$). }
+{
+\setlength{\tabcolsep}{1.1mm}
+\begin{tabular}{l|rrr|r|>{\columncolor{gray!15}}r>{\columncolor{gray!15}}r|rrr}
+\toprule
+\textbf{Bench} & \multicolumn{3}{c|}{\textbf{Oink}} & \multicolumn{1}{c|}{\textbf{ZRA}} & \multicolumn{2}{c|}{\textbf{\cellcolor{gray!15}NOC}} & \multicolumn{3}{c}{\textbf{Reduction SAT}} \\
+             &   PP   &  PP+  &   PAR  &    ImpAttr     & Eager &  Memo  & CaDiCal &  Kissat & MiniSat \\
+\midrule
+\textbf{EqC} &  0.663 & 0.649 &  0.544 & \textbf{0.190} & 0.399 &  0.400 &  16.114 &  76.424 &  32.594 \\
+\textbf{MoC} &  0.327 & 0.324 &  0.294 & \textbf{0.172} & 0.289 &  0.290 &  15.524 &  28.924 &  22.443 \\
+\textbf{PGS} & \textbf{0.126} &  0.126 &  2.580 & 7.237 & 5.043 & 25.220 & 292.021 & 294.794 & 306.186 \\
+\textbf{RaG} &  0.001 & 0.001 & \textbf{0.001} &  0.002 & 0.003 &  0.005 &   1.100 &   1.113 &   1.384 \\
+\bottomrule
+\end{tabular}
+}
+\label{tab:smallgames}
+\end{table}
+In Table \ref{tab:smallgames}, we compare the performance of the \noc propagators against two groups of competing approaches on small benchmark games: (1) other constraint-based methods that use Reduction to SAT, and (2) non-constraint-based methods, such as the $\text{\zra}$ algorithm (Improved Attractor) and the Oink algorithms (PP, PP+, PAR). The goal of this evaluation is to assess the effectiveness of the filtering techniques relative to existing SAT-based methods, which is the primary focus of this paper. Overall, \noc outperforms the SAT-based methods by up to three orders of magnitude. Furthermore, we observe that the Memoization approach (\nocmemo) does not significantly improve performance over the Eager approach (\noceager). Moreover, \noceager achieves performance comparable to the best non-CP-based algorithms in practice: it is at most one order of magnitude slower on the hardest games (from the PGSolver Collection) and no more than a factor of two slower on all other instances. Additional comparative results with other CP methods are provided in the \href{https://figshare.com/s/38b43592b1047a9b893a}{Online Appendix}.
+
+\begin{table}[ht]
+\centering
+\caption{Time Performance of Algorithms on Large-Scale Instances, Average measured in seconds using PAR2 Scoring. (Max vertices: $\approx 35$ Million).}
+{
+\setlength{\tabcolsep}{1.2mm}
+\begin{tabular}{l|rrr|r|>{\columncolor{gray!15}}r>{\columncolor{gray!15}}r}
+\toprule
+\textbf{Benchmark} & \multicolumn{3}{c|}{\textbf{Oink}} & \multicolumn{1}{c|}{\textbf{ZRA}} & \multicolumn{2}{c}{\textbf{\cellcolor{gray!15}NOC}} \\
+ & PP & PP+ & PAR & ImpAttr & Eager & Memo \\
+\midrule
+\textbf{EqC} & 24.775 & 24.876 &  24.159 & \textbf{14.490} &  16.169 & 82.902 \\
+\textbf{MoC} &  9.547 &  9.557 &   8.718 & \textbf{ 3.929} &   8.838 &  8.912\\
+\textbf{PGS} & 44.949 & 44.922 & 182.643 & 201.804 & \textbf{32.189} & 55.464 \\
+\textbf{RaG} &  0.016 &  0.015 & \textbf{0.015} &    0.053 &   0.078 &  0.099 \\
+\bottomrule
+\end{tabular}
+}
+\label{tab:biggames}
+\end{table}
+
+Table \ref{tab:biggames} presents the results for large games, where we evaluate the scalability of the \noc technique in comparison to \zra and the Oink family of algorithms. SAT-based approaches are omitted, as they were unable to solve these larger instances within reasonable resource limits and therefore do not contribute to a meaningful scalability analysis. Overall, \noc shows strong and robust performance: in the Equivalence and Model Checking benchmarks, it is within a small constant factor of \zra, which remains the fastest method, which is consistent with the main results reported in \cite{Aggarwal:2023}. In the PGSolver Collection, \noc  outperforms all Oink algorithms and also surpasses \zra by a large margin. For Random Games, all algorithms solve the instances almost instantly, making performance differences negligible. These results demonstrate that \noc scales effectively and remains competitive with the best non-CP-based (dedicated) solvers on large games.
+
+The runtime metrics for the \noc and \zra approaches include both the solver execution time and the internal problem-preparation time (excluding I/O operations such as file reading). In contrast, for the SAT-based approaches we report only the solving time. This distinction is made because the preparation phase for the SAT-based methods—particularly the encoding generation—is substantially more expensive and was not a primary target of optimization in this work. Additional experiments comparing \noceager, \nocmemo, \nocchecker with \zra, together with their statistical analysis (AVG, SD, WR) presented in the \href{https://figshare.com/s/38b43592b1047a9b893a}{Online Appendix}, indicate that the \nocmemo implementation does not provide a significant performance advantage over the \noceager implementation on these benchmark instances.
+
+\subsection{Resource Utilization Analysis}
+
+A key motivation for developing the \noc propagator was to avoid the resource overhead associated with introducing the Boolean literals and clauses required for the progress measure variables and constraints. %In our experiments, 
+We also evaluated the memory consumption of \noc compared to other methods.
+
+The results of these additional experiments are summarised in Figure~\ref{fig:peakofmemory}. While \noc requires at most 700MB of memory games for 13 thousand vertices, and \zra up to 17MB, the SAT-based approaches consume significantly more. In particular, we see that CaDiCaL, MiniSat, and Kissat report memory usage exceeding 39~GB for the same instances.
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=0.7\textwidth]{images/peakmemory-short.png} % Adjust the path to your figure file
+    \caption{Memory usage on Gb for solving  Jurdziński parity games (one of the hardest games in the PGSolver collection), constrained to 13 thousand vertices.}
+    \label{fig:peakofmemory}
+\end{figure}
+
+% \begin{figure}[ht]
+%     \centering
+%     \includegraphics[width=0.7\textwidth]{images/peakmemory-short.pdf} % Updated to use the .pdf file
+%     \caption{Memory usage on the Jurdziński graphs $J_{level,10}$, constrained to 13K vertices.}
+%     \label{fig:peakofmemory}
+% \end{figure}
+
+
+
+
+\subsection{Automated Synthesis of Reactive Systems}
+
+In (local) model checking, it suffices to determine the winner from a given vertex (satisfiable if won by Player~$\even$, unsatisfiable if won by Player~$\odd$). However, applications like automated synthesis~\cite{Bruyere:2022,Finkbeiner:2018,Luttenberger:2020} require explicit winning strategies, that is, a description of the decisions to be made by the winner at each vertex.
+
+Our satisfiability encoding can capture multiple winning plays simultaneously. For instance, in Figure~\ref{fig:game02b}, a solution assigning $\top$ to vertices $\mathcal{V}_0$ to $\mathcal{V}_3$ and edges $\mathcal{E}_0$, $\mathcal{E}_1$, $\mathcal{E}_2$, $\mathcal{E}_4$, and $\mathcal{E}_6$ captures two distinct plays.
+%
+To extract individual winning plays, we extend the CSP with variables and constraints such that each solution corresponds to exactly one play. We define a sequence of integer variables $(\mathcal{P}_s)_{s \in \{0..\mid V \mid - 1\}}$ to represent the path. More specifically, we also add:
+\begin{itemize}
+\item $\mathsf{h}$: the position where the finite prefix ends;
+
+\item $\mathsf{t}$: the start of the cycle (tail).
+\end{itemize} 
+
+\noindent 
+We then introduce three new constraints:
+\begin{itemize}
+\item ($\mathcal{C}_{\textit{path}}$): 
+$\mathsf{t} \in \{0..\mid V \mid -1\} \wedge \bigwedge_{s \in \{1..\mathsf{t}\}} \bigvee_{e=(v,w) \in E} (\mathcal{E}_e \wedge \mathcal{P}_{s-1} = v \wedge \mathcal{P}_s = w)$;
+This ensures each step follows a valid edge;
+\end{itemize}
+
+\begin{itemize}
+\item ($\mathcal{C}_{\textit{cycle}}$): 
+$\mathsf{h} \in \{0..\mathsf{t}\} \wedge \mathcal{P}_{\mathsf{t}+1} = \mathcal{P}_\mathsf{h}$; \\
+It ensures the cycle closes at position $\mathsf{t} + 1$;
+\end{itemize}
+
+\begin{itemize}
+\item ($\mathcal{C}_{\textit{unique}}$): 
+$\bigwedge_{i \neq j \in \{0..\mathsf{t}\}} (\mathcal{P}_i \neq \mathcal{P}_j)$; \\
+This constraint enforces only one cycle.
+\end{itemize} 
+
+These constraints can be added in MiniZinc without modifying the core algorithm of \noc. Using Chuffed as the backend, we enumerate all solutions to obtain the set of winning plays, represented as vertex sequences. 
+
+\subsection{Energy Conditions/Games}
+
+We now consider games with additional quantitative objectives. In \textit{Energy Games}~\cite{Chatterjee:2010}, each edge carries an energy level (a weight), and a play is winning if the running sum of these levels remains non-negative at all times, in addition to satisfying the parity condition.
+%
+%For memoryless parity games, 
+This requirement can be encoded using the $\mathcal{P}$ variables introduced earlier. Given a set of energy levels $(L_e)_{e \in E}$, we define integer variables $(\mathcal{I}_s)_{s \in \{0..\mathsf{t} - \mathsf{h} + 1\}}$ to represent the edges in the infinite cycle (tail) of the play:
+
+\begin{itemize}
+    \item $\mathcal{C}_{\textit{infEdges}} : \forall s \in \{0..\mathsf{t} - \mathsf{h} + 1\} (\mathcal{I}_s = E(\mathcal{P}_{s+\mathsf{h}}, \mathcal{P}_{s+\mathsf{h}+1}))$
+\end{itemize}
+
+We then impose the following constraint to ensure the total energy level in the cycle is non-negative:
+
+\begin{itemize}
+    \item $\mathcal{C}_{\textit{energy}} : \sum_{e \in \mathcal{I}} L_e \geq 0$
+\end{itemize}
+
+While a complete model would also enforce energy constraints over all finite prefixes (up to $\mathsf{t}$), we omit these here for brevity. Together, these constraints suffice to model the energy condition, useful in several verification settings. 
+
+Many other extensions—-such as multi-dimensional energy bounds and other quantitative payoff constraints—-can be modelled similarly using additional constraints or objective functions~\cite{bozzelly:2020,Fijalkow:2014,Mogavero:2015,Weinert:2016}. Further work is needed to precisely define each requirement and establish the appropriate constraints.
+
+\section{Conclusions}
+We have introduced a novel constraint-based approach for parity games which does not require integer-based progress measures. The experiments show that our method significantly outperforms existing constraint-based approaches reducing runtime significantly, and improving on memory consumption by over 95\% on large instances, achieving much better results in performance (time and space) compared to previous work, and is competitive against non-CP-based solvers. 
+
+Our key innovation, replacing a SAT encoding with a global constraint, not only improves performance but also provides a flexible framework that can be easily extended to accommodate additional constraints, and therefore more complex requirements.  In this paper, we have shown that these improvements can enable practical verification of large-scale systems while maintaining the modularity and expressiveness of CP-based methods using a modern technology. 
+
+Our work goes beyond parity games by easily enabling new solutions to synthesis and providing the flexibility to adapt our core to solve multiplayer games, including more general games (e.g.,  \wregulargames \cite{Chatterjee:2012}). Our results demonstrate that constraint-based approaches with carefully designed global constraints offer a promising direction for practical formal verification tools that balance expressiveness and computational efficiency.
+
+\bibliographystyle{splncs04}
+\bibliography{paper}
+
+\newpage
+
+\section*{Appendix A: Additional experiments}
+This experiment focuses on CP and SMT solvers. We have selected Jurdziński graphs for this experiment, which allows us to vary the size of the graphs. We selected graphs with 10 blocks and between 10 and 80 levels (in steps of 10).
+
+\begin{table}[ht]
+\centering
+\caption{Solving time on the Jurdziński Graphs $J_{level,10}$ CP-CP. (*) Represent times exceeding 5 minutes.}
+\begin{tabular}{c|r|r|rrr}
+\toprule
+\textbf{d} & \multicolumn{2}{c|}{\textbf{No-Opponent-Cycle}} & \multicolumn{3}{c}{\textbf{Other Solvers}} \\
+& \odd Eager & \even Memo & Mzn(Gecode) & Mzn(CP-SAT) & Z3\\
+\midrule
+\textbf{10} & 0.000 & \cellcolor{gray!30}0.008  & 0.59   & 0.71   & 0.22   \\
+\textbf{20} & 0.000 & \cellcolor{gray!30}0.025  & 3.06   & 2.59   & 0.58   \\
+\textbf{30} & 0.000 & \cellcolor{gray!30}0.039  & 10.57  & 6.15   & 2.64   \\
+\textbf{40} & 0.000 & \cellcolor{gray!30}0.087  & 28.53  & 12.52  & 7.76   \\
+\textbf{50} & 0.001 & \cellcolor{gray!30}0.089  & 63.77  & 22.47  & 18.11  \\
+\textbf{60} & 0.001 & \cellcolor{gray!30}0.097  & 126.88 & 37.41  & 35.76  \\
+\textbf{70} & 0.001 & \cellcolor{gray!30}0.158  & 231.51 & 58.22  & 65.62  \\
+\textbf{80} & 0.001 & \cellcolor{gray!30}0.185  & *      & 88.89  & 111.80 \\
+\bottomrule
+\end{tabular}
+\label{tab:cp-cp}
+\end{table}   
+
+Table \ref{tab:cp-cp} presents the solving time in seconds of four approaches: \noc, a MiniZinc CP model (expressing the progress measure using integer variables and constraints) solved by Gecode and Google CP-SAT, and an SMT model using difference logic to implement the progress measure, solved using Z3. The results provide strong evidence that Chuffed with the \noc propagator clearly outperforms the other approaches by several orders of magnitude on these graphs. Furthermore, some solutions, such as MiniZinc with Gecode, used over 256 GB of memory to complete the task.
+
+\begin{table}[ht]
+\centering
+\caption{Average solving times (in seconds) on special game classes, categorized by winner.}
+\begin{tabular}{l|c|r|rr|rr|rrr}
+\toprule
+\textbf{Game} & \textbf{Win} & \multicolumn{1}{c|}{\textbf{ZRA}} & \multicolumn{2}{c|}{\textbf{NOC from \even}} & \multicolumn{2}{c|}{\textbf{NOC from \odd}} & \multicolumn{3}{c}{\textbf{SAT Solvers}} \\
+\textbf{class} & &  & Eager & Memo & Eager & Memo & CaDiCal & MiniSat & Kissat \\
+\midrule
+\textbf{RaG} & \even & 0.009 & 0.040 & 0.800 & \cellcolor{gray!30}0.003 & 0.004 & 10.393 &  16.069 &  14.936 \\
+\textbf{RaG} & \odd  & 0.008 & \cellcolor{gray!30}0.004 & 0.004 & 0.035 & 0.776 &  9.216 &   6.189 &  13.369 \\
+\\ [-3pt]
+\textbf{StG} & \even & 0.009 & 0.032 & 0.680 & \cellcolor{gray!30}0.003 & 0.003 & 132.217 & 233.167 & 158.103 \\
+\textbf{StG} & \odd  & 0.009 & \cellcolor{gray!30}0.002 & 0.003 & 0.028 & 0.627 &  62.470 &  29.582 &  32.775 \\
+\\ [-3pt]
+\textbf{ClG} & \even & 0.010 & 0.142 & 1.725 & \cellcolor{gray!30}0.001 & 0.002 &  20.548 &  57.217 &  22.362 \\
+\textbf{ClG} & \odd  & 0.026 & \cellcolor{gray!30}0.005 & 0.006 & 0.472 & 5.632 &  22.856 &   8.702 &  11.572 \\
+\bottomrule
+\end{tabular}
+\label{tab:pgsolver-appendix}
+\end{table}
+
+In Table~\ref{tab:pgsolver-appendix}, we evaluated performance in three classes of arenas: RandGames (RaG), SteadyGames (StG), and ClickGames (ClG). For each class, we generated instances and solved them using the \zra solver, \noceager (differing by the player of interest), and three SAT-based solvers (CaDiCaL, MiniSat, and Kissat). Table \ref{tab:pgsolver-appendix} summarizes the average solving times over 35 runs per configuration. Each run starts from a randomly chosen initial vertex~$v_0$. Results are grouped by game class, with the second column indicating the winning player (\even or \odd) for each configuration. The remaining columns report the average solving times (in seconds) for each solver and variant.
+
+In all instances, every variant of \noc outperforms the SAT solvers by at least three orders of magnitude. Moreover, one of the \noc variants achieves performance comparable to \zra, which is the best performing non-CP-based procedure in practice~\cite{Aggarwal:2023}. Notably, when we select $\player$ as the player of interest, \noc tends to be faster in cases where $\opponent$ wins. This is because the algorithm can often conclude early by detecting the unsatisfiability of the problem.
+
+\begin{table}[ht]
+\centering
+\caption{Average solving times (in seconds) on the RandomGamesSet-500, grouped by game size and winner.}
+\begin{tabular}{l|c|r|rrr|rrrr}
+\toprule
+\textbf{Game Size} & \textbf{Win} & \textbf{ZRA} & \multicolumn{3}{c|}{\textbf{NOC from \even}} & \multicolumn{3}{c}{\textbf{NOC from \odd}} \\
+$|V| \times |E|$ & & & Checker & Eager & Memo & Checker & Eager & Memo \\
+\midrule
+\textbf{8K} $\times$ 20   & \even & 0.020 & 26.041 & 0.125 & 2.759 & 60.000 & \cellcolor{gray!30}0.009 & 0.011 \\
+\textbf{8K} $\times$ 20   & \odd  & 0.020 & 60.000 & \cellcolor{gray!30}0.011 & 0.013 & 36.396 & 0.186 & 3.532 \\
+\\ [-3pt]
+\textbf{20K} $\times$ 20  & \even & 0.061 & 31.347 & 0.502 & 14.493 & 60.000 & \cellcolor{gray!30}0.026 & 0.029 \\
+\textbf{20K} $\times$ 20  & \odd  & 0.062 & 60.000 & 0.\cellcolor{gray!30}032 & 0.037 & 27.250 & 0.485 & 14.268 \\
+\\ [-3pt]
+\textbf{50K} $\times$ 20  & \even & 0.209 & 23.382 & 2.323 & 60.000 & 26.437 & \cellcolor{gray!30}0.076 & 0.087 \\
+\textbf{50K} $\times$ 20  & \odd  & 0.205 & 23.085 & \cellcolor{gray!30}0.084 & 0.096 & 21.387 & 2.422 & 60.000 \\
+\\ [-3pt]
+\textbf{90K} $\times$ 20  & \even & 0.427 & 60.000 & 6.905 & 60.000 & 60.000 & \cellcolor{gray!30}0.148 & 0.163 \\
+\textbf{90K} $\times$ 20  & \odd  & 0.422 & 60.000 & \cellcolor{gray!30}0.172 & 0.196 & 60.000 & 7.129 & 60.000 \\
+\\ [-3pt]
+\textbf{150K} $\times$ 10 & \even & 0.331 & 60.000 & 6.050 & 60.000 & 60.000 & \cellcolor{gray!30}0.138 & 0.147 \\
+\textbf{150K} $\times$ 10 & \odd  & 0.317 & 60.000 & \cellcolor{gray!30}0.244 & 0.254 & 60.000 & 13.221 & 60.000 \\
+\bottomrule
+\end{tabular}
+\label{tab:rand500-average-appendix}
+\end{table}
+
+In Table \ref{tab:rand500-average-appendix} we compared the performance of \noc against \zra using a benchmark of 500 randomly generated games of varying sizes and edge densities. The sizes range from 8,000 to 150,000 vertices, with a maximum of 10 or 20 outgoing edges per vertex. In each game, the initial vertex $v_0$ was also selected randomly Table~\ref{tab:rand500-average-appendix} reports the average solving times (in seconds), grouped by game size and by the winning player (\even or \odd). Each row presents the performance of \zra, along with two \noc variants from Player~\even's perspective (Eager, Memo) and two corresponding variants from Player~\odd's perspective.
+%
+The results show that the \noceager variant was consistently competitive with \zra, often achieving similar or better solving times. To support these observations, we conducted a standard deviation analysis and a Wilcoxon signed-rank test, both of which provide strong statistical evidence. These results, along with the full version of the table, are provided in the appendix, which also highlights the differences between the \noc filters and the Checker variant; a timeout of 60 seconds was set on each solver run.
+
+\begin{table}[ht]
+\centering
+\caption{Solving times on Jurdziński graphs $J_{d,10}$. Symbol (*) represents unsolvable by the solver. \cite{Jurdziński:2000}.}
+\begin{tabular}{r|r|>{\itshape}r|r|rrrr}
+\toprule
+\textbf{d} & \textbf{ZRA} & \multicolumn{2}{c|}{\textbf{No-Opponent-Cycle}} & \multicolumn{4}{c}{\textbf{SAT Solvers}} \\
+& & \odd Eager & \even Memo & CaDiCaL & MiniSat & Kissat & zChaff \\
+\midrule
+\textbf{10}  & 0.009   & 0.000 & \cellcolor{gray!30}0.008 & 0.130   & 0.292   & 1.040   & 0.156 \\
+\textbf{30}  & 0.140   & 0.000 & \cellcolor{gray!30}0.039 & 1.700   & 3.073   & 8.670   & 0.670 \\
+\textbf{50}  & 0.564   & 0.001 & \cellcolor{gray!30}0.089 & 5.680   & 9.329   & 15.550  & 1.558 \\
+\textbf{70}  & 1.451   & 0.001 & \cellcolor{gray!30}0.158 & 12.940  & 19.726  & 26.320  & 2.930 \\
+\textbf{90}  & 2.975   & 0.001 & \cellcolor{gray!30}0.240 & 93.150  & 34.565  & 41.140  & *     \\
+\textbf{110} & 5.309   & 0.001 & \cellcolor{gray!30}0.344 & 134.840 & 55.368  & 62.930  &       \\
+\textbf{130} & 8.616   & 0.001 & \cellcolor{gray!30}0.468 & 193.500 & 80.627  & 85.320  & *     \\
+\textbf{150} & 13.070  & 0.002 & \cellcolor{gray!30}0.610 & 260.590 & 111.662 & 115.420 &       \\
+\textbf{170} & 18.826  & 0.002 & \cellcolor{gray!30}0.769 & 342.000 & 148.768 & 147.460 & *     \\
+\textbf{190} & 26.131  & 0.002 & \cellcolor{gray!30}0.956 & 437.110 & 192.320 & 182.210 &       \\
+\textbf{210} & 35.045  & 0.002 & \cellcolor{gray!30}1.145 & 539.770 & 244.924 & 230.440 & *     \\
+\textbf{230} & 45.780  & 0.002 & \cellcolor{gray!30}1.363 & 655.450 & 297.770 & 283.340 &       \\
+\textbf{250} & 58.552  & 0.002 & \cellcolor{gray!30}1.599 & 749.670 & 368.385 & 341.040 & *     \\
+\textbf{270} & 73.619  & 0.003 & \cellcolor{gray!30}1.866 & 879.440 & 447.689 & 395.860 &       \\
+\textbf{290} & 90.890  & 0.003 & \cellcolor{gray!30}2.127 & 1057.340& 539.538 & 468.190 & *     \\
+\textbf{310} & 110.554 & 0.003 & \cellcolor{gray!30}2.420 & 1207.110& 623.698 & 540.090 &       \\
+\textbf{330} & 132.978 & 0.003 & \cellcolor{gray!30}2.819 & 1403.980& 717.835 & 585.110 & *     \\
+\textbf{350} & 158.433 & 0.003 & \cellcolor{gray!30}3.197 & 1588.480& 809.985 & 630.480 &       \\
+\textbf{370} & 187.527 & 0.004 & \cellcolor{gray!30}3.562 & 1767.350& 928.425 & 711.390 & *     \\
+\textbf{390} & 219.209 & 0.004 & \cellcolor{gray!30}3.941 & 2113.110& 1039.260& 818.460 &       \\
+\textbf{410} & 254.540 & 0.004 & \cellcolor{gray!30}4.348 & 2341.200& 1157.990& 897.660 & *     \\
+\textbf{430} & 292.778 & 0.004 & \cellcolor{gray!30}4.742 & 2612.670& 1387.010& 991.170 &       \\
+\bottomrule
+\end{tabular}
+\label{tab:jurd-appendix}
+\end{table}
+
+The Table \ref{tab:jurd-appendix} shows the set of experiments compares the \noc propagator with \zra and SAT-based approaches, using three different solvers: CaDiCaL, MiniSat, and Kissat. For completeness, we included results for zChaff, as it was used in previous work~\cite{Heljanko:2012}, though it is no longer competitive. Table~\ref{tab:jurd-appendix} shows solving times in seconds. In this experiment, we extended the range of levels (and thus the problem size) up to 410. The \nocmemo propagator, when solving from player~\even’s perspective, consistently outperforms SAT-based approaches by at least two orders of magnitude and exceeds \zra's performance by more than one order of magnitude. Moreover, the full version of the table, provided in the appendix, shows that when the problem is flipped to search from player~\odd’s perspective, \noceager performs even faster, achieving speedups of over four orders of magnitude compared to \zra on the largest instances.
+
+All the results reported above omit initialization times. For example, SAT solvers required over 300 seconds to initialize on the largest instances, whereas \noc took less than 30 milliseconds in the same game. In contrast, \zra does not involve a significant initialization phase.
+
+\newpage
+% -----------------------------------------------------------------------------------------------
+
+\section*{Appendix B: Statistical Evaluation}
+
+\begin{table}[ht]
+\centering
+\caption{Statistical analysis based on Table \ref{tab:rand500-average-appendix} comparing ZRA and \noceager from \odd's perspective. The table includes mean (AVG) and standard deviation (SD) of solving times, along with Wilcoxon signed-rank test statistics (Samples, WR+, WR-).}
+\begin{tabular}{l|c|rr|rr|rrr}
+\toprule
+\textbf{Game Size} & \textbf{Win} & \multicolumn{2}{c|}{\textbf{ZRA}} & \multicolumn{2}{c|}{\textbf{NOC from \odd}} & \multicolumn{3}{c}{\textbf{Wilcoxon SR}}\\
+$|V| \times |E|$ & & AVG & SD & AVG & SD & Samples & WR+ & WR- \\
+\midrule
+\textbf{8K} $\times$ 20   & \even & 0.020 & 0.001 & \cellcolor{gray!30}0.009 & 0.001 & 84 & 0 & -3570 \\
+\textbf{20K} $\times$ 20  & \even & 0.061 & 0.061 & \cellcolor{gray!30}0.026 & 0.002 & 55 & 0 & -1540 \\
+\textbf{50K} $\times$ 20  & \even & 0.209 & 0.025 & \cellcolor{gray!30}0.076 & 0.006 & 44 & 0 &  -990 \\
+\textbf{90K} $\times$ 20  & \even & 0.427 & 0.094 & \cellcolor{gray!30}0.148 & 0.019 & 50 & 0 & -1275 \\
+\textbf{150K} $\times$ 10 & \even & 0.331 & 0.082 & \cellcolor{gray!30}0.138 & 0.006 & 24 & 0 &  -520 \\
+\bottomrule
+\end{tabular}
+\label{tab:rand500-statisticalanalysis-even}
+\end{table}
+
+\begin{table}[ht]
+\centering
+\caption{Statistical analysis based on Table \ref{tab:rand500-average-appendix} comparing ZRA and \noceager from \even's perspective. The table includes mean (AVG) and standard deviation (SD) of solving times, along with Wilcoxon signed-rank test statistics (Samples, WR+, WR-).}
+\begin{tabular}{l|c|rr|rr|rrr}
+\toprule
+\textbf{Game Size} & \textbf{Win} & \multicolumn{2}{c|}{\textbf{ZRA}} & \multicolumn{2}{c|}{\textbf{NOC from \even}} & \multicolumn{3}{c}{\textbf{Wilcoxon SR}}\\
+$|V| \times |E|$ & & AVG & SD & AVG & SD & Samples & WR+ & WR- \\
+\midrule
+\textbf{8K} $\times$ 20   & \odd  & 0.020 & 0.001 & \cellcolor{gray!30}0.011 & 0.004 & 74 & 75 & -2700 \\
+\textbf{20K} $\times$ 20  & \odd  & 0.062 & 0.004 & \cellcolor{gray!30}0.032 & 0.014 & 45 & 10 & -1025 \\
+\textbf{50K} $\times$ 20  & \odd  & 0.205 & 0.028 & \cellcolor{gray!30}0.084 & 0.018 & 56 &  0 & -1596 \\
+\textbf{90K} $\times$ 20  & \odd  & 0.422 & 0.100 & \cellcolor{gray!30}0.172 & 0.052 & 46 &  1 & -1080 \\
+\textbf{150K} $\times$ 10 & \odd  & 0.317 & 0.040 & \cellcolor{gray!30}0.244 & 0.148 & 22 & 33 &  -220 \\
+\bottomrule
+\end{tabular}
+\label{tab:rand500-statisticalanalysis-odd}
+\end{table}SOTA methods (ZRA) cannot exploit this duality; as shown in Tables 1–2, their performance remains consistent regardless of which player wins (we have also verified this for all original games and their complements)
+
+The statistical evidence presented in Table~\ref{tab:rand500-statisticalanalysis-even} and Table~\ref{tab:rand500-statisticalanalysis-odd}, suggests that \noceager achieves comparable performance to ZRA, with a consistent trend in its favor. In all cases, \noceager records lower average solving times with smaller standard deviations, indicating slightly more stable behavior. The Wilcoxon signed-rank test supports this observation: the number of positive ranks (WR+) is generally low, and the negative rank sums (WR--) are consistently large, providing statistically significant—though not drastic—evidence that \noceager tends to perform better across the tested instances.
+
+\end{document}
