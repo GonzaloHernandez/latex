@@ -169,19 +169,28 @@ We solve quantitative parity games by encoding them into a CSP with a specialize
 
         \item [$\mathcal{C}_{\!E}$ :] $\bigwedge_{w \in V, w \neq v_0} ((\bigvee_{v \in Ew} \mathcal{E}_{(v,w)}) \rightarrow \mathcal{V}_w)$
 
-        \item [$\mathcal{C}_{{\!N\!O\!C}_\gamma}$ :] $\bigwedge_{v_0, \dots, v_k} ((\bigwedge_{i\in 0\dots k-1} \mathcal{E}_{(v_i,v_{i+1})}) \rightarrow\\ \bigwedge_{j\in 0\dots k-1} (v_j=v_k \rightarrow \max\{\Omega(v_i) \mid i\in j\dots k\} \bmod 2 \ne \opponent))$
+        % \item [$\mathcal{C}_{{\!N\!O\!C}_\gamma}$ :] $\bigwedge_{v_0, \dots, v_k} ((\bigwedge_{i\in 0\dots k-1} \mathcal{E}_{(v_i,v_{i+1})}) \rightarrow\\ \bigwedge_{j\in 0\dots k-1} (v_j=v_k \rightarrow \max\{\Omega(v_i) \mid i\in j\dots k\} \bmod 2 \ne \opponent))$
         
-        \item [$\mathcal{C}_{{\!N\!O\!C}_\eta}$ :] $\bigwedge_{v_0, \dots, v_k} ((\bigwedge_{i\in 0\dots k-1} \mathcal{E}_{(v_i,v_{i+1})}) \rightarrow\\ \bigwedge_{j\in 0\dots k-1} (v_j=v_k \rightarrow \sum_{i=j}^{k} \Lambda(v_i, v_{i+1}) \ge 0))$
+        % \item [$\mathcal{C}_{{\!N\!O\!C}_\eta}$ :] $\bigwedge_{v_0, \dots, v_k} ((\bigwedge_{i\in 0\dots k-1} \mathcal{E}_{(v_i,v_{i+1})}) \rightarrow\\ \bigwedge_{j\in 0\dots k-1} (v_j=v_k \rightarrow \sum_{i=j}^{k} \Lambda(v_i, v_{i+1}) \ge 0))$
         
-        \item [$\mathcal{C}_{{\!N\!O\!C}_\mu}$ :] $\bigwedge_{v_0, \dots, v_k} ((\bigwedge_{i\in 0\dots k-1} \mathcal{E}_{(v_i,v_{i+1})}) \rightarrow\\ \bigwedge_{j\in 0\dots k-1} (v_j=v_k \rightarrow \frac{1}{k-j+1} \sum_{i=j}^{k} \Lambda(v_i, v_{i+1}) \ge \nu ))$
+        % \item [$\mathcal{C}_{{\!N\!O\!C}_\mu}$ :] $\bigwedge_{v_0, \dots, v_k} ((\bigwedge_{i\in 0\dots k-1} \mathcal{E}_{(v_i,v_{i+1})}) \rightarrow\\ \bigwedge_{j\in 0\dots k-1} (v_j=v_k \rightarrow \frac{1}{k-j+1} \sum_{i=j}^{k} \Lambda(v_i, v_{i+1}) \ge \nu ))$
+
+        \item [$\mathcal{C}_{NOC}$ :] $\bigwedge_{v_0, \dots, v_k} \left( \left(\bigwedge_{i=0}^{k-1} \mathcal{E}_{(v_i,v_{i+1})}\right) \to \bigwedge_{j=0}^{k-1} ((v_j = v_k) \to f(v_j, \dots, v_k)) \right)$
+
     \end{itemize}
 
+    \begin{itemize}[itemsep=1.5ex, parsep=0pt]
+        \item $f_\gamma(v_j, \dots, v_k) = \max\{\Omega(v_i) \mid i\in j\dots k\} \bmod 2 \ne \opponent$
+
+        \item $f_\eta(v_j, \dots, v_k) = \sum_{i=j}^{k-1} \Lambda(v_i, v_{i+1}) \ge 0$
+
+        \item $f_\mu(v_j, \dots, v_k) = \frac{1}{k-j} \sum_{i=j}^{k-1} \Lambda(v_i, v_{i+1}) \ge \nu$
+    \end{itemize}
 \end{definition}
 
 While we retain the connectivity constraints $\mathcal{C}_{v_0}, \mathcal{C}_{\opponent}$, and $\mathcal{C}_{\!E}$ (analogous to $\Phi_{v_0}, \Phi_\forall$, and $\Phi_V$), and $\mathcal{C}_{\player}$ enforces that $\player$ selects exactly one strategy edge per vertex, we observe that progress measure constraints $\Phi_A$ are computationally expensive, scaling up to $O(|V|^3)$—and can generate hundreds of millions of clauses for games with only 5,000 nodes. Our approach replaces $\Phi_A$ with a global constraint that avoids the use of new variables and rules out cycles winning for $\opponent$.
 
-The global constraint $\mathcal{C}_{\!N\!O\!C}$ ensures that every reachable cycle is winning for $\player$ by satisfying a combination of parity ($\rho$), energy ($\eta$), and mean-payoff ($\mu$) requirements. This generalized construction allows \nocq to search from the perspective of either player by swapping $\player$ and $\opponent$. Satisfiability under $\player$ proves a winning strategy for $\player$, while unsatisfiability (if the solver explores the full space) proves the win for $\opponent$.
-
+The global constraint $\mathcal{C}_{\!N\!O\!C}$ ensures that every reachable cycle is winning for $\player$ by satisfying a combination of parity ($\gamma$), energy ($\eta$), or mean-payoff ($\mu$) requirements. In the case of $f_\mu$, $\nu \in \mathbb{Z}$ represents the performance threshold proposed for the problem to evaluate mean-payoff games. This generalized construction allows \nocq to search from the perspective of either player by swapping $\player$ and $\opponent$. Satisfiability under $\player$ proves a winning strategy for $\player$, while unsatisfiability (if the solver explores the full space) proves the win for $\opponent$.
 
 \subsubsection{A No-Opponent-Cycle filter} \label{sec:nocfilter}
 We have proposed a complete propagator based on Depth-first Search (DFS) to explore the arena. The resulting DFS tree captures all possible paths from $v_0$, and can be used to detect all existing cycles. We define the propagator in the context of a \textit{Lazy Clause Generation} solver~\cite{DBLP:journals/constraints/OhrimenkoSC09}, to take advantage of the strong performance of this type of solver, in particular for problems that contain a large number of Boolean clauses. Algorithm~\ref{alg:noc-filter} presents this version of the propagator, which checks for cycles and reports failure if a cycle with highest priority in favour of $\opponent$ is detected.
