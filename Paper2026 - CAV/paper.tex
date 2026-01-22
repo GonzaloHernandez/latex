@@ -49,7 +49,7 @@
 
 \begin{document}
 %
-\title{NOCQ: A Constraint-Based Toolchain for Solving Parity Games with Quantitative Conditions}
+\title{NOCQ: A Constraint-Based Toolchain for\\Parity Games with Quantitative Conditions}
 
 % \author{Authors' Names Omitted for Double-Blind Review}
 \author{
@@ -112,7 +112,7 @@ This section introduces parity games with quantitative conditions and overviews 
 
 \subsection{Arenas, Strategies, and Plays}
 
-A game arena is a tuple $\mathcal{A} = (V_{\subeven}, V_{\subodd}, E, \Omega, \Lambda)$, where $V = V_{\subeven} \cup V_{\subodd}$ is a finite set of vertices partitioned between Player \even ($0$) and Player \odd ($1$), $E \subseteq V \times V$ is a set of directed edges where every vertex has at least one successor, $\Omega: V \to \{0, \dots, d\}$ is a priority mapping, and $\Lambda: E \to \mathbb{Z}$ is a weight function.
+A game arena is a tuple $\mathcal{A} = (V_{\subeven}, V_{\subodd}, E, \Omega, Q)$, where $V = V_{\subeven} \cup V_{\subodd}$ is a finite set of vertices partitioned between Player \even ($0$) and Player \odd ($1$), $E \subseteq V \times V$ is a set of directed edges where every vertex has at least one successor, $\Omega: V \to \{0, \dots, d\}$ is a priority mapping, and $Q: E \to \mathbb{Z}$ is a weight function.
 
 A \textit{positional strategy} for player $i \in \{\even, \odd\}$ is a function $f_{i} : V_{i} \to V$ such that $(v, f_i(v)) \in E$. A pair of strategies $(f_{\subeven}, f_{\subodd})$ uniquely determines an infinite path $\pi = v_0 v_1 \dots$, called a \textit{play}. We denote by $\text{Inf}(\pi)$ the set of priorities $\{\Omega(v) \mid v \text{ occurs infinitely often in } \pi\}$.
 
@@ -121,12 +121,12 @@ A \textit{positional strategy} for player $i \in \{\even, \odd\}$ is a function 
 In our setting, a play $\pi$ is evaluated against three distinct criteria:
 
 \begin{enumerate}
-    \item \textbf{Parity Condition ($\gamma$):} Satisfied if $\max(\text{Inf}(\pi))$ is even.
-    \item \textbf{Energy Condition ($\eta$):} Given initial energy $E_{init} \in \mathbb{N}$, satisfied if $\forall n \ge 0: E_{init} + \sum_{i=0}^{n-1} \Lambda(v_i, v_{i+1}) \ge 0$.
-    \item \textbf{Mean-Payoff Condition ($\mu$):} Satisfied if $\liminf_{n \to \infty} \frac{1}{n} \sum_{i=0}^{n-1} \Lambda(v_i, v_{i+1}) \ge 0$.
+    \item \textbf{Parity Condition ($\omega$):} Satisfied if $\max(\text{Inf}(\pi))$ is even.
+    \item \textbf{Energy Condition ($\eta$):} Given initial energy $E_{init} \in \mathbb{N}$, satisfied if $\forall n \ge 0: E_{init} + \sum_{i=0}^{n-1} Q(v_i, v_{i+1}) \ge 0$.
+    \item \textbf{Mean-Payoff Condition ($\mu$):} Satisfied if $\liminf_{n \to \infty} \frac{1}{n} \sum_{i=0}^{n-1} Q(v_i, v_{i+1}) \ge 0$.
 \end{enumerate}
 
-We define the winning objective for Player \even as the conjunction of these conditions: $\Xi_{\subeven} = \gamma \wedge \eta \wedge \mu$. As these are zero-sum games, Player \odd wins if the play satisfies the objective $\Xi_{\subodd} = \neg \Xi_{\subeven}$.
+We define the winning objective for Player \even as the conjunction of these conditions: $\gamma_{\subeven} = \omega \wedge \eta \wedge \mu$. As these are zero-sum games, Player \odd wins if the play satisfies the objective $\gamma_{\subodd} = \neg \gamma_{\subeven}$.
 
 Given an initial vertex $v_0$, a strategy is said to be winning from $v_0$ for player~$\even$ (player~$\odd$) if it only generates winning plays for player~$\even$ (player~$\odd$) starting at $v_0$ for all strategies of the other player. It is known that for every vertex~$v\in V$ in a parity game, one of the two players always has a memoryless winning strategy from that vertex~$v$. Solving a parity game means deciding, for every vertex~$v\in V$, which player has a memoryless winning strategy from that vertex.
 
@@ -141,7 +141,7 @@ Beyond dedicated algorithms, parity games can be solved by encoding them into co
 \end{itemize}
 
 
-$\Phi_\exists$ and $\Phi_\forall$ ensure valid moves for player \even and \odd, respectively, while $\Phi_V$ ensures consistency between edge and vertex selection. To satisfy the parity condition $\gamma$, we employ a \textit{discrete progress measure}~\cite{Jurdziński:2000} to rule out cycles where the maximum priority is odd. We introduce integer variables $x_p^v$ for each $v \in V$ and each odd priority $p \in \text{Odd}(G)$, where $\text{Odd}^{>k}(G) = \{p \in \text{Odd}(G) \mid p > k\}$. The progress constraints are $\Phi_A = \bigwedge_{(v,w) \in E} (T_{v,w} \to \Psi_{v,w})$, where:
+$\Phi_\exists$ and $\Phi_\forall$ ensure valid moves for player \even and \odd, respectively, while $\Phi_V$ ensures consistency between edge and vertex selection. To satisfy the parity condition $\omega$, we employ a \textit{discrete progress measure}~\cite{Jurdziński:2000} to rule out cycles where the maximum priority is odd. We introduce integer variables $x_p^v$ for each $v \in V$ and each odd priority $p \in \text{Odd}(G)$, where $\text{Odd}^{>k}(G) = \{p \in \text{Odd}(G) \mid p > k\}$. The progress constraints are $\Phi_A = \bigwedge_{(v,w) \in E} (T_{v,w} \to \Psi_{v,w})$, where:
 
 \[
 \Psi_{v,w} = 
@@ -158,7 +158,7 @@ These constraints belong to \textit{difference logic}, supported by SMT solvers.
 We solve quantitative parity games by encoding them into a CSP with a specialized propagator.
 
 \begin{definition}\label{def:csp}
-    The CSP for an arena $G=(V,E, \Omega, \Lambda)$ starting at $v_0$ from the perspective of player $\player$ is $\mathcal{P} = (\mathcal{X}, \mathcal{D}, \mathcal{C})$, where $\mathcal{X} = \{ \mathcal{V}_v \}_{v \in V} \cup \{ \mathcal{E}_e \}_{e \in E}$ are Boolean variables. The constraints $\mathcal{C}$ are:
+    The CSP for an arena $G=(V,E, \Omega, Q)$ starting at $v_0$ from the perspective of player $\player$ is $\mathcal{P} = (\mathcal{X}, \mathcal{D}, \mathcal{C})$, where $\mathcal{X} = \{ \mathcal{V}_v \}_{v \in V} \cup \{ \mathcal{E}_e \}_{e \in E}$ are Boolean variables. The constraints $\mathcal{C}$ are:
     \begin{itemize}[leftmargin=1.8cm, labelwidth=1.2cm, align=left, itemsep=1.5ex, parsep=0pt]
 
         \item [$\mathcal{C}_{v_0}$ :] $\mathcal{V}_{v_0} = \top$
@@ -169,28 +169,28 @@ We solve quantitative parity games by encoding them into a CSP with a specialize
 
         \item [$\mathcal{C}_{\!E}$ :] $\bigwedge_{w \in V, w \neq v_0} ((\bigvee_{v \in Ew} \mathcal{E}_{(v,w)}) \rightarrow \mathcal{V}_w)$
 
-        % \item [$\mathcal{C}_{{\!N\!O\!C}_\gamma}$ :] $\bigwedge_{v_0, \dots, v_k} ((\bigwedge_{i\in 0\dots k-1} \mathcal{E}_{(v_i,v_{i+1})}) \rightarrow\\ \bigwedge_{j\in 0\dots k-1} (v_j=v_k \rightarrow \max\{\Omega(v_i) \mid i\in j\dots k\} \bmod 2 \ne \opponent))$
+        % \item [$\mathcal{C}_{{\!N\!O\!C}_\omega}$ :] $\bigwedge_{v_0, \dots, v_k} ((\bigwedge_{i\in 0\dots k-1} \mathcal{E}_{(v_i,v_{i+1})}) \rightarrow\\ \bigwedge_{j\in 0\dots k-1} (v_j=v_k \rightarrow \max\{\Omega(v_i) \mid i\in j\dots k\} \bmod 2 \ne \opponent))$
         
-        % \item [$\mathcal{C}_{{\!N\!O\!C}_\eta}$ :] $\bigwedge_{v_0, \dots, v_k} ((\bigwedge_{i\in 0\dots k-1} \mathcal{E}_{(v_i,v_{i+1})}) \rightarrow\\ \bigwedge_{j\in 0\dots k-1} (v_j=v_k \rightarrow \sum_{i=j}^{k} \Lambda(v_i, v_{i+1}) \ge 0))$
+        % \item [$\mathcal{C}_{{\!N\!O\!C}_\eta}$ :] $\bigwedge_{v_0, \dots, v_k} ((\bigwedge_{i\in 0\dots k-1} \mathcal{E}_{(v_i,v_{i+1})}) \rightarrow\\ \bigwedge_{j\in 0\dots k-1} (v_j=v_k \rightarrow \sum_{i=j}^{k} Q(v_i, v_{i+1}) \ge 0))$
         
-        % \item [$\mathcal{C}_{{\!N\!O\!C}_\mu}$ :] $\bigwedge_{v_0, \dots, v_k} ((\bigwedge_{i\in 0\dots k-1} \mathcal{E}_{(v_i,v_{i+1})}) \rightarrow\\ \bigwedge_{j\in 0\dots k-1} (v_j=v_k \rightarrow \frac{1}{k-j+1} \sum_{i=j}^{k} \Lambda(v_i, v_{i+1}) \ge \nu ))$
+        % \item [$\mathcal{C}_{{\!N\!O\!C}_\mu}$ :] $\bigwedge_{v_0, \dots, v_k} ((\bigwedge_{i\in 0\dots k-1} \mathcal{E}_{(v_i,v_{i+1})}) \rightarrow\\ \bigwedge_{j\in 0\dots k-1} (v_j=v_k \rightarrow \frac{1}{k-j+1} \sum_{i=j}^{k} Q(v_i, v_{i+1}) \ge \nu ))$
 
         \item [$\mathcal{C}_{NOC}$ :] $\bigwedge_{v_0, \dots, v_k} \left( \left(\bigwedge_{i=0}^{k-1} \mathcal{E}_{(v_i,v_{i+1})}\right) \to \bigwedge_{j=0}^{k-1} ((v_j = v_k) \to f(v_j, \dots, v_k)) \right)$
 
     \end{itemize}
 
     \begin{itemize}[itemsep=1.5ex, parsep=0pt]
-        \item $f_\gamma(v_j, \dots, v_k) = \max\{\Omega(v_i) \mid i\in j\dots k\} \bmod 2 \ne \opponent$
+        \item $f_\omega(v_j, \dots, v_k) = \max\{\Omega(v_i) \mid i\in j\dots k\} \bmod 2 \ne \opponent$
 
-        \item $f_\eta(v_j, \dots, v_k) = \sum_{i=j}^{k-1} \Lambda(v_i, v_{i+1}) \ge 0$
+        \item $f_\eta(v_j, \dots, v_k) = \sum_{i=j}^{k-1} Q(v_i, v_{i+1}) \ge 0$
 
-        \item $f_\mu(v_j, \dots, v_k) = \frac{1}{k-j} \sum_{i=j}^{k-1} \Lambda(v_i, v_{i+1}) \ge \nu$
+        \item $f_\mu(v_j, \dots, v_k) = \frac{1}{k-j} \sum_{i=j}^{k-1} Q(v_i, v_{i+1}) \ge \nu$
     \end{itemize}
 \end{definition}
 
 While we retain the connectivity constraints $\mathcal{C}_{v_0}, \mathcal{C}_{\opponent}$, and $\mathcal{C}_{\!E}$ (analogous to $\Phi_{v_0}, \Phi_\forall$, and $\Phi_V$), and $\mathcal{C}_{\player}$ enforces that $\player$ selects exactly one strategy edge per vertex, we observe that progress measure constraints $\Phi_A$ are computationally expensive, scaling up to $O(|V|^3)$—and can generate hundreds of millions of clauses for games with only 5,000 nodes. Our approach replaces $\Phi_A$ with a global constraint that avoids the use of new variables and rules out cycles winning for $\opponent$.
 
-The global constraint $\mathcal{C}_{\!N\!O\!C}$ ensures that every reachable cycle is winning for $\player$ by satisfying a combination of parity ($\gamma$), energy ($\eta$), or mean-payoff ($\mu$) requirements. In the case of $f_\mu$, $\nu \in \mathbb{Z}$ represents the performance threshold proposed for the problem to evaluate mean-payoff games. This generalized construction allows \nocq to search from the perspective of either player by swapping $\player$ and $\opponent$. Satisfiability under $\player$ proves a winning strategy for $\player$, while unsatisfiability (if the solver explores the full space) proves the win for $\opponent$.
+The global constraint $\mathcal{C}_{\!N\!O\!C}$ ensures that every reachable cycle is winning for $\player$ by satisfying a combination of parity ($\omega$), energy ($\eta$), or mean-payoff ($\mu$) requirements. In the case of $f_\mu$, $\nu \in \mathbb{Z}$ represents the performance threshold proposed for the problem to evaluate mean-payoff games. This generalized construction allows \nocq to search from the perspective of either player by swapping $\player$ and $\opponent$. Satisfiability under $\player$ proves a winning strategy for $\player$, while unsatisfiability (if the solver explores the full space) proves the win for $\opponent$.
 
 \subsubsection{A No-Opponent-Cycle filter} \label{sec:nocfilter}
 We have proposed a complete propagator based on Depth-first Search (DFS) to explore the arena. The resulting DFS tree captures all possible paths from $v_0$, and can be used to detect all existing cycles. We define the propagator in the context of a \textit{Lazy Clause Generation} solver~\cite{DBLP:journals/constraints/OhrimenkoSC09}, to take advantage of the strong performance of this type of solver, in particular for problems that contain a large number of Boolean clauses. Algorithm~\ref{alg:noc-filter} presents this version of the propagator, which checks for cycles and reports failure if a cycle with highest priority in favour of $\opponent$ is detected.
@@ -204,9 +204,9 @@ We have proposed a complete propagator based on Depth-first Search (DFS) to expl
     \IF{$v \in path_V$} \label{alg:noc-filter:pathcheck}
         \STATE $i_v \gets \textit{index}(v, path_V)$
         \STATE $m \gets \max\{f(v') \mid v' \in path_V[i_v:]\}$
-        \IF{$\neg \Xi_{\player}$} \label{alg:noc-filter:condition}
-        % \IF{$\neg \Xi_{\even} \lor \neg \Xi_{\odd}$}
-        % \IF{($\player = \even \land \neg(\gamma \land \eta \land \mu)) \lor (\player = \odd \land (\gamma \land \eta \land \mu)$)}
+        \IF{$\neg \gamma_{\player}$} \label{alg:noc-filter:condition}
+        % \IF{$\neg \gamma_{\even} \lor \neg \gamma_{\odd}$}
+        % \IF{($\player = \even \land \neg(\omega \land \eta \land \mu)) \lor (\player = \odd \land (\omega \land \eta \land \mu)$)}
         % \IF{$\neg satisfyConditions(i_v, path_V, path_E)$} \label{alg:noc-eager:checkopponent}
             \STATE $\textit{reason} \gets \textit{clausify}(\neg path_E[i_v:])$ \label{alg:noc-eager:reason}
             \STATE \textbf{if }not ($\mathcal{E}[e] \gets (\bot, \textit{reason}))$ \textbf{then return $\bot$}
@@ -231,7 +231,7 @@ We have proposed a complete propagator based on Depth-first Search (DFS) to expl
 \label{alg:noc-filter}
 \end{algorithm}
 
-\noindent \textbf{Implementation Details.} Algorithm~\ref{alg:noc-filter} implements the \noc propagator using a recursive DFS traversal. It maintains the current exploration state via $path_V$ and $path_E$. The parameter $\mathcal{E}$ tracks the Boolean decision variables for arena edges. The core logic occurs when a cycle is detected (Line~\ref{alg:noc-filter:pathcheck}). The propagator evaluates $\Xi_{\player}$---the specific combination of parity ($\gamma$), energy ($\eta$), and mean-payoff ($\mu$) objectives relevant to the game. 
+\noindent \textbf{Implementation Details.} Algorithm~\ref{alg:noc-filter} implements the \noc propagator using a recursive DFS traversal. It maintains the current exploration state via $path_V$ and $path_E$. The parameter $\mathcal{E}$ tracks the Boolean decision variables for arena edges. The core logic occurs when a cycle is detected (Line~\ref{alg:noc-filter:pathcheck}). The propagator evaluates $\gamma_{\player}$---the specific combination of parity ($\omega$), energy ($\eta$), and mean-payoff ($\mu$) objectives relevant to the game. 
 %
 If the cycle violates the winning criteria for $\player$, the propagator generates a \textit{conflict clause} consisting of the negation of the edges currently in $path_E$ (Line~\ref{alg:noc-filter:condition}). This clause effectively "learns" the failing partial assignment, allowing the underlying SAT/CP solver to perform non-chronological backtracking and prune all other search branches that would lead to the same non-winning cycle.
 
