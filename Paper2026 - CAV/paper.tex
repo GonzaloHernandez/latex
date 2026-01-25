@@ -80,9 +80,9 @@
 \maketitle              % typeset the header of the contribution
 %
 \begin{abstract}
-Solving parity games is a cornerstone problem in formal verification and synthesis, with significant applications across industrial-scale system design. We present NOCQ, an efficient constraint-based toolchain designed to solve parity games under quantitative conditions. By leveraging the inherent duality of parity game players, NOCQ implements several constraint programming (CP) techniques that exploit search space symmetries. Our experimental evaluation demonstrates that NOCQ performs competitively against state-of-the-art specialized solvers—often matching or exceeding their performance—while maintaining the modularity and flexibility of a CP-based framework. This flexibility allows users to easily incorporate additional constraints to search for preferred solutions, such as Mean-payoff requirements. We describe the tool's architecture, provide a comprehensive performance analysis, and discuss its extensibility. NOCQ is open-source and available at: \url{https://github.com/gonzalohernandez/nocq}.
+Solving parity games is a cornerstone problem in formal verification and synthesis, with significant applications across industrial-scale system design. We present NOCQ, an efficient constraint-based toolchain designed to solve parity games under quantitative conditions. By leveraging the inherent duality of zero-sum game players, NOCQ implements several constraint programming (CP) techniques that exploit search space symmetries. Our experimental evaluation demonstrates that NOCQ performs competitively against state-of-the-art specialized solvers, often matching or exceeding their performance, while maintaining the modularity and flexibility of a CP-based framework. This flexibility allows users to easily incorporate additional constraints to search for preferred solutions, such as average quantitative performance requirements. We describe the tool's architecture, provide a comprehensive performance analysis, and discuss its extensibility. NOCQ is open-source and available at: \url{https://github.com/gonzalohernandez/nocq}.
 
-\keywords{Constraint programming \and Parity games \and Verification.}
+\keywords{Constraint programming \and Games on graphs \and Verification.}
 \end{abstract}
 %
 \section{Introduction}
@@ -95,70 +95,72 @@ It is known that deciding the winner in parity games is an $\mathsf{NP} \cap \ma
 % (Done) Remove Arcucci's reference and add, instead, a reference to priority promotion and the latest result on its coplexity, where it is shown that they are quasi-polynomial, especially this last one is important as it is the main complexity result at the moment. 
 Due to the importance of parity games in formal verification, several algorithms have been developed \cite{Aggarwal:2023,Benerecetti:2025,Jurdziński:2000,Jurdziński:2022,Zielonka:1998}, all of them suffering from exponential running time limitations for specific classes of games. 
 One such approach involves reducing the solution of a parity game to the solution of a SAT instance representing the game. The generated SAT instance is satisfiable if and only if Player Even has a winning strategy in the original game. 
-This idea has a lot of potential given the advances in SAT-solving technology, but, as we will show later, it suffers from poor scalability due to the large size of the generated CNF formula for a given game.
+%This idea has a lot of potential given the advances in SAT-solving technology, but, as we will show later, it suffers from poor scalability due to the large size of the generated CNF formula for a given game.
+This idea was taken forward in~\cite{Gonzalo-CPAIOR-2026} where a novel CP-based algorithms was developed and shown to perform several orders of magnitude better than any other previous CP-based approach and very competitively against the state-of-the-art algorithms/implementations for parity games in the literature~\cite{oink-ref,jcss-ref,tacas-ref} -- often matching or exceeding their performance~\cite{Gonzalo-CPAIOR-2026}. 
 
-In this paper, we address these scalability issues by developing a specialised propagator that takes into account the structure of parity games, resulting in significant improvements in performance and modelling power. 
-In particular, we show that our method outperforms all other state-of-the-art constraint-based solvers.
+%In this paper, we address these scalability issues by developing a specialised propagator that takes into account the structure of parity games, resulting in significant improvements in performance and modelling power. 
+%In particular, we show that our method outperforms all other state-of-the-art constraint-based solvers.
 %
-Specifically, we propose replacing the SAT-based encoding used to forbid cycles corresponding to Player Odd wins in the game graph \cite{Heljanko:2012} with a set of efficient global constraint propagators; this significantly reduces the encoding size of the problem. Two of the proposed propagators are based on depth-first search, and a third is a checker that analyses the strongly connected components (SCCs) of the game graph. These propagators filter edges that would close winning cycles for a selected opponent player and generate explanations for each filtering step, enabling their integration into a Lazy Clause Generation solver~\cite{DBLP:journals/constraints/OhrimenkoSC09}.
+%Specifically, we propose replacing the SAT-based encoding used to forbid cycles corresponding to Player Odd wins in the game graph \cite{Heljanko:2012} with a set of efficient global constraint propagators; this significantly reduces the encoding size of the problem. Two of the proposed propagators are based on depth-first search, and a third is a checker that analyses the strongly connected components (SCCs) of the game graph. These propagators filter edges that would close winning cycles for a selected opponent player and generate explanations for each filtering step, enabling their integration into a Lazy Clause Generation solver~\cite{DBLP:journals/constraints/OhrimenkoSC09}.
+In this paper, we present NOCQ, a platform that implements the main algorithms developed in~\cite{Gonzalo-CPAIOR-2026} for parity games and extended with new functionalities that allows one to include additional {\em quantitative} restrictions, including {\em energy}~\cite{energy-refs} and {\em mean-payoff}~\cite{mp-refs} constraints, which are useful when reasoning about additional long-term average performance -- everything within the same SAT/CP-based framework. This tool paper briefly presents the problem it solves and the underlying algorithms that NOCQ is built upon, but focuses on the tool itself (its architecture, implementation, and usage) and some experimental results that demonstrate its performance in practice, in particular when applied to games with additional quantitative (energy and/or mean-payoff) constraints. 
 
-We show that our implementation not only outperforms existing SAT and CP-based approaches but also achieves performance comparable to that of state-of-the-art specialized non-CP-based algorithms, often matching or exceeding their results. This work contributes to establishing the CP framework as a practical tool for solving both general and specialized classes of parity games.
+%We show that our implementation not only outperforms existing SAT and CP-based approaches but also achieves performance comparable to that of state-of-the-art specialized non-CP-based algorithms, often matching or exceeding their results. This work contributes to establishing the CP framework as a practical tool for solving both general and specialized classes of parity games.
 
-The remainder of this paper is organized as follows. We first present the theoretical foundations and necessary definitions used in further sections, and then introduce our proposed approach -- including the design and implementation of the \noc propagators. After that, we provide different experimental results, a comparative analysis against state-of-the-art solvers, and present the extension of our method with additional constraints. At the end of the paper, we focus on the presentation of a number of concluding remarks, a discussion of our main findings, and some proposals for potential future research directions.
+%The remainder of this paper is organized as follows. We first present the theoretical foundations and necessary definitions used in further sections, and then introduce our proposed approach -- including the design and implementation of the \noc propagators. After that, we provide different experimental results, a comparative analysis against state-of-the-art solvers, and present the extension of our method with additional constraints. At the end of the paper, we focus on the presentation of a number of concluding remarks, a discussion of our main findings, and some proposals for potential future research directions.
 
-\section{Background and Overview}
+\section{Preliminaries and Overview}
 
-This section introduces parity games with quantitative conditions and overviews the existing translations into Boolean Satisfiability (SAT) and Satisfiability Modulo Theories (SMT).
+This section presents the graph games that NOCQ solves, and some translations into Boolean Satisfiability (SAT) and Satisfiability Modulo Theories (SMT).
 
-\subsection{Arenas, Strategies, and Plays}
+%\subsection{Arenas, Strategies, and Plays}
+\subsubsection{Arenas, Strategies, and Plays.}
 
 A game arena is a tuple $\mathcal{A} = (V_{\subeven}, V_{\subodd}, E, \Omega, Q)$, where $V = V_{\subeven} \cup V_{\subodd}$ is a finite set of vertices partitioned between Player \even ($0$) and Player \odd ($1$), $E \subseteq V \times V$ is a set of directed edges where every vertex has at least one successor, $\Omega: V \to \{0, \dots, d\}$ is a priority mapping, and $Q: E \to \mathbb{Z}$ is a weight function.
-
+%
 A \textit{positional strategy} for player $i \in \{\even, \odd\}$ is a function $f_{i} : V_{i} \to V$ such that $(v, f_i(v)) \in E$. A pair of strategies $(f_{\subeven}, f_{\subodd})$ uniquely determines an infinite path $\pi = v_0 v_1 \dots$, called a \textit{play}. We denote by $\text{Inf}(\pi)$ the set of priorities $\{\Omega(v) \mid v \text{ occurs infinitely often in } \pi\}$.
 
-\subsection{Winning Conditions}
-
-In our setting, a play $\pi$ is evaluated against three distinct criteria:
+\subsubsection{Winning Conditions.}
+A play $\pi$ is evaluated against three different criteria:
 
 \begin{enumerate}
-    \item \textbf{Parity Condition ($\omega$):} Satisfied if $\max(\text{Inf}(\pi))$ is even.
-    \item \textbf{Energy Condition ($\eta$):} Given initial energy $E_{init} \in \mathbb{N}$, satisfied if $\forall n \ge 0: E_{init} + \sum_{i=0}^{n-1} Q(v_i, v_{i+1}) \ge 0$.
-    \item \textbf{Mean-Payoff Condition ($\mu$):} Satisfied if $\liminf_{n \to \infty} \frac{1}{n} \sum_{i=0}^{n-1} Q(v_i, v_{i+1}) \ge 0$.
+    \item \textbf{Parity ($\omega$):} Satisfied if $\max(\text{Inf}(\pi))$ is even.
+    \item \textbf{Energy ($\eta$):} For $E_{init} \in \mathbb{N}$, satisfied if $\forall n \ge 0: E_{init} + \sum_{i=0}^{n-1} Q(v_i, v_{i+1}) \ge 0$.
+    \item \textbf{Mean-Payoff ($\mu$):} Satisfied if $\liminf_{n \to \infty} \frac{1}{n} \sum_{i=0}^{n-1} Q(v_i, v_{i+1}) \ge 0$.
 \end{enumerate}
 
-We define the winning objective for Player \even as the conjunction of these conditions: $\gamma_{\subeven} = \omega \wedge \eta \wedge \mu$. As these are zero-sum games, Player \odd wins if the play satisfies the objective $\gamma_{\subodd} = \neg \gamma_{\subeven}$.
+We define the winning objective/goal for Player \even to be the conjunction of these conditions: $\gamma_{\subeven} = \omega \wedge \eta \wedge \mu$. As these are zero-sum games, Player \odd wins if the play satisfies $\gamma_{\subodd} = \neg \gamma_{\subeven}$.
+%
+Given an initial vertex $v_0$, a strategy is said to be winning from $v_0$ for Player~$\even$ (Player~$\odd$) if it only generates winning plays for Player~$\even$ (Player~$\odd$) starting at $v_0$, for all strategies of the other player. It is known that for every vertex~$v\in V$ in these games, one of the two players always has a winning strategy from that vertex~$v$. Solving a zero-sum game is deciding, for every~$v\in V$, which player has a winning strategy from that vertex.
 
-Given an initial vertex $v_0$, a strategy is said to be winning from $v_0$ for player~$\even$ (player~$\odd$) if it only generates winning plays for player~$\even$ (player~$\odd$) starting at $v_0$ for all strategies of the other player. It is known that for every vertex~$v\in V$ in a parity game, one of the two players always has a memoryless winning strategy from that vertex~$v$. Solving a parity game means deciding, for every vertex~$v\in V$, which player has a memoryless winning strategy from that vertex.
+%\subsection{Solving Parity Games via SMT/SAT Encodings}
+\subsubsection{SMT/SAT Encodings.}
 
-\subsection{Solving Parity Games via SMT/SAT Encodings}
-
-Beyond dedicated algorithms, parity games can be solved by encoding them into constraint-based formalisms like SAT or SMT~\cite{Heljanko:2012}. This approach reduces the existence of a winning strategy for player \even to the satisfiability of a formula $\Phi$. We define Boolean variables $S_v$ for $v \in V$ and $T_{v,w}$ for $(v, w) \in E$, representing whether vertices and edges belong to a winning strategy for Player~0. The structural winning conditions are:
+Beyond dedicated algorithms, parity games can be solved by encoding them into constraint-based formalisms like SAT or SMT~\cite{Heljanko:2012}. This approach reduces the existence of a winning strategy for player \even to the satisfiability of a formula $\Phi$. We define Boolean variables $S_v$ for $v \in V$ and $T_{v,w}$ for $(v, w) \in E$, representing whether vertices and edges belong to a winning strategy for Player~\even. The structural winning conditions are:
 
 \begin{itemize}
-    \item $\Phi_\exists = \bigwedge_{v \in V_{\subeven}} (S_v \rightarrow \bigvee_{w \in vE} T_{(v,w)})$
+    \item $\Phi_\exists = \bigwedge_{v \in V_{\subeven}} (S_v \rightarrow \bigvee_{w \in vE} T_{(v,w)})$ 
     \item $\Phi_\forall = \bigwedge_{v \in V_{\subodd}} (S_v \rightarrow \bigwedge_{w \in vE} T_{(v,w)})$
     \item $\Phi_V = \bigwedge_{w \in V, w \neq v_0} \left( \left(\bigvee_{v \in Ev} T_{(v,w)}\right) \rightarrow S_w \right)$
 \end{itemize}
-
-
-$\Phi_\exists$ and $\Phi_\forall$ ensure valid moves for player \even and \odd, respectively, while $\Phi_V$ ensures consistency between edge and vertex selection. To satisfy the parity condition $\omega$, we employ a \textit{discrete progress measure}~\cite{Jurdziński:2000} to rule out cycles where the maximum priority is odd. We introduce integer variables $x_p^v$ for each $v \in V$ and each odd priority $p \in \text{Odd}(G)$, where $\text{Odd}^{>k}(G) = \{p \in \text{Odd}(G) \mid p > k\}$. The progress constraints are $\Phi_A = \bigwedge_{(v,w) \in E} (T_{v,w} \to \Psi_{v,w})$, where:
-
+such that, 
+$\Phi_\exists$ and $\Phi_\forall$ ensure valid moves for Player \even and \odd, respectively, while $\Phi_V$ ensures consistency between edge and vertex selection. To satisfy the parity condition $\omega$, we employ a \textit{discrete progress measure}~\cite{Jurdziński:2000} to rule out cycles where the maximum priority is odd. We introduce integer variables $x_p^v$ for each $v \in V$ and each odd priority $p \in \text{Odd}(G)$, where $\text{Odd}^{>k}(G) = \{p \in \text{Odd}(G) \mid p > k\}$. The progress constraints are $\Phi_A = \bigwedge_{(v,w) \in E} (T_{v,w} \to \Psi_{v,w})$, where:
+%
 \[
 \Psi_{v,w} = 
 \begin{cases} 
 \bigwedge_{p \in \text{Odd}^{>\Omega(w)}} (x_p^v \geq x_p^w) & \text{if } \Omega(w) \text{ is even} \\
-(x_{\Omega(w)}^v > x_{\Omega(w)}^w) \land \bigwedge_{p \in \text{Odd}^{>\Omega(w)}} (x_p^v \geq x_p^w) & \text{if } \Omega(w) \text{ is odd}
+(x_{\Omega(w)}^v > x_{\Omega(w)}^w) \land \bigwedge_{p \in \text{Odd}^{>\Omega(w)}} (x_p^v \geq x_p^w) & \text{if } \Omega(w) \text{ is odd}.
 \end{cases}
 \]
 
-These constraints belong to \textit{difference logic}, supported by SMT solvers. The satisfiability of $S_{v_0} \wedge \Phi_\exists \wedge \Phi_\forall \wedge \Phi_V \wedge \Phi_A$ determines if player \even wins from $v_0$. Alternatively, $\Phi_A$ can be bit-blasted into pure CNF for use with modern SAT solvers~\cite{Heljanko:2012}.
+These constraints can be solved using SMT technologies: Satisfiability of $S_{v_0} \wedge \Phi_\exists \wedge \Phi_\forall \wedge \Phi_V \wedge \Phi_A$ determines if Player~\even wins from $v_0$. Alternatively, $\Phi_A$ can be bit-blasted into pure CNF for use with modern SAT solvers~\cite{Heljanko:2012}.
 
-\subsection{Solving Quantitative Parity Games via Efficient \noc Propagators}
-
-We solve quantitative parity games by encoding them into a CSP with a specialized propagator.
+%\subsection{Solving Quantitative Parity Games via Efficient \noc Propagators}
+\subsubsection{Solving Quantitative Parity Games.} %via Efficient \noc Propagators}
+We solve quantitative parity games by encoding them into a CSP with a specialized propagator \cite{Hernandez:2026:nocq}, as follows: 
 
 \begin{definition}\label{def:csp}
-    The CSP for an arena $G=(V,E, \Omega, Q)$ starting at $v_0$ from the perspective of player $\player$ is $\mathcal{P} = (\mathcal{X}, \mathcal{D}, \mathcal{C})$, where $\mathcal{X} = \{ \mathcal{V}_v \}_{v \in V} \cup \{ \mathcal{E}_e \}_{e \in E}$ are Boolean variables. The constraints $\mathcal{C}$ are:
+    The CSP for an arena $G=(V,E, \Omega, Q)$ starting at $v_0$ from the perspective of player $\player$ is $\mathcal{P} = (\mathcal{X}, \mathcal{D}, \mathcal{C})$, where $\mathcal{X} = \{ \mathcal{V}_v \}_{v \in V} \cup \{ \mathcal{E}_e \}_{e \in E}$ are Boolean variables, and the constraints $\mathcal{C}$ are defined in the following way:
     \begin{itemize}[leftmargin=1.8cm, labelwidth=1.2cm, align=left, itemsep=1.5ex, parsep=0pt]
 
         \item [$\mathcal{C}_{v_0}$ :] $\mathcal{V}_{v_0} = \top$
@@ -188,12 +190,17 @@ We solve quantitative parity games by encoding them into a CSP with a specialize
     \end{itemize}
 \end{definition}
 
-While we retain the connectivity constraints $\mathcal{C}_{v_0}, \mathcal{C}_{\opponent}$, and $\mathcal{C}_{\!E}$ (analogous to $\Phi_{v_0}, \Phi_\forall$, and $\Phi_V$), and $\mathcal{C}_{\player}$ enforces that $\player$ selects exactly one strategy edge per vertex, we observe that progress measure constraints $\Phi_A$ are computationally expensive, scaling up to $O(|V|^3)$—and can generate hundreds of millions of clauses for games with only 5,000 nodes. Our approach replaces $\Phi_A$ with a global constraint that avoids the use of new variables and rules out cycles winning for $\opponent$.
+While $\mathcal{C}_{v_0}, \mathcal{C}_{\opponent}$, and $\mathcal{C}_{\!E}$ %(analogous to $\Phi_{v_0}, \Phi_\forall$, and $\Phi_V$), 
+enforce connectivity, 
+$\mathcal{C}_{\player}$ ensures that $\player$ selects exactly one strategy edge per vertex.  
+%We observe that progress measure constraints $\Phi_A$ are computationally expensive, scaling up to $O(|V|^3)$—and can generate hundreds of millions of clauses for games with only a few thousand nodes. Our approach replaces $\Phi_A$ with a global constraint that avoids the use of new variables and rules out cycles winning for $\opponent$.
+Moreover, $\mathcal{C}_{\!N\!O\!C}$ ensures that every reachable cycle is winning for $\player$ by satisfying the given combination of parity ($\omega$), energy ($\eta$), and mean-payoff ($\mu$) requirements. Lastly, in~$f_\mu$, parameter~$\nu \in \mathbb{Z}$ is a given performance threshold used to evaluate the mean-payoff condition. This generalized construction allows \nocq to search from the perspective of either player by swapping $\player$ and $\opponent$. Satisfiability under $\player$ proves a winning strategy for $\player$, while unsatisfiability (if the solver explores the full space) proves the win for $\opponent$.
 
-The global constraint $\mathcal{C}_{\!N\!O\!C}$ ensures that every reachable cycle is winning for $\player$ by satisfying a combination of parity ($\omega$), energy ($\eta$), or mean-payoff ($\mu$) requirements. In the case of $f_\mu$, $\nu \in \mathbb{Z}$ represents the performance threshold proposed for the problem to evaluate mean-payoff games. This generalized construction allows \nocq to search from the perspective of either player by swapping $\player$ and $\opponent$. Satisfiability under $\player$ proves a winning strategy for $\player$, while unsatisfiability (if the solver explores the full space) proves the win for $\opponent$.
-
-\subsubsection{A No-Opponent-Cycle filter} \label{sec:nocfilter}
-We have proposed a complete propagator based on Depth-first Search (DFS) to explore the arena. The resulting DFS tree captures all possible paths from $v_0$, and can be used to detect all existing cycles. We define the propagator in the context of a \textit{Lazy Clause Generation} solver~\cite{DBLP:journals/constraints/OhrimenkoSC09}, to take advantage of the strong performance of this type of solver, in particular for problems that contain a large number of Boolean clauses. Algorithm~\ref{alg:noc-filter} presents this version of the propagator, which checks for cycles and reports failure if a cycle with highest priority in favour of $\opponent$ is detected.
+\subsubsection{A No-Opponent-Cycle filter.} \label{sec:nocfilter}
+We have developed a complete propagator based on Depth-first Search (DFS) to explore the arena. The resulting DFS tree captures all possible paths from $v_0$, and can be used to detect all existing cycles. We define the propagator in the context of a \textit{Lazy Clause Generation} solver~\cite{DBLP:journals/constraints/OhrimenkoSC09}, to take advantage of the strong performance of this type of solver, in particular for problems that contain a very large number of Boolean clauses. Algorithm~\ref{alg:noc-filter} presents this version of the propagator, which checks for cycles and reports failure if a cycle 
+%with highest priority in favour of 
+satisfying the winning condition for 
+$\opponent$ is detected.
 
 \begin{algorithm}[htb]
 \small
@@ -231,28 +238,15 @@ We have proposed a complete propagator based on Depth-first Search (DFS) to expl
 \label{alg:noc-filter}
 \end{algorithm}
 
-\noindent \textbf{Implementation Details.} Algorithm~\ref{alg:noc-filter} implements the \noc propagator using a recursive DFS traversal. It maintains the current exploration state via $path_V$ and $path_E$. The parameter $\mathcal{E}$ tracks the Boolean decision variables for arena edges. The core logic occurs when a cycle is detected (Line~\ref{alg:noc-filter:pathcheck}). The propagator evaluates $\gamma_{\player}$---the specific combination of parity ($\omega$), energy ($\eta$), and mean-payoff ($\mu$) objectives relevant to the game. 
+%\noindent \textbf{Implementation Details.} 
+Algorithm~\ref{alg:noc-filter} implements the \noc propagator using a recursive DFS traversal. It maintains the current exploration state via $path_V$ and $path_E$. Parameter $\mathcal{E}$ tracks the Boolean decision variables for arena edges. The core logic occurs when a cycle is detected (Line~\ref{alg:noc-filter:pathcheck}). The propagator evaluates $\gamma_{\player}$---the specific combination of parity ($\omega$), energy ($\eta$), and mean-payoff ($\mu$) objectives in the game. 
 %
-If the cycle violates the winning criteria for $\player$, the propagator generates a \textit{conflict clause} consisting of the negation of the edges currently in $path_E$ (Line~\ref{alg:noc-filter:condition}). This clause effectively "learns" the failing partial assignment, allowing the underlying SAT/CP solver to perform non-chronological backtracking and prune all other search branches that would lead to the same non-winning cycle.
-
-
-\subsection{Exploiting Problem Duality via Parallel Solving}
-
-The performance of game solvers is heavily influenced by the underlying topological and quantitative structure of the arena. A critical observation in this domain is the \textit{asymmetry in computational cost}: structures that make proving a win for $\player$ difficult often simplify the search for $\opponent$, and vice versa. 
-
-To exploit this duality, \nocq executes the CSP from the perspectives of both $\player$ and $\opponent$ concurrently in separate threads. The computation terminates as soon as the faster thread identifies a winning strategy or proves its absence. This parallel approach allows the solver to bypass worst-case scenarios for one player by leveraging the more computationally favorable perspective.
-
-
-\subsection{Complexity and Practical Efficiency of \nocfilter}
-
-The theoretical complexity of \nocfilter is driven by the DFS traversal over simple paths, which is exponential in $|V|$ in the worst case. However, several factors make this approach highly efficient in practice:
-
-\begin{itemize}
-    \item \textbf{Pruned Search Space:} The traversal is restricted to edges assigned to $\top$ and at most one unassigned edge, significantly reducing the branching factor compared to an unconstrained DFS.
-    \item \textbf{Early Pruning and Learning:} By detecting $\opponent$ cycles before they are fully formed, the propagator prunes vast non-winning subtrees. When a violation is found, a \textit{conflict clause} is generated. This allows the solver to ``learn'' the failure and perform non-chronological backtracking, ensuring it never revisits the same non-winning cycle structure. This effectively transforms local path analysis into global search-space reduction.
-\end{itemize}
+If the cycle violates the winning criteria for $\player$, the propagator generates a \textit{conflict clause} consisting of the negation of the edges currently in $path_E$ (Line~\ref{alg:noc-filter:condition}). This clause effectively {\em learns} the failing partial assignment, allowing the underlying SAT/CP solver to perform non-chronological backtracking and prune all other search branches that can lead to the same non-winning cycle.
 
 \section{Tool Description}
+
+
+%\section{Tool Description}
 
 In this section, we describe the implementation of NOCQ, a C++ framework developed to model and solve Parity Games with quantitative conditions. Unlike Oink \cite{vanDijk:2018}, which focuses on explicit-state and symbolic algorithms, NOCQ is designed to leverage constraint programming (CP) technologies.
 
@@ -324,6 +318,24 @@ The output provides a breakdown of the time spent in game construction and the s
 \subsection*{Extending to new quantitative conditions}
 
 NOCQ is designed to be easily extensible for new quantitative conditions. To add a new condition, developers can overload the class WinningCondition in the similar way as the existing EnergyCondition and MeanPayoffCondition classes, and included it in the CSP model. The modular design allows for seamless integration of new constraints without altering the core solving algorithms.
+
+
+\subsubsection{Exploiting Problem Duality via Parallel Solving.}
+
+The performance of game solvers is heavily influenced by the underlying topological and quantitative structure of the arena. A critical observation in this domain is the \textit{asymmetry in computational cost}: structures that make proving a win for $\player$ difficult often simplify the search for $\opponent$, and vice versa. 
+
+To exploit this duality, \nocq executes the CSP from the perspectives of both $\player$ and $\opponent$ concurrently in separate threads. The computation terminates as soon as the faster thread identifies a winning strategy or proves its absence. This parallel approach allows the solver to bypass worst-case scenarios for one player by leveraging the more computationally favorable perspective.
+
+
+\subsubsection{Complexity and Practical Efficiency.}
+
+The theoretical complexity of \nocfilter is driven by the DFS traversal over simple paths, which is exponential in $|V|$ in the worst case. However, several factors make this approach highly efficient in practice:
+
+\begin{itemize}
+    \item \textbf{Pruned Search Space:} The traversal is restricted to edges assigned to $\top$ and at most one unassigned edge, significantly reducing the branching factor compared to an unconstrained DFS.
+    \item \textbf{Early Pruning and Learning:} By detecting $\opponent$ cycles before they are fully formed, the propagator prunes vast non-winning subtrees. When a violation is found, a \textit{conflict clause} is generated. This allows the solver to ``learn'' the failure and perform non-chronological backtracking, ensuring it never revisits the same non-winning cycle structure. This effectively transforms local path analysis into global search-space reduction.
+\end{itemize}
+
 
 \section{Experiments and Evaluation}\label{sec:experiments}
 
