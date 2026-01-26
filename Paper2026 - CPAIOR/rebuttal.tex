@@ -1,0 +1,147 @@
+\documentclass{article}
+\usepackage[letterpaper, margin=1in]{geometry}
+\setlength{\parskip}{1em}
+\setlength\parindent{0pt}
+\usepackage{xcolor}
+\usepackage{fvextra}
+
+\definecolor{darkblue}{rgb}{0.0, 0.0, 0.60}
+
+\DefineVerbatimEnvironment{reviewer}{Verbatim}
+  {formatcom=\color{darkblue}, breaklines=true, breaksymbolleft={}}
+
+\newcommand{\reviewer}[1]{%
+  {\color{darkblue}\ttfamily\raggedright\obeylines #1}%
+}
+
+\begin{document}
+
+%-----------------------------------------------------------------------------------------------
+
+\section{Reviewer mbgY - 5/6}\label{rev:mbgY}
+
+\begin{reviewer}
+Strong Points: + Interesting constraint
++ Great performance against SAT solvers
+Weak Points: - There could have been better theoretical comparison against the pruning of SAT and SMT encodings.
+- The performance only matches, does not exceed, dedicated solvers.
+Review: This paper presents a CP-based approach to solving parity games. It
+presents known SAT and SMT encodings for this problem and explains
+that a specific constraint (called no-odd-cycles in the title, but
+more complicated than that: vertices are mapped to numbers and the
+constraint forbids cycles where the smallest such number is odd) is
+both memory heavy to represent and expensive to propagate. It gives an
+algorithm that checks whether the current partial assignment violates
+this constraint and generates an explanation for use in an lcg
+solver. The CP-based solver for this problem outperforms SAT- and
+SMT-based solvers and scales much better.
+
+The overall idea of the paper is very nice: it identifies a weakness
+in SAT encodings and develops a propagator to replace the problematic
+part of the encoding. The clause learning CP model performs very well,
+and the paper also studies some variants of the propagator which lead
+to improved performance, as well as the possibility for modeling
+variants of the base problem.
+
+Overall this is a nice application of CP in an area where it typically
+lags compared to SMT solvers, so demonstrating good performance on
+these benchmarks is significant.
+
+disclaimer: I have previously reviewed this. This new version
+addresses my main concerns with the old version.
+
+-------
+
+pg 4. "it is known that for every vertex v ∈ V in a parity game, one
+of the two players always has a memoryless winning strategy from that
+vertex v.": add citation
+Questions For The Rebuttal: -
+\end{reviewer}
+
+
+%-----------------------------------------------------------------------------------------------
+
+\section{Reviewer VKhq - 6/6}\label{rev:VKhq}
+
+\begin{reviewer}
+Strong Points: Considers a challenging problem of practical relevance.
+
+Contributes a CP approach that outperforms other declarative approaches (CP-based, SAT) and that is comparable to specialized state-of-the-art algorithms.
+
+Designs propagators for a new constraint dedicated to this context.
+
+Clearly written.
+Weak Points: Some of the technical aspects are not completely clear.
+Review: Parity games are a challenging problem occurring in formal verification. This paper proposes a new constraint, no-opponent-cycle, and its propagators for a CP-based approach. Starting from an existing SAT model, it replaces so-called progress measure constraints, which do not scale well, by this new constraint and uses lazy clause generation in order to reduce the size of the derived SAT model. For the no-opponent-cycle constraint a checker, a propagator, and a version using memorization are designed. Extensive experiments show that it dominates and scales much better than pure SAT approaches, and is comparable to specialized algorithms. Its adaptability, stemming from CP being a declarative paradigm, is showed off in a few variants, easily adding constraints to the CP model whereas the specialized algorithms might require substantial adaptations.
+
+This is a very strong paper making both a technical (specialized constraint with propagators) and applied (sota algorithm for parity games) contribution. It is well written. The experiments are extensive and convincing.
+
+Suggestions:
+
+Since you still have a bit of room in the paper, perhaps you could add some explanation or example of how parity games occur in formal verification?
+
+I recommend a log scale in Figure 3: it is impossible to see any progression for ZRA and NOC. In the caption of the same figure: "Memory usage _in_ Gb"
+
+In Section 5.1 you mention that Figure 2b includes two distinct plays: I suggest you provide them to confirm the reader's understanding.
+
+A small suggestion: directed edges are typically referred to as arcs.
+Questions For The Rebuttal: At the beginning of the paper you mention that an SMT approach to the problem is possible. Could you have added a comparison to it?
+
+Clarifications:
+
+In Figure 2b, don’t you have E1 set to true as well? And why is E3 dashed? To show that it is backtracked over?
+
+Just to make sure I understand: so, unlike the previous SAT formulation, you don't need to prove unsat in order to show that the opponent has a winning strategy?
+
+In Algorithm 1 I did not understand why the maximum-priority vertices are repeatedly removed from the graph?
+
+Line 8 of Algorithm 2 is a for-loop but in the text you talk about exploring _at most one_ unassigned edge, which does not seem to correspond?
+
+At the end of Section 3.3, what do you mean by graphs with nondeterminism?
+\end{reviewer}
+
+
+%-----------------------------------------------------------------------------------------------
+
+\section{Reviewer Qfim - 6/3} \label{ref:Qfim}
+
+\begin{reviewer}
+Strong Points: In this well written and clear paper a hard combinatorial problem  is tackled using a custom propagator. The results show that this significantly improves solving time over a SAT/SMT encoding, and is competitive with specialised algorithms.
+Weak Points: Parity games with additional constraints are not explored in much detail. While, the CP approach does not out-perform specialised algorithm, it would be interesting see when the CP approach wins on parity games with additional structure or constraints. 
+
+The idea of using strongly connected components to find winning strategies for either player during search must have been considered in the literature on parity games. It is not explained how the CP approach relates to specialised approaches.
+Review: Parity games are important and sit at the intersection of many algorithms and logics in model checking and synthesis. Even though specialised algorithms perform very well, it is important to investigate approaches using more generic solvers. The approach does not beat specialised  algorithms (although it is competitive) , but outperforms SAT/SMT approaches by orders of magnitude.
+Questions For The Rebuttal: I have no questions for the authors.
+\end{reviewer}
+
+\section{Rebuttal}
+
+We thank the reviewers for their positive comments on our paper, and we will of course address the issues and suggestions identified in the reviews.
+
+**Reviewer VKhq:**
+
+*At the beginning of the paper you mention that an SMT approach to the problem is possible. Could you have added a comparison to it?*
+
+We report results comparing with Z3, Gecode and OR-Tools CP-SAT in the appendix, which all perform very similarly, and are slower than the SAT encodings (and much slower than our approach).
+
+*In Figure 2b, don’t you have E1 set to true as well? And why is E3 dashed?*
+
+E1 is a consequence of constraint $C_\overline{p}$ - since V_0 is controlled by the opponent, all outgoing edges must be true. The dashed E3 means that the propagator can make E3 false, as explained in the paragraph starting "Stronger versions of the C_NOC...".
+
+*unlike the previous SAT formulation, you don't need to prove unsat in order to show that the opponent has a winning strategy?*
+
+The meaning is unchanged compared to the SAT formulation: the opponent has a winning strategy if and only if the problem is unsatisfiable, and conversely, the player has a winning strategy iff it is satisfiable.
+
+*In Algorithm 1 I did not understand why the maximum-priority vertices are repeatedly removed from the graph?*
+
+If the maximum priority in bestSet is odd (or $\overline{p}$), we have found a contradiction and return unsatisfiable in line 8. If it is even, there could still be odd cycles in the subgraphs of G induced by removing the max priority vertices. So we remove those to "isolate" those subgraphs, and then recursively determine whether any of them has an odd max priority cycle.
+
+*Line 8 of Algorithm 2 is a for-loop but in the text you talk about exploring _at most one_ unassigned edge, which does not seem to correspond?*
+
+"at most one" means at most one per path. Assume that we explore an unassigned edge e' in the for loop. This means that def=false (line 12), so we continue the recursion with defined=false (recursive call in line 13), and we won't execute the for loop again inside this recursive call. So there can be only one unassigned edge on our pathE, but we may be exploring more than one outgoing unassigned edge for each node.
+
+*what do you mean by graphs with nondeterminism?*
+
+The term "nondeterminism" is not the best choice of terminology here - we mean graphs that have nodes with multiple unassigned outgoing edges, which leads to a high branching factor in the DFS search.
+
+\end{document}
