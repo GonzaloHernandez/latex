@@ -352,6 +352,8 @@ Beyond CP and SAT, \nocq includes standard algorithms for evaluation and preproc
     \item \textbf{TarjanSCC}~\cite{Tarjan:1972}: strongly connected component decomposition of game arenas.
 \end{itemize}
 
+%pending to talk about software versions, c++17, chuffed.
+
 \paragraph{Usage Example.}
 The first command below generates a random game with 20 vertices, 10 priorities, and an outgoing degree between 1 and 5, solves it using the Zielonka Recursive Algorithm (ZRA), and exports the arena. The second command performs SCC decomposition on the exported game:
 
@@ -402,87 +404,58 @@ The theoretical complexity of \nocfilter is dominated by a depth-first traversal
 
 \section{Experiments and Evaluation}\label{sec:experiments}
 
-To evaluate our approach, we implemented the \noc propagators using the Constraint Programming (CP) solver Chuffed (version 0.12.1) \cite{chuffed:2018}. We utilized MiniZinc \cite{DBLP:conf/cp/NethercoteSBBDT07} to model additional constraints in selected experiments.
+In this section, we evaluate \texttt{NOCQ} from two primary perspectives. First, we assess the performance of our tool in solving games with pure parity conditions. We compare \texttt{NOCQ} against state-of-the-art algorithms using standard benchmarks. All experiments were conducted on an Intel Xeon 8260 CPU (24 cores, non-hyperthreaded) with 268.55 GB of RAM running Linux.
 
-For comparison, we employed several external state-of-the-art solvers: 
-\begin{itemize}
-    \item SAT Solvers (Reduction SAT): We used \textbf{CaDiCaL} (v2.1.3) \cite{Biere:Cadical:2024}, \textbf{MiniSat} (v2.2.0) \cite{Een:MiniSat:2003}, \textbf{Kissat} (v4.0.2) \cite{Biere:Kissat:2024}, and zChaff (v2007.3.12) \cite{Moskewicz:zChaff:2001}.
-    \item State-of-the-Art (SOTA) Parity Game Solvers: We incorporated Oink (fresh GitHub version) \cite{vanDijk:2018}, which includes several high-performance algorithms like Priority Promotion ($\textbf{PP}$ and $\textbf{PP+}$) and Parys' improvements ($\textbf{PAR}$). We also included the Zielonka Recursive Algorithm ($\textbf{ZRA}$), with an improved attractor strategy as detailed in \cite{Aggarwal:2023}, which offers better perfonmance. 
-\end{itemize}
+For the SAT-based backends, we utilized the following solvers \textbf{CaDiCaL} (v2.1.3) \cite{Biere:Cadical:2024}, \textbf{MiniSat} (v2.2.0) \cite{Een:MiniSat:2003},\textbf{Kissat} (v4.0.2) \cite{Biere:Kissat:2024},\textbf{zChaff} (v2007.3.12) \cite{Moskewicz:zChaff:2001}
 
-All experiments were conducted on an Intel Xeon 8260 CPU (24 cores, non-hyperthreaded) with 268.55 GB of RAM, running Linux. The complete source code, including implementations and experimental setups, is available at 
-\cite{Hernandez:Github:NoOppnentCycle:2025}.
-%\href{https://github.com/GonzaloHernandez/NoOpponentCycle}{http://github.com/GonzaloHernandez/NoOpponentCycle}
-%
-We evaluated all algorithms using a standard benchmark set commonly employed in parity game research, drawing from the PGSolver Library \cite{Friedmann:2017} and the Benchmarks for Parity Games \cite{Keiren:2015}. The games were classified into four categories:
+For state-of-the-art comparisons, we incorporated \textbf{Oink} (latest GitHub version) \cite{vanDijk:2018}, which includes high-performance algorithms such as Priority Promotion ($\text{PP}$ and $\text{PP+}$) and Parys' improvements ($\text{PAR}$). We also included the Zielonka Recursive Algorithm ($\text{ZRA}$), featuring an improved attractor strategy as detailed in \cite{Aggarwal:2023}.
+
+Second, we evaluated the performance of \texttt{NOCQ} when solving parity games with quantitative conditions. Our objective was to determine the variance in execution time when \texttt{NOCQ} evaluates different combinations of $\gamma_{p} = \omega \otimes \eta \otimes \mu$, where $\otimes$ denotes the product composition of the parity, energy, and mean-payoff objectives.
+
+The benchmarks used where obtained from PGSolver Library \cite{Friedmann:2017} and the Benchmarks for Parity Games \cite{Keiren:2015}. The games were classified into four categories:
 
 \begin{itemize}
-    \item Equivalence Checking ($\textbf{EqC}$): This group contains 77 games derived from formal equivalence checking problems, including strong bisimulation, weak bisimulation, and stuttering equivalence. These games are characterized by complex, structured connectivity patterns reflecting system design.
-    \item Model Checking ($\textbf{MoC}$): This set consists of 106 games originating from temporal logic model checking ($\mu$-calculus) against system models. These instances are considered organic and reflect real-world verification challenges.
-    \item PGSolver Collection ($\textbf{PGS}$): This collection comprises 161 games sourced from the hardest known families of parity games, including ladder games, recursive ladder games, elevator verification, clique games, steady games, and Jurdziński games \cite{Benerecetti:2016}, likely to expose some of the worst performance.
-    \item Random Games ($\textbf{RaG}$): This category includes 125 randomly generated games with varying sizes and priority distributions, designed primarily to test the general robustness and average-case performance of solving algorithms.
+\item \textbf{Equivalence Checking (EqC):} 77 instances from formal verification tasks (e.g., strong and weak bisimulation), featuring complex structural connectivity typical of system architectures.
+\item \textbf{Model Checking (MoC):} 106 organic benchmarks derived from $\mu$-calculus model checking, representing practical real-world verification challenges.
+\item \textbf{PGSolver Collection (PGS):} 161 games from difficult families (e.g., Jurdziński, ladder, and clique games \cite{Benerecetti:2016}) used to evaluate performance against theoretical worst-case bounds.
+\item \textbf{Random Games (RaG):} 125 synthetic instances with varied priority distributions, serving as a baseline for general robustness and average-case efficiency.
 \end{itemize}
 
-The benchmark sets were partitioned into two distinct size categories for evaluation, optimizing for the feasibility of the Reduction to SAT approach on smaller instances and focusing on scalability for larger instances:
+These benchmarks were partitioned into small-scale and large-scale categories. This distinction allows us to measure the feasibility of SAT-reduction methods on smaller instances while testing the scalability of NOCQ against dedicated solvers on massive game graphs.
 
 \begin{table}[ht]
 \centering
-\caption{Time Performance of Algorithms on Small-Scale Instances, Average measured in seconds. (Max vertices: EqC/MoC $\approx 10^6$, PGS/RaG $\approx 10^3$). }
-{
-\setlength{\tabcolsep}{1.1mm}
-\begin{tabular}{l|rrr|r|>{\columncolor{gray!15}}r>{\columncolor{gray!15}}r|rrr}
-\toprule
-\textbf{Bench} & \multicolumn{3}{c|}{\textbf{Oink}} & \multicolumn{1}{c|}{\textbf{ZRA}} & \multicolumn{2}{c|}{\textbf{\cellcolor{gray!15}NOC}} & \multicolumn{3}{c}{\textbf{Reduction SAT}} \\
-             &   PP   &  PP+  &   PAR  &    ImpAttr     & Eager &  Memo  & CaDiCal &  Kissat & MiniSat \\
-\midrule
-\textbf{EqC} &  0.663 & 0.649 &  0.544 & \textbf{0.190} & 0.399 &  0.400 &  16.114 &  76.424 &  32.594 \\
-\textbf{MoC} &  0.327 & 0.324 &  0.294 & \textbf{0.172} & 0.289 &  0.290 &  15.524 &  28.924 &  22.443 \\
-\textbf{PGS} & \textbf{0.126} &  0.126 &  2.580 & 7.237 & 5.043 & 25.220 & 292.021 & 294.794 & 306.186 \\
-\textbf{RaG} &  0.001 & 0.001 & \textbf{0.001} &  0.002 & 0.003 &  0.005 &   1.100 &   1.113 &   1.384 \\
-\bottomrule
-\end{tabular}
-}
-\label{tab:smallgames}
-\end{table}
-In Table \ref{tab:smallgames}, we compare the performance of the \noc propagators against two groups of competing approaches on small benchmark games: (1) other constraint-based methods that use Reduction to SAT, and (2) non-constraint-based methods, such as the $\text{\zra}$ algorithm (Improved Attractor) and the Oink algorithms (PP, PP+, PAR). The goal of this evaluation is to assess the effectiveness of the filtering techniques relative to existing SAT-based methods, which is the primary focus of this paper. Overall, \noc outperforms the SAT-based methods by up to three orders of magnitude. Furthermore, we observe that the Memoization approach (\nocmemo) does not significantly improve performance over the Eager approach (\noceager). Moreover, \noceager achieves performance comparable to the best non-CP-based algorithms in practice: it is at most one order of magnitude slower on the hardest games (from the PGSolver Collection) and no more than a factor of two slower on all other instances. Additional comparative results with other CP methods are provided in the \href{https://figshare.com/s/38b43592b1047a9b893a}{Online Appendix}.
-
-\begin{table}[ht]
-\centering
-\caption{Time Performance of Algorithms on Large-Scale Instances, Average measured in seconds using PAR2 Scoring. (Max vertices: $\approx 35$ Million).}
-{
+\caption{Time Performance of Algorithms on Small-Scale Instances  (Max vertices: EqC/MoC $\approx 10^6$, PGS/RaG $\approx 10^3$) and Large-Scale Instances (Max vertices: $\approx 35$ Million). Average measured in seconds using PAR2 Scoring.}
+\label{tab:combined_benchmarks}
 \setlength{\tabcolsep}{1.2mm}
-\begin{tabular}{l|rrr|r|>{\columncolor{gray!15}}r>{\columncolor{gray!15}}r}
+{\small 
+\begin{tabular}{l|cc|cc|cc|cc}
 \toprule
-\textbf{Benchmark} & \multicolumn{3}{c|}{\textbf{Oink}} & \multicolumn{1}{c|}{\textbf{ZRA}} & \multicolumn{2}{c}{\textbf{\cellcolor{gray!15}NOC}} \\
- & PP & PP+ & PAR & ImpAttr & Eager & Memo \\
+\textbf{Algorithm} & \multicolumn{2}{c|}{\textbf{EquivalenceCh}} & \multicolumn{2}{c|}{\textbf{ModelCh}} & \multicolumn{2}{c|}{\textbf{PGSolver}} & \multicolumn{2}{c}{\textbf{RandomG}} \\
+ & Small & Large & Small & Large & Small & Large & Small & Large \\
 \midrule
-\textbf{EqC} & 24.775 & 24.876 &  24.159 & \textbf{14.490} &  16.169 & 82.902 \\
-\textbf{MoC} &  9.547 &  9.557 &   8.718 & \textbf{ 3.929} &   8.838 &  8.912\\
-\textbf{PGS} & 44.949 & 44.922 & 182.643 & 201.804 & \textbf{32.189} & 55.464 \\
-\textbf{RaG} &  0.016 &  0.015 & \textbf{0.015} &    0.053 &   0.078 &  0.099 \\
+\textit{Oink}(PP)  & 0.663 & 24.775 & 0.327 & 9.547 & \textbf{0.126} & 44.949 & 0.001 & 0.016 \\
+\textit{Oink}(PP+) & 0.649 & 24.876 & 0.324 & 9.557 & 0.126 & 44.922 & 0.001 & 0.015 \\
+\textit{Oink}(PAR) & 0.544 & 24.159 & 0.294 & 8.718 & 2.580 & 182.643 & \textbf{0.001} & \textbf{0.015} \\
+\midrule
+\textbf{ZRA}(ImpAttr) & \textbf{0.190} & \textbf{14.490} & \textbf{0.172} & \textbf{3.929} & 7.237 & 201.804 & 0.002 & 0.053 \\
+\midrule
+\rowcolor{gray!15}
+\textbf{NOCQ}(Ours) & 0.399 & 16.169 & 0.289 & 8.838 & 5.043 & \textbf{32.189} & 0.003 & 0.078 \\
+\midrule
+SAT(CaDiCaL) & 16.114 & --- & 15.524 & --- & 292.021 & --- & 1.100 & --- \\
+SAT(Kissat)  & 76.424 & --- & 28.924 & --- & 294.794 & --- & 1.113 & --- \\
+SAT(MiniSat) & 32.594 & --- & 22.443 & --- & 306.186 & --- & 1.384 & --- \\
 \bottomrule
 \end{tabular}
 }
-\label{tab:biggames}
+\label{tab:paritygames}
 \end{table}
 
-Table \ref{tab:biggames} presents the results for large games, where we evaluate the scalability of the \noc technique in comparison to \zra and the Oink family of algorithms. SAT-based approaches are omitted, as they were unable to solve these larger instances within reasonable resource limits and therefore do not contribute to a meaningful scalability analysis. Overall, \noc shows strong and robust performance: in the Equivalence and Model Checking benchmarks, it is within a small constant factor of \zra, which remains the fastest method, which is consistent with the main results reported in \cite{Aggarwal:2023}. In the PGSolver Collection, \noc  outperforms all Oink algorithms and also surpasses \zra by a large margin. For Random Games, all algorithms solve the instances almost instantly, making performance differences negligible. These results demonstrate that \noc scales effectively and remains competitive with the best non-CP-based (dedicated) solvers on large games.
+Table \ref{tab:paritygames} presents a consolidated performance comparison. On small-scale games, NOCQ outperforms SAT-based methods by up to three orders of magnitude and remains competitive with non-CP algorithms, typically within a factor of two of the fastest solvers. For large-scale instances, SAT-based approaches are omitted due to their inability to scale within reasonable resource limits. In this context, NOCQ demonstrates significant robustness: while ZRA \cite{Aggarwal:2023} remains the fastest for structured organic benchmarks (EqC and MoC), NOCQ notably outperforms all Oink variants and ZRA in the high-complexity PGSolver collection.
 
-The runtime metrics for the \noc and \zra approaches include both the solver execution time and the internal problem-preparation time (excluding I/O operations such as file reading). In contrast, for the SAT-based approaches we report only the solving time. This distinction is made because the preparation phase for the SAT-based methods—particularly the encoding generation—is substantially more expensive and was not a primary target of optimization in this work. Additional experiments comparing \noceager, \nocmemo, \nocchecker with \zra, together with their statistical analysis (AVG, SD, WR) presented in the \href{https://figshare.com/s/38b43592b1047a9b893a}{Online Appendix}, indicate that the \nocmemo implementation does not provide a significant performance advantage over the \noceager implementation on these benchmark instances.
+Runtime metrics for NOCQ and ZRA include solver execution and internal preparation time (excluding I/O). For SAT solvers, we report only solving time, as their encoding generation is substantially more expensive.
 
-\subsection{Resource Utilization Analysis}
-
-A key motivation for developing the \noc propagator was to avoid the resource overhead associated with introducing the Boolean literals and clauses required for the progress measure variables and constraints. %In our experiments, 
-We also evaluated the memory consumption of \noc compared to other methods.
-
-The results of these additional experiments are summarised in Figure~\ref{fig:peakofmemory}. While \noc requires at most 700MB of memory games for 13 thousand vertices, and \zra up to 17MB, the SAT-based approaches consume significantly more. In particular, we see that CaDiCaL, MiniSat, and Kissat report memory usage exceeding 39~GB for the same instances.
-
-\begin{figure}[ht]
-    \centering
-    \includegraphics[width=0.7\textwidth]{images/peakmemory-short.png}
-    \caption{Memory usage on Gb for solving  Jurdziński parity games (one of the hardest games in the PGSolver collection), constrained to 13 thousand vertices.}
-    \label{fig:peakofmemory}
-\end{figure}
 
 \section{Conclusions}
 We have introduced a novel constraint-based approach for parity games which does not require integer-based progress measures. The experiments show that our method significantly outperforms existing constraint-based approaches reducing runtime significantly, and improving on memory consumption by over 95\% on large instances, achieving much better results in performance (time and space) compared to previous work, and is competitive against non-CP-based solvers. 
