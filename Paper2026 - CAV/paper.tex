@@ -456,8 +456,35 @@ Table \ref{tab:paritygames} presents a consolidated performance comparison. On s
 
 Runtime metrics for NOCQ and ZRA include solver execution and internal preparation time (excluding I/O). For SAT solvers, we report only solving time, as their encoding generation is substantially more expensive.
 
+\begin{table}[ht]
+\centering
+\caption{Time Performance of NOCQ with different winning conditions on Small-Scale Instances and Large-Scale Instances. Same configuration as Table \ref{tab:paritygames}}
+\label{tab:combined_benchmarks}
+\setlength{\tabcolsep}{1.2mm}
+{\small 
+\begin{tabular}{l|cc|cc|cc|cc}
+\toprule
+\textbf{Conditions} & \multicolumn{2}{c|}{\textbf{EquivalenceCh}} & \multicolumn{2}{c|}{\textbf{ModelCh}} & \multicolumn{2}{c|}{\textbf{PGSolver}} & \multicolumn{2}{c}{\textbf{RandomG}} \\
+$\gamma$ & Small & Large & Small & Large & Small & Large & Small & Large \\
+\midrule
+\textbf{$\omega$}                           &  &  &  &  &  &  & 0.001 &  0.082 \\
+\textbf{$\omega \otimes \eta$}              &  &  &  &  &  &  & 0.001 &  0.063 \\
+\textbf{$\omega \otimes \mu$}               &  &  &  &  &  &  & 3.601 &  6.050 \\
+\textbf{$\omega \otimes \eta \otimes \mu$}  &  &  &  &  &  &  & 4.316 &  7.010 \\
+\textbf{$\eta$}                             &  &  &  &  &  &  & 0.001 &  0.065 \\
+\textbf{$\mu$}                              &  &  &  &  &  &  & 4.202 & 10.697 \\
+\textbf{$\eta \otimes \mu$}                 &  &  &  &  &  &  & 1.861 &  4.355 \\
+\bottomrule
+\end{tabular}
+}
+\label{tab:quantitativeparitygames}
+\end{table}
 
-\section{Conclusions}
+
+\section{Conclusions} 
+\textcolor{red}{pending}
+
+
 We have introduced a novel constraint-based approach for parity games which does not require integer-based progress measures. The experiments show that our method significantly outperforms existing constraint-based approaches reducing runtime significantly, and improving on memory consumption by over 95\% on large instances, achieving much better results in performance (time and space) compared to previous work, and is competitive against non-CP-based solvers. 
 
 Our key innovation, replacing a SAT encoding with a global constraint, not only improves performance but also provides a flexible framework that can be easily extended to accommodate additional constraints, and therefore more complex requirements.  In this paper, we have shown that these improvements can enable practical verification of large-scale systems while maintaining the modularity and expressiveness of CP-based methods using a modern technology. 
