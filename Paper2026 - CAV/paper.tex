@@ -79,7 +79,7 @@
 \maketitle              % typeset the header of the contribution
 %
 \begin{abstract}
-Solving parity games is a cornerstone problem in formal verification and synthesis, with significant applications across industrial-scale system design. We present NOCQ, an efficient constraint-based toolchain designed to solve parity games under quantitative conditions. By leveraging the inherent duality of zero-sum game players, NOCQ implements several constraint programming (CP) techniques that exploit search space symmetries. Our experimental evaluation demonstrates that NOCQ performs competitively against state-of-the-art specialized solvers, often matching or exceeding their performance, while maintaining the modularity and flexibility of a CP-based framework. This flexibility allows users to easily incorporate additional constraints to search for preferred solutions, such as average quantitative performance requirements. We describe the tool's architecture, provide a comprehensive performance analysis, and discuss its extensibility. NOCQ is open-source and available at: \url{https://github.com/gonzalohernandez/nocq}.
+Solving parity games is a cornerstone problem in formal verification and synthesis, with significant applications across industrial-scale system design. We present \nocq, an efficient constraint-based toolchain designed to solve parity games under quantitative conditions. By leveraging the inherent duality of zero-sum game players, \nocq implements several constraint programming (CP) techniques that exploit search space symmetries. Our experimental evaluation demonstrates that \nocq performs competitively against state-of-the-art specialized solvers, often matching or exceeding their performance, while maintaining the modularity and flexibility of a CP-based framework. This flexibility allows users to easily incorporate additional constraints to search for preferred solutions, such as average quantitative performance requirements. We describe the tool's architecture, provide a comprehensive performance analysis, and discuss its extensibility. \nocq is open-source and available at: \url{https://github.com/gonzalohernandez/nocq}.
 
 \keywords{Constraint programming \and Games on graphs \and Verification.}
 \end{abstract}
@@ -95,13 +95,13 @@ It is known that deciding the winner in parity games is an $\mathsf{NP} \cap \ma
 Due to the importance of parity games in formal verification, several algorithms have been developed \cite{Aggarwal:2023,Benerecetti:2025,Jurdziński:2000,Jurdziński:2022,Zielonka:1998}, all of them suffering from exponential running time limitations for specific classes of games. 
 One such approach involves reducing the solution of a parity game to the solution of a SAT instance representing the game. The generated SAT instance is satisfiable if and only if Player Even has a winning strategy in the original game. 
 %This idea has a lot of potential given the advances in SAT-solving technology, but, as we will show later, it suffers from poor scalability due to the large size of the generated CNF formula for a given game.
-This idea was taken forward in~\cite{Gonzalo-CPAIOR-2026} where a novel CP-based algorithms was developed and shown to perform several orders of magnitude better than any other previous CP-based approach and very competitively against the state-of-the-art algorithms/implementations for parity games in the literature~\cite{oink-ref,jcss-ref,tacas-ref} -- often matching or exceeding their performance~\cite{Gonzalo-CPAIOR-2026}. 
+This idea was taken forward in~\cite{Hernandez:2026:noc} where a novel CP-based algorithms was developed and shown to perform several orders of magnitude better than any other previous CP-based approach and very competitively against the state-of-the-art algorithms/implementations for parity games in the literature~\cite{vanDijk:2018,Benerecetti:2025,Aggarwal:2023} -- often matching or exceeding their performance~\cite{Hernandez:2026:noc}. 
 
 %In this paper, we address these scalability issues by developing a specialised propagator that takes into account the structure of parity games, resulting in significant improvements in performance and modelling power. 
 %In particular, we show that our method outperforms all other state-of-the-art constraint-based solvers.
 %
 %Specifically, we propose replacing the SAT-based encoding used to forbid cycles corresponding to Player Odd wins in the game graph \cite{Heljanko:2012} with a set of efficient global constraint propagators; this significantly reduces the encoding size of the problem. Two of the proposed propagators are based on depth-first search, and a third is a checker that analyses the strongly connected components (SCCs) of the game graph. These propagators filter edges that would close winning cycles for a selected opponent player and generate explanations for each filtering step, enabling their integration into a Lazy Clause Generation solver~\cite{DBLP:journals/constraints/OhrimenkoSC09}.
-In this paper, we present NOCQ, a platform that implements the main algorithms developed in~\cite{Gonzalo-CPAIOR-2026} for parity games and extended with new functionalities that allows one to include additional {\em quantitative} restrictions, including {\em energy}~\cite{energy-refs} and {\em mean-payoff}~\cite{mp-refs} constraints, which are useful when reasoning about additional long-term average performance -- everything within the same SAT/CP-based framework. This tool paper briefly presents the problem it solves and the underlying algorithms that NOCQ is built upon, but focuses on the tool itself (its architecture, implementation, and usage) and some experimental results that demonstrate its performance in practice, in particular when applied to games with additional quantitative (energy and/or mean-payoff) constraints. 
+In this paper, we present \nocq, a platform that implements the main algorithms developed in~\cite{Hernandez:2026:noc} for parity games and extended with new functionalities that allows one to include additional {\em quantitative} restrictions, including {\em energy}~\cite{ChatterjeeD12} and {\em mean-payoff}~\cite{ChatterjeeHS17} constraints, which are useful when reasoning about additional long-term average performance -- everything within the same SAT/CP-based framework. This tool paper briefly presents the problem it solves and the underlying algorithms that \nocq is built upon, but focuses on the tool itself (its architecture, implementation, and usage) and some experimental results that demonstrate its performance in practice, in particular when applied to games with additional quantitative (energy and/or mean-payoff) constraints. 
 
 %We show that our implementation not only outperforms existing SAT and CP-based approaches but also achieves performance comparable to that of state-of-the-art specialized non-CP-based algorithms, often matching or exceeding their results. This work contributes to establishing the CP framework as a practical tool for solving both general and specialized classes of parity games.
 
@@ -109,7 +109,7 @@ In this paper, we present NOCQ, a platform that implements the main algorithms d
 
 \section{Preliminaries and Overview}
 
-This section presents the graph games that NOCQ solves, and some translations into Boolean Satisfiability (SAT) and Satisfiability Modulo Theories (SMT).
+This section presents the graph games that \nocq solves, and some translations into Boolean Satisfiability (SAT) and Satisfiability Modulo Theories (SMT).
 
 %\subsection{Arenas, Strategies, and Plays}
 \subsubsection{Arenas, Strategies, and Plays.}
@@ -156,7 +156,8 @@ These constraints can be solved using SMT technologies: Satisfiability of $S_{v_
 
 %\subsection{Solving Quantitative Parity Games via Efficient \noc Propagators}
 \subsubsection{Solving Quantitative Parity Games.} %via Efficient \noc Propagators}
-We solve quantitative parity games by encoding them into a CSP with a specialized propagator \cite{Hernandez:2026:noc}\footnote{This model was introduced in a paper currently in publication, which was a candidate for a Best Paper award during peer review.}, as follows: 
+We solve quantitative parity games by encoding them into a CSP with a specialized propagator~\cite{Hernandez:2026:noc}, as follows: 
+%\footnote{This model was introduced in a paper currently in publication, which was a candidate for a Best Paper award during peer review.}, as follows: 
 
 \begin{definition}\label{def:csp}
     The CSP for an arena $G=(V,E, \Omega, Q)$ starting at $v_0$ from the perspective of player $\player$ is $\mathcal{P} = (\mathcal{X}, \mathcal{D}, \mathcal{C})$, where $\mathcal{X} = \{ \mathcal{V}_v \}_{v \in V} \cup \{ \mathcal{E}_e \}_{e \in E}$ are Boolean variables, and the constraints $\mathcal{C}$ are defined in the following way:
@@ -243,25 +244,26 @@ If the cycle violates the winning criteria for $\player$, the propagator generat
 
 \section{Tool Description}
 
-In this section, we describe the implementation of \nocq, a C++ framework developed to model and solve parity games with quantitative conditions. Unlike \emph{Oink}, which focuses on explicit-state and symbolic algorithms, \nocq is designed to leverage Constraint Programming (CP) and SAT technologies. The source code, implementation details, and usage instructions are available at \url{https://github.com/gonzalohernandez/nocq}.
+In this section, we describe the implementation of \nocq, a C++ framework developed to model and solve parity games with quantitative conditions. Unlike \emph{Oink}~\cite{vanDijk:2018}, which focuses on explicit-state systems and symbolic algorithms, \nocq is designed to leverage Constraint Programming (CP) and SAT technologies. The source code, implementation details, usage instructions, and a number of examples are available at \url{https://github.com/gonzalohernandez/nocq}.
 
 \subsection*{Core Architecture and Modules}
 
-\nocq is organized into four independent yet synergistic modules: \emph{Game Manager}, \emph{CPSModels}, \emph{SATEncoding}, and \emph{Utils}. This modular design ensures flexibility, allowing the tool to be used either as a standalone solver or as a reusable library.
+\nocq is organised into four independent modules: \emph{Game Manager}, \emph{CPSModels}, \emph{SATEncoding}, and \emph{Utils}. This modular design ensures flexibility, allowing the tool to be used either as a standalone CP/SAT solver or as a reusable library.
 
 
-\subsubsection*{Game Manager}
+\subsubsection*{Game Manager.}
 
 As shown in Figure~\ref{fig:nocq-1}, the \texttt{Game} class serves as the core data structure of \nocq. It captures essential game attributes, including vertex ownership (\texttt{owners}), priorities (\texttt{priors}), and edge weights (\texttt{weights}). In addition, it maintains the arena topology through \texttt{sources} and \texttt{targets} arrays for all edges.
 
-\paragraph{Input Support.}
-The framework supports standard formats such as GM~\cite{Parys:2019}, PG~\cite{vanDijk:2018}, and DZN~\cite{Minizinc:2020}. We also introduce the GMW (\texttt{.gmw}) format, an extension of GM specifically designed to store edge weights.
-
-\paragraph{Procedural Generation.}
-Following the design of Parys~\cite{Parys:2019}, the \texttt{Game} class supports the procedural generation of \emph{Random}, \emph{Jurdziński}, and \emph{MLadder} games for benchmarking purposes.
+\paragraph{Input and Procedural Generation.}
+The framework supports standard formats used to represent games, such as GM~\cite{Parys:2019}, PG~\cite{vanDijk:2018}, and DZN~\cite{Minizinc:2020}. We also define the GMW (\texttt{.gmw}) format, an extension of GM specifically designed to store edge weights.
+%
+Moreover, 
+%\paragraph{Procedural Generation.}
+following Parys~\cite{Parys:2019}, \texttt{Game} supports the procedural generation of \emph{Random}, \emph{Jurdziński}, and \emph{MLadder} games for benchmarking purposes.
 
 \paragraph{Usage Example.}
-Users can interact with the Game Manager via the command line to load existing benchmarks or generate new game instances. The first command below loads a parity game and assigns random edge weights in the range $[-20,20]$; by default, the solver maximizes the parity reward. The second command generates a Jurdziński game with 15{,}000 levels and 50 blocks, configured to minimize the reward:
+Users can interact with the Game Manager either to load existing benchmarks or to generate new game instances. The first command below loads a parity game and assigns random edge weights in the range $[-20,20]$; by default, the solver maximizes for the parity reward. The second line generates a Jurdziński game with 15{,}000 levels and 50 blocks, set to minimize the reward:
 
 \begin{lstlisting}
 $ ./nocq --gm /pgsolver/randomgame-20000-10-1-20-0.gm --weights -20 20
@@ -276,7 +278,7 @@ $ ./nocq --jurd 15000 50 --weights -50 30 --min
          \centering
          \includegraphics[width=1.02\textwidth]{images/nocq-1.pdf}
          \vspace{-10pt} % Pulls caption closer to the image
-         \caption{NOCQ Game Manager.}
+         \caption{\nocq Game Manager.}
          \label{fig:nocq-1}
      \end{subfigure}
      \hfill 
@@ -284,21 +286,21 @@ $ ./nocq --jurd 15000 50 --weights -50 30 --min
          \centering
          \includegraphics[width=1.02\textwidth]{images/nocq-2.pdf}
          \vspace{-10pt} % Pulls caption closer to the image
-         \caption{NOCQ constraint-based solver.}
+         \caption{\nocq constraint-based solver.}
          \label{fig:nocq-2}
      \end{subfigure}
      }
-     \caption{Overview of the main NOCQ Toolkit Components.}
+     \caption{Overview of the main \nocq Toolkit Components.}
      \label{fig:nocq-combined}
 \end{figure}
 
-\subsubsection{Constraint-Based Solving (CPSModels)}
+\subsubsection*{Constraint-Based Solving (CPSModels).}
 
-Figure~\ref{fig:nocq-2} illustrates how \nocq implements the CSP model defined in Definition~\ref{def:csp} and integrates the \noc propagators described in Section~\ref{sec:nocfilter}. A key design principle of \nocq is solver independence: the underlying model can be interfaced with different constraint programming (CP) engines.
+Figure~\ref{fig:nocq-2} illustrates how \nocq implements the CSP model in Definition~\ref{def:csp} and integrates the \noc propagators described in Section~\ref{sec:nocfilter}. A key design principle of \nocq is solver independence: the underlying model can be interfaced with different constraint programming (CP) engines.
+%
+Once a game is loaded or created, an instance of \texttt{NOCModel} is instantiated and used to solve the problem. The \texttt{NOCModel} searches for solutions by enforcing all constraints, including $C_{\text{NOC}}$ from Definition~\ref{def:csp}. This constraint is implemented through \texttt{NOCPropagator}, which uses CP techniques to evaluate winning conditions over all relevant cycles in the input game.
 
-Once a game is loaded or created, an instance of \texttt{NOCModel} is instantiated and used to solve the problem. The \texttt{NOCModel} searches for solutions by enforcing all constraints, including $C_{\text{NOC}}$ from Definition~\ref{def:csp}. This constraint is implemented via the \texttt{NOCPropagator}, which evaluates winning conditions over all relevant cycles.
-
-In the current version, three different winning conditions are implemented. The system is extensible: additional winning conditions can be incorporated by extending the \texttt{WinningCondition} class. The framework has been validated using two state-of-the-art solvers:
+In the current version, three different winning conditions are implemented. The system is extensible to incorporate new winning conditions: additional winning objectives can be defined by extending the \texttt{WinningCondition} class. The framework has been validated using two state-of-the-art solvers:
 
 \begin{itemize}
     \item \textbf{Chuffed}~\cite{chuffed:2018}, a lazy clause generation solver.
@@ -306,7 +308,7 @@ In the current version, three different winning conditions are implemented. The 
 \end{itemize}
 
 \paragraph{Usage Example.}
-Once a game has been created or loaded, users can invoke the constraint-based solver from the command line. Several parameters are available to tailor the solving process. The following command solves a parity game with a mean-payoff condition from a given initial vertex while reporting execution times:
+Once a game has been loaded or created, one can invoke the constraint-based solver from the command line. Several parameters are available to tailor the solving process. The following command solves a mean-payoff parity game from a given initial vertex (876), and reports the execution times:
 
 \begin{lstlisting}
 $ ./nocq --gm /pgsolver/randomgame-50000-10-1-20-0.gm --noc
@@ -314,7 +316,7 @@ $ ./nocq --gm /pgsolver/randomgame-50000-10-1-20-0.gm --noc
      --mean-payoff --weights -50 50 --threshold 20
 \end{lstlisting}
 
-\noindent Output (time in milliseconds):
+\noindent The tool then would have an output in the following format (time in msecs.), indicating that Player \odd (odd) has a winning strategy from vertex~876:
 \begin{lstlisting}
 Game creation time : 0.58195
 Init time          : 0.456748
@@ -323,7 +325,7 @@ Mem used           : 210.043
 876: ODD
 \end{lstlisting}
 
-The architecture is modular, allowing new solvers to be integrated using the model proposed in~\cite{Hernandez:2026:noc}.
+The architecture of \nocq is very modular, allowing new CP solvers to be integrated into the whole toolchain using the model developed in~\cite{Hernandez:2026:noc}.
 
 \begin{figure}[htb]
      \centering
@@ -333,7 +335,7 @@ The architecture is modular, allowing new solvers to be integrated using the mod
              \centering
              \includegraphics[width=\textwidth, trim={0 0 0 0}, clip]{images/nocq-3.pdf}
              \vspace{-5pt} % Reduces gap between image and sub-caption
-             \caption{NOCQ SAT encoding.}
+             \caption{\nocq SAT encoding.}
              \label{fig:nocq-3}
          \end{subfigure}
          \hspace{1pt} % Minimal gap
@@ -341,50 +343,50 @@ The architecture is modular, allowing new solvers to be integrated using the mod
              \centering
              \includegraphics[width=\textwidth, trim={0 0 0 0}, clip]{images/nocq-4.pdf}
              \vspace{-5pt}
-             \caption{Auxiliary algorithms in NOCQ.}
+             \caption{Auxiliary algorithms in \nocq.}
              \label{fig:nocq-4}
          \end{subfigure}
      }
-     \caption{Overview of additional components of NOCQ.}
+     \caption{Overview of additional components of \nocq.}
      \label{fig:nocq-details}
 \end{figure}
 
-\subsubsection*{SAT Encoding}
+\subsubsection*{SAT Encoding.}
 
-\nocq also provides a dedicated SAT encoding pipeline, enabling parity games to be dispatched to high-performance SAT solvers such as \emph{CaDiCaL}~\cite{Biere:Cadical:2024}, \emph{Kissat}~\cite{Biere:Kissat:2024}, and \emph{MiniSat}~\cite{Een:MiniSat:2003}. Figure~\ref{fig:nocq-3} illustrates the \texttt{SATEncoder} class, which implements the encoding techniques proposed by Heljanko~\cite{Heljanko:2012}, as described in Section~\ref{sec:satencoding}.
+\nocq also provides a dedicated SAT encoding pipeline, enabling parity games to be dispatched to a number of high-performance SAT solvers, including \emph{CaDiCaL}~\cite{Biere:Cadical:2024}, \emph{Kissat}~\cite{Biere:Kissat:2024}, and \emph{MiniSat}~\cite{Een:MiniSat:2003}. Figure~\ref{fig:nocq-3} illustrates the \texttt{SATEncoder} class, which implements the encoding techniques proposed by Heljanko {\em et al}~\cite{Heljanko:2012}, where a reduction to SAT is used, as described in Section~\ref{sec:satencoding}.
 
-The \texttt{SATEncoder} maintains references to the \texttt{Game} instance and maps graph components to integer representations of vertices ($V$) and edges ($E$). The module produces standard CNF output in DIMACS format, ensuring compatibility with any compliant SAT solver. We note that the SAT reduction proposed by Heljanko~\cite{Heljanko:2012} is limited to parity objectives and does not support quantitative winning conditions such as energy or mean-payoff constraints.
+The \texttt{SATEncoder} maintains references to the \texttt{Game} instance and maps graph components to integer representations of vertices ($V$) and edges ($E$). The module produces standard CNF output in DIMACS format, ensuring compatibility with any compliant SAT solver. We note that the SAT reduction proposed in~\cite{Heljanko:2012} is restricted to parity objectives/games only, and does not support quantitative winning conditions such as energy or mean-payoff, as we do within \nocq.
 
 \paragraph{Usage Example.}
-The following example encodes the \texttt{towersofhanoi-5} game from the pgsolver collection, starting from vertex~15, into CNF format. The encoding targets reward minimization, as described in~\cite{Heljanko:2012}. The resulting DIMACS file can then be solved by any SAT solver, such as CaDiCaL:
+The following example encodes the \texttt{towersofhanoi-5} game from the pgsolver collection~\cite{Friedmann:2017}, starting from vertex~15, into CNF format. The encoding targets reward minimization, as described in~\cite{Heljanko:2012}. The resulting output, a DIMACS file, can then be passed onto any SAT solver, such as CaDiCaL:
 
 \begin{lstlisting}
 $ ./nocq --gm /pgsolver/towersofhanoi-5.gm --sat-encoding tower5.cnf --init 15
 $ ./cadical tower5.cnf
 \end{lstlisting}
 
-\subsubsection*{Auxiliary Algorithms (Utils)}
+\subsubsection*{Auxiliary Algorithms (Utils).}
 
-Beyond CP and SAT, \nocq includes standard algorithms for evaluation and preprocessing, as illustrated in Figure~\ref{fig:nocq-4}:
+Beyond CP and SAT technologies, \nocq includes procedures for evaluation and preprocessing, as illustrated in Figure~\ref{fig:nocq-4}:
 
 \begin{itemize}
-    \item \textbf{Zielonka}~\cite{Araya:2008}: recursive parity game solving with an improved attractor computation.
-    \item \textbf{TarjanSCC}~\cite{Tarjan:1972}: strongly connected component decomposition of game arenas.
+    \item \textbf{Zielonka}~\cite{Araya:2008}: parity games algorithm with improved attractor computation.
+    \item \textbf{TarjanSCC}~\cite{Tarjan:1972}: efficient SCC decomposition of game arenas.
 \end{itemize}
 
 \paragraph{Usage Example.}
-The first command below generates a random game with 20 vertices, 10 priorities, and an outgoing degree between 1 and 5, solves it using the Zielonka Recursive Algorithm (ZRA), and exports the arena. The second command performs SCC decomposition on the exported game:
-
+The command below first generates a random game with 20 vertices, 10 priorities, and outgoing degree between 1 and 5, then solves it using the Zielonka Recursive Algorithm (ZRA), and finally exports the arena:
 \begin{lstlisting}
 $ ./nocq --rand 20 10 1 5 --zra --print-solution --export-gm rand.gm
 \end{lstlisting}
 
-\noindent Output:
+\noindent Below is \nocq's output, indicating the vertices where from each player has a winning strategy, that is, the {\em winning regions} for each player in the game:
 \begin{lstlisting}
 EVEN {12,4,7}
 ODD  {11,14,15,2,3,1,6,17,16,5,13,18,0,19,9,10,8}
 \end{lstlisting}
 
+\noindent And, the command below performs SCC decomposition on the exported game:
 \begin{lstlisting}
 $ ./nocq --gm rand.gm --scc
 \end{lstlisting}
@@ -398,12 +400,13 @@ $ ./nocq --gm rand.gm --scc
 Total SCCs: 4
 \end{lstlisting}
 
-Users can view the full list of supported parameters by running \texttt{./nocq -\-help}. For a more in-depth explanation of specific configurations and advanced usage, please refer to the documentation in the Git repository.
-\subsubsection{Exploiting Problem Duality via Parallel Solving}
+\noindent \nocq users can view the full list of supported parameters using \texttt{./nocq -\-help}. For a more in-depth explanation of specific configurations and advanced usage, one should refer to the documentation in the Git repository of \nocq. 
 
-The performance of game solvers is strongly influenced by the topological and quantitative structure of the arena. A key observation is the \emph{asymmetry in computational cost}: instances that are difficult to solve from the perspective of $\player$ are often easier from the perspective of $\opponent$, and vice versa.
+\subsubsection{Exploiting Problem Duality through Parallel Solving.}
 
-To exploit this duality, \nocq executes the CSP concurrently from both perspectives in separate threads. The computation terminates as soon as one thread identifies a winning strategy or proves its absence. This parallel approach mitigates worst-case behavior by leveraging the more computationally favorable viewpoint.
+The performance of game solvers is strongly influenced by the topological and quantitative structure of the arena. A key observation is the \emph{asymmetry in computational cost}: game instances that are difficult to solve from the perspective of player~$\player$ are often easier (in practical terms) from the perspective of $\opponent$, and vice versa.
+%
+To exploit this duality, \nocq executes the CSP concurrently from both perspectives in separate threads. The computation terminates as soon as one thread identifies a winning strategy or proves its absence. This parallel approach mitigates worst-case behavior by leveraging the more computationally favorable viewpoint, which depends on the particular game that is given to \nocq as input. 
 
 % \subsubsection{Complexity and Practical Efficiency}
 
@@ -419,30 +422,30 @@ To exploit this duality, \nocq executes the CSP concurrently from both perspecti
 
 \section{Experiments and Evaluation}\label{sec:experiments}
 
-In this section, we evaluate \texttt{NOCQ} from two primary perspectives. First, we assess the performance of our tool in solving games with pure parity conditions. We compare \texttt{NOCQ} against state-of-the-art algorithms using standard benchmarks. 
+In this section, we evaluate \nocq from two primary perspectives. First, we assess the performance of the tool when solving games with parity conditions only. We compare \nocq against state-of-the-art algorithms using standard benchmarks. 
 
-For the SAT-based backends, we utilized the following solvers \textbf{CaDiCaL} (v2.1.3) \cite{Biere:Cadical:2024}, \textbf{MiniSat} (v2.2.0) \cite{Een:MiniSat:2003},\textbf{Kissat} (v4.0.2) \cite{Biere:Kissat:2024},\textbf{zChaff} (v2007.3.12) \cite{Moskewicz:zChaff:2001}
+For the SAT backends, we use the following solvers: \textbf{CaDiCaL} (v2.1.3) \cite{Biere:Cadical:2024}, \textbf{MiniSat} (v2.2.0) \cite{Een:MiniSat:2003}, \textbf{Kissat} (v4.0.2) \cite{Biere:Kissat:2024}, \textbf{zChaff} (v2007.3.12) \cite{Moskewicz:zChaff:2001}.
+%
+To ensure state-of-the-art comparisons, we incorporated \textbf{Oink} (latest GitHub version) \cite{vanDijk:2018}, which includes high-performance algorithms such as Priority Promotion ($\text{PP}$ and $\text{PP+}$) and Parys' improvements ($\text{PAR}$). We also included Zielonka's Recursive Algorithm ($\text{ZRA}$), with an improved attractor strategy as presented in \cite{Aggarwal:2023}.
 
-For state-of-the-art comparisons, we incorporated \textbf{Oink} (latest GitHub version) \cite{vanDijk:2018}, which includes high-performance algorithms such as Priority Promotion ($\text{PP}$ and $\text{PP+}$) and Parys' improvements ($\text{PAR}$). We also included the Zielonka Recursive Algorithm ($\text{ZRA}$), featuring an improved attractor strategy as detailed in \cite{Aggarwal:2023}.
-
-Second, we evaluated the performance of \texttt{NOCQ} when solving parity games with quantitative conditions. Our objective was to determine the variance in execution time when \texttt{NOCQ} evaluates different combinations of $\gamma_{p} = \omega \otimes \eta \otimes \mu$, where $\otimes$ denotes the product composition of the parity, energy, and mean-payoff objectives.
-
-The benchmarks used where obtained from PGSolver Library \cite{Friedmann:2017} and the Benchmarks for Parity Games \cite{Keiren:2015}. The games were classified into four categories:
+We then evaluated \nocq's performance when solving parity games with quantitative conditions. The objective was to determine the variance in execution time when \nocq evaluates different combinations of $\gamma_{p} = \omega \otimes \eta \otimes \mu$, where $\otimes$ denotes the product composition of the parity, energy, and mean-payoff goals.
+%
+The benchmarks used where taken from the PGSolver Library \cite{Friedmann:2017} and Keiren's benchmarks for parity games \cite{Keiren:2015}. The games were classified into 4 categories:
 
 \begin{itemize}
-\item \textbf{Equivalence Checking (EqC):} 77 instances from formal verification tasks (e.g., strong and weak bisimulation), featuring complex structural connectivity typical of system architectures.
+\item \textbf{Equivalence Checking (EqC):} 77 instances from formal verification tasks ({\em e.g.}, strong and weak bisimulation), featuring complex structural connectivity typical of system architectures.
 \item \textbf{Model Checking (MoC):} 106 organic benchmarks derived from $\mu$-calculus model checking, representing practical real-world verification challenges.
-\item \textbf{PGSolver Collection (PGS):} 161 games from difficult families (e.g., Jurdziński, ladder, and clique games \cite{Benerecetti:2016}) used to evaluate performance against theoretical worst-case bounds.
-\item \textbf{Random Games (RaG):} 125 synthetic instances with varied priority distributions, serving as a baseline for general robustness and average-case efficiency.
+\item \textbf{PGSolver Collection (PGS):} 161 games taken from difficult families ({\em e.g.}, Jurdziński, ladder, and clique games~\cite{Benerecetti:2016}) used to evaluate performance against theoretical worst-case bounds of several decision procedures.
+\item \textbf{Random Games (RaG):} 125 game instances with varied priority distributions, serving as a baseline for general robustness and average-case efficiency.
 \end{itemize}
 
-Also, these benchmarks were partitioned into small-scale and large-scale categories. This distinction allows us to measure the feasibility of SAT-reduction methods on smaller instances while testing the scalability of NOCQ against dedicated solvers on massive game graphs.
-
-All experiments were conducted on an Intel Xeon 8260 CPU (24 cores, non-hyperthreaded) with 268.55 GB of RAM running Linux.
+Moreover, these benchmarks were partitioned further into two categories, small-scale and large-scale, depending on the size of the input games. This distinction allows us to measure the feasibility of SAT-reduction methods on smaller instances while testing the scalability of \nocq against dedicated solvers on larger game graphs.
+%
+All experiments were conducted on an Intel Xeon 8260 CPU with 24 cores (non-hyperthreaded) and 268.55 GB of RAM running Linux.
 
 \begin{table}[ht]
 \centering
-\caption{Time Performance of Algorithms on Small-Scale Instances  (Max vertices: EqC/MoC $\approx 10^6$, PGS/RaG $\approx 10^3$) and Large-Scale Instances (Max vertices: $\approx 35$ Million). Average measured in seconds using PAR2 Scoring.}
+\caption{Performance (in time) of Algorithms on small-scale instances  (Max vertices: EqC/MoC $\approx 10^6$, PGS/RaG $\approx 10^3$) and large-scale instances (Max vertices: $\approx 35$ million). Average time measured in seconds using PAR2 Scoring.}
 \setlength{\tabcolsep}{1.2mm}
 {\small 
 \begin{tabular}{l|cc|cc|cc|cc}
@@ -454,10 +457,10 @@ All experiments were conducted on an Intel Xeon 8260 CPU (24 cores, non-hyperthr
 \textit{Oink}(PP+) & 0.649 & 24.876 & 0.324 & 9.557 & 0.126 & 44.922 & 0.001 & 0.015 \\
 \textit{Oink}(PAR) & 0.544 & 24.159 & 0.294 & 8.718 & 2.580 & 182.643 & \textbf{0.001} & \textbf{0.015} \\
 % \midrule
-\textbf{ZRA}(ImpAttr) & \textbf{0.190} & \textbf{14.490} & \textbf{0.172} & \textbf{3.929} & 7.237 & 201.804 & 0.002 & 0.053 \\
+ZRA(ImpAttr) & \textbf{0.190} & \textbf{14.490} & \textbf{0.172} & \textbf{3.929} & 7.237 & 201.804 & 0.002 & 0.053 \\
 % \midrule
 \rowcolor{gray!15}
-\textbf{NOCQ}(Ours) & 0.399 & 16.169 & 0.289 & 8.838 & 5.043 & \textbf{32.189} & 0.003 & 0.078 \\
+\textbf{\nocq}(Ours) & 0.399 & 16.169 & 0.289 & 8.838 & 5.043 & \textbf{32.189} & 0.003 & 0.078 \\
 % \midrule
 SAT(CaDiCaL) & 16.114 & --- & 15.524 & --- & 292.021 & --- & 1.100 & --- \\
 SAT(Kissat)  & 76.424 & --- & 28.924 & --- & 294.794 & --- & 1.113 & --- \\
@@ -468,13 +471,13 @@ SAT(MiniSat) & 32.594 & --- & 22.443 & --- & 306.186 & --- & 1.384 & --- \\
 \label{tab:paritygames}
 \end{table}
 
-Table \ref{tab:paritygames} presents a consolidated performance comparison. On small-scale games, NOCQ outperforms SAT-based methods by up to three orders of magnitude and remains competitive with non-CP algorithms, typically within a factor of two of the fastest solvers. For large-scale instances, SAT-based approaches are omitted due to their inability to scale within reasonable resource limits. In this context, NOCQ demonstrates significant robustness: while ZRA \cite{Aggarwal:2023} remains the fastest for structured organic benchmarks (EqC and MoC), NOCQ notably outperforms all Oink variants and ZRA in the high-complexity PGSolver collection.
+Table \ref{tab:paritygames} presents a consolidated performance comparison. On small-scale games, \nocq outperforms SAT-based methods by up to three orders of magnitude and remains competitive with non-CP algorithms, typically within a factor of two of the fastest solvers. For large-scale instances, SAT-based approaches are omitted due to their inability to scale within reasonable resource limits. In this context, \nocq demonstrates significant robustness: while ZRA \cite{Aggarwal:2023} remains the fastest for structured benchmarks (EqC and MoC), \nocq notably outperforms all tested Oink variants and ZRA in the high-complexity PGSolver collection.
 
 % Runtime metrics for NOCQ and ZRA include solver execution and internal preparation time (excluding I/O). For SAT solvers, we report only solving time, as their encoding generation is substantially more expensive.
 
 \begin{table}[ht]
 \centering
-\caption{Time Performance of NOCQ with different winning conditions on Small-Scale Instances and Large-Scale Instances. Same configuration as Table \ref{tab:paritygames}}
+\caption{Performance (in time) of \nocq with different winning conditions on small-scale and large-scale instances. Same configuration as in Table \ref{tab:paritygames}.}
 \setlength{\tabcolsep}{1.2mm}
 {\small 
 \begin{tabular}{l|cc|cc|cc|cc}
@@ -482,26 +485,37 @@ Table \ref{tab:paritygames} presents a consolidated performance comparison. On s
 \textbf{Conditions} & \multicolumn{2}{c|}{\textbf{EquivalenceCh}} & \multicolumn{2}{c|}{\textbf{ModelCh}} & \multicolumn{2}{c|}{\textbf{PGSolver}} & \multicolumn{2}{c}{\textbf{RandomG}} \\
 $\gamma$ & Small & Large & Small & Large & Small & Large & Small & Large \\
 \midrule
-\textbf{$\omega$}                           &  &  & 0.001 & 3.750 & 2.815 & 15.095 & 0.001 &  0.082 \\
-\textbf{$\omega \otimes \eta$}              &  &  & 3.158 & 3.750 & 2.505 & 12.119 & 0.001 &  0.063 \\
-\textbf{$\omega \otimes \mu$}               &  &  & 0.001 & 3.750 & 8.850 & 17.250 & 3.601 &  6.050 \\
-\textbf{$\omega \otimes \eta \otimes \mu$}  &  &  & 1.053 & 3.750 & 3.756 & 15.241 & 4.316 &  7.010 \\
-\textbf{$\eta$}                             &  &  & 1.439 & 3.750 & 1.686 & 12.010 & 0.001 &  0.065 \\
-\textbf{$\mu$}                              &  &  & 1.053 & 3.750 & 3.771 & 15.067 & 4.202 & 10.697 \\
-\textbf{$\eta \otimes \mu$}                 &  &  & 1.374 & 3.750 & 0.850 & 14.833 & 1.861 &  4.355 \\
+\textbf{$\omega$}                           & 0.001 & 2.308 & 0.001 & 3.750 & 2.815 & 15.095 & 0.001 &  0.082 \\
+\textbf{$\omega \otimes \eta$}              & 0.001 & 2.308 & 3.158 & 3.750 & 2.505 & 12.119 & 0.001 &  0.063 \\
+\textbf{$\omega \otimes \mu$}               & 0.001 & 2.308 & 0.001 & 3.750 & 8.850 & 17.250 & 3.601 &  6.050 \\
+\textbf{$\omega \otimes \eta \otimes \mu$}  & 0.001 & 2.308 & 1.053 & 3.750 & 3.756 & 15.241 & 4.316 &  7.010 \\
+\textbf{$\eta$}                             & 0.001 & 2.308 & 1.439 & 3.750 & 1.686 & 12.010 & 0.001 &  0.065 \\
+\textbf{$\mu$}                              & 0.001 & 4.616 & 1.053 & 3.750 & 3.771 & 15.067 & 4.202 & 10.697 \\
+\textbf{$\eta \otimes \mu$}                 & 0.001 & 4.616 & 1.374 & 3.750 & 0.850 & 14.833 & 1.861 &  4.355 \\
 \bottomrule
 \end{tabular}
 }
 \label{tab:quantitativeparitygames}
 \end{table}
 
-Our analysis of the winning conditions in Table \ref{tab:quantitativeparitygames} reveals that the computational complexity is significantly influenced by the specific combination of objectives. While basic parity ($\omega$) and energy ($\eta$) conditions demonstrate the highest efficiency, the introduction of mean-payoff condition ($\mu$) acts as the predominant factor in execution time, nearly tripling the solving duration in some RandomGames instances. Interestingly, the data suggests a high level of compositional efficiency within the NOCQ framework: the transition from a single $\mu$ condition to a combined $\omega \otimes \eta \otimes \mu$ objective results in only a marginal performance penalty. This indicates that once the solver accounts for the most restrictive quantitative constraint, the addition of further qualitative or energy-based conditions via the $\otimes$ operator does not lead to a cumulative or exponential increase in solving time, demonstrating the robustness of the underlying constraint-based architecture.
+\subsubsection*{Quantitative Goals and Verification.}
+One of \nocq's main features is the ability to handle quantitative goals within the same CP-based framework. 
+%
+\nocq implements a core algorithm designed to compute positional strategies, which are optimal in case only qualitative (parity) or only quantitative goals are given. However, when combined, positional strategies may no longer be optimal~\cite{ChatterjeeHJ05,Chatterjee:2010}. As such, the solutions that \nocq computes are for games where only positional strategies are allowed. 
+%
+In this context, the next set of benchmarks demonstrates \nocq's performance when solving such kinds of games when enriched with additional quantitative (energy and/or mean-payoff) requirements.  
 
-\section{Conclusions} 
+Our analysis of the winning conditions in Table \ref{tab:quantitativeparitygames} reveals that the performance is significantly influenced by the specific combination of objectives. While basic parity ($\omega$) and energy ($\eta$) conditions demonstrate the highest efficiency, the introduction of mean-payoff requirements ($\mu$) acts as the predominant factor in execution time, nearly tripling solving time in some RandomGames instances. Interestingly, the data suggests a high level of compositional efficiency within the \nocq framework: the transition from a single $\mu$ condition to a combined $\omega \otimes \eta \otimes \mu$ objective results in only a marginal performance penalty. This indicates that once the solver accounts for the most restrictive quantitative constraint (mean-payoff in this case), the addition of further qualitative (parity) or quantitative (energy-based) conditions via the $\otimes$ operator does not lead to a cumulative or exponential increase in solving time, evidence of the robustness of the underlying constraint-based architecture upon which \nocq is built. 
 
-As demonstrated by our experimental evaluation, we have developed an efficient toolchain that leverages a constraint-based approach to solve games with performance competitive with state-of-the-art algorithms. The primary advantage of NOCQ lies in its ability to solve parity games combined with energy and mean-payoff conditions simultaneously, maintaining performance without increasing implementation complexity.
+To evaluate these conditions, we enriched the existing benchmarks with random edge weights in the $[-50, 50]$ interval using a uniform distribution.
 
-Furthermore, because NOCQ is built upon Constraint Programming (CP), the model is inherently extensible; new constraints can be integrated seamlessly without modifying the underlying solver architecture. This initial version of NOCQ was developed with two core objectives: providing an accessible, well-documented command-line interface for practitioners, and establishing a robust platform for the rapid prototyping and evaluation of new quantitative game models.
+\section{Conclusions and Related Work} 
+
+As demonstrated by our experimental evaluation, \nocq is an efficient toolchain that leverages a constraint-based approach to solve games on graphs with performance competitive with state-of-the-art algorithms used in formal verification to solve parity games. A key advantage of \nocq lies in its ability to solve parity games combined with energy and mean-payoff conditions simultaneously, maintaining a high performance without increasing implementation complexity.
+
+Several tools have been developed for quantitative games only -- {\em e.g.}, see~\cite{tools-refs}. Much less work has been done regarding tools for parity games (or $\omega$-regular games more generally) with additional quantitative requirements. Of relevance, we mention QUASY~\cite{ChatterjeeHJS11}, which uses mean-payoff parity games but for synthesis; and~\cite{DziadekFS25} which implements some algorithms for $\omega$-regular energy games, but where the parity acceptance condition is not evaluated. 
+
+Because \nocq is built upon Constraint Programming (CP), the model is inherently extensible; new constraints can be integrated seamlessly without modifying the underlying solver architecture. This initial version of \nocq was developed with two core objectives: to provide an accessible, well-documented command-line interface for practitioners, and to establish a robust platform for the rapid prototyping and evaluation of complex quantitative game models.
 
 \bibliographystyle{splncs04}
 \bibliography{paper}
