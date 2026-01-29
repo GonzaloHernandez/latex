@@ -139,7 +139,7 @@ Given an initial vertex $v_0$, a strategy is said to be winning from $v_0$ for P
 
 Beyond dedicated algorithms, parity games can be solved by encoding them into constraint-based formalisms like SAT or SMT~\cite{Heljanko:2012}. This approach reduces the existence of a winning strategy for player \even to the satisfiability of a formula $\Phi$. We define Boolean variables $S_v$ for $v \in V$ and $T_{v,w}$ for $(v, w) \in E$, representing whether vertices and edges belong to a winning strategy for Player~\even. The structural winning conditions are:
 
-\begin{itemize}
+\begin{itemize}[itemsep=1.0ex, parsep=0pt]
     \item $\Phi_\exists = \bigwedge_{v \in V_{\subeven}} (S_v \rightarrow \bigvee_{w \in vE} T_{(v,w)})$ 
     \item $\Phi_\forall = \bigwedge_{v \in V_{\subodd}} (S_v \rightarrow \bigwedge_{w \in vE} T_{(v,w)})$
     \item $\Phi_V = \bigwedge_{w \in V, w \neq v_0} \left( \left(\bigvee_{v \in Ev} T_{(v,w)}\right) \rightarrow S_w \right)$
@@ -162,7 +162,7 @@ We solve quantitative parity games by encoding them into a Constraint Satisfacti
 
 \begin{definition}\label{def:csp}
     The CSP for an arena $G=(V,E, \Omega, Q)$ starting at $v_0$ from the perspective of player $\player$ is $\mathcal{P} = (\mathcal{X}, \mathcal{D}, \mathcal{C})$, where $\mathcal{X} = \{ \mathcal{V}_v \}_{v \in V} \cup \{ \mathcal{E}_e \}_{e \in E}$ are Boolean variables, and the constraints $\mathcal{C}$ are defined in the following way:
-    \begin{itemize}[leftmargin=2.1cm, labelwidth=1.7cm, align=left, itemsep=0.5ex, parsep=0pt]
+    \begin{itemize}[leftmargin=2.1cm, labelwidth=1.7cm, align=left, itemsep=1.0ex, parsep=0pt]
 
         \item [$\mathcal{C}_{v_0}$ :] $\mathcal{V}_{v_0} = \top$
 
