@@ -61,6 +61,7 @@
 
 % \authorrunning{Anonymized Submission}
 \authorrunning{G. Hernandez et al.}
+\titlerunning{NOCQ}
 % First names are abbreviated in the running head.
 % If there are more than two authors, 'et al.' is used.
 %
@@ -95,7 +96,9 @@ It is known that deciding the winner in parity games is an $\mathsf{NP} \cap \ma
 Due to the importance of parity games in formal verification, several algorithms have been developed \cite{Aggarwal:2023,Benerecetti:2025,Jurdziński:2000,Jurdziński:2022,Zielonka:1998}, all of them suffering from exponential running time limitations for specific classes of games. 
 One such approach involves reducing the solution of a parity game to the solution of a SAT instance representing the game. The generated SAT instance is satisfiable if and only if Player Even has a winning strategy in the original game. 
 %This idea has a lot of potential given the advances in SAT-solving technology, but, as we will show later, it suffers from poor scalability due to the large size of the generated CNF formula for a given game.
-This idea was taken forward in~\cite{Hernandez:2026:noc} where a novel CP-based algorithms was developed and shown to perform several orders of magnitude better than any other previous CP-based approach and very competitively against the state-of-the-art algorithms/implementations for parity games in the literature~\cite{vanDijk:2018,Benerecetti:2025,Aggarwal:2023} -- often matching or exceeding their performance~\cite{Hernandez:2026:noc}. 
+We further developed this idea in~\cite{Hernandez:2026:noc}, introducing a novel CP-based algorithm which performs several orders of magnitude better than any other previous CP-based approach, and very competitively against the state-of-the-art algorithms/implementations for parity games in the literature~\cite{vanDijk:2018,Benerecetti:2025,Aggarwal:2023} -- often matching or exceeding their performance\footnote{
+Paper~\cite{Hernandez:2026:noc} is currently under review with notification due on 9 February. Preliminary reviews indicated strong support (two accept and one best paper nomination).
+}. 
 
 %In this paper, we address these scalability issues by developing a specialised propagator that takes into account the structure of parity games, resulting in significant improvements in performance and modelling power. 
 %In particular, we show that our method outperforms all other state-of-the-art constraint-based solvers.
@@ -120,18 +123,18 @@ A \textit{positional strategy} for player $i \in \{\even, \odd\}$ is a function 
 
 \subsubsection{Winning Conditions.}
 A play $\pi$ is evaluated against three different criteria:
-
+%
 \begin{enumerate}
     \item \textbf{Parity ($\omega$):} Satisfied if $\max(\text{Inf}(\pi))$ is even.
     \item \textbf{Energy ($\eta$):} For $E_{init} \in \mathbb{N}$, satisfied if $\forall n \ge 0: E_{init} + \sum_{i=0}^{n-1} Q(v_i, v_{i+1}) \ge 0$.
     \item \textbf{Mean-Payoff ($\mu$):} Satisfied if $\liminf_{n \to \infty} \frac{1}{n} \sum_{i=0}^{n-1} Q(v_i, v_{i+1}) \ge 0$.
 \end{enumerate}
 
-We define the winning objective/goal for Player \even to be the conjunction of these conditions: $\gamma_{\subeven} = \omega \wedge \eta \wedge \mu$. As these are zero-sum games, Player \odd wins if the play satisfies $\gamma_{\subodd} = \neg \gamma_{\subeven}$.
+We define Player \even's winning goal as the combined condition formed by the conjunction of these requirements:
+$\gamma_{\subeven} = \omega \wedge \eta \wedge \mu$. As these are zero-sum games, Player \odd wins if the play satisfies $\gamma_{\subodd} = \neg \gamma_{\subeven}$.
 %
 Given an initial vertex $v_0$, a strategy is said to be winning from $v_0$ for Player~$\even$ (Player~$\odd$) if it only generates winning plays for Player~$\even$ (Player~$\odd$) starting at $v_0$, for all strategies of the other player. It is known that for every vertex~$v\in V$ in these games, one of the two players always has a winning strategy from that vertex~$v$. Solving a zero-sum game is deciding, for every~$v\in V$, which player has a winning strategy from that vertex.
 
-%\subsection{Solving Parity Games via SMT/SAT Encodings}
 \subsubsection{SMT/SAT Encodings.}\label{sec:satencoding}
 
 Beyond dedicated algorithms, parity games can be solved by encoding them into constraint-based formalisms like SAT or SMT~\cite{Heljanko:2012}. This approach reduces the existence of a winning strategy for player \even to the satisfiability of a formula $\Phi$. We define Boolean variables $S_v$ for $v \in V$ and $T_{v,w}$ for $(v, w) \in E$, representing whether vertices and edges belong to a winning strategy for Player~\even. The structural winning conditions are:
@@ -154,14 +157,12 @@ $\Phi_\exists$ and $\Phi_\forall$ ensure valid moves for Player \even and \odd, 
 
 These constraints can be solved using SMT technologies: Satisfiability of $S_{v_0} \wedge \Phi_\exists \wedge \Phi_\forall \wedge \Phi_V \wedge \Phi_A$ determines if Player~\even wins from $v_0$. Alternatively, $\Phi_A$ can be bit-blasted into pure CNF for use with modern SAT solvers~\cite{Heljanko:2012}.
 
-%\subsection{Solving Quantitative Parity Games via Efficient \noc Propagators}
-\subsubsection{Solving Quantitative Parity Games.} %via Efficient \noc Propagators}
-We solve quantitative parity games by encoding them into a CSP with a specialized propagator~\cite{Hernandez:2026:noc}, as follows: 
-%\footnote{This model was introduced in a paper currently in publication, which was a candidate for a Best Paper award during peer review.}, as follows: 
+\subsubsection{Solving Quantitative Parity Games.}
+We solve quantitative parity games by encoding them into a Constraint Satisfaction Problem (CSP) with a specialized propagator~\cite{Hernandez:2026:noc}, as follows: 
 
 \begin{definition}\label{def:csp}
     The CSP for an arena $G=(V,E, \Omega, Q)$ starting at $v_0$ from the perspective of player $\player$ is $\mathcal{P} = (\mathcal{X}, \mathcal{D}, \mathcal{C})$, where $\mathcal{X} = \{ \mathcal{V}_v \}_{v \in V} \cup \{ \mathcal{E}_e \}_{e \in E}$ are Boolean variables, and the constraints $\mathcal{C}$ are defined in the following way:
-    \begin{itemize}[leftmargin=1.8cm, labelwidth=1.2cm, align=left, itemsep=1.5ex, parsep=0pt]
+    \begin{itemize}[leftmargin=2.1cm, labelwidth=1.7cm, align=left, itemsep=0.5ex, parsep=0pt]
 
         \item [$\mathcal{C}_{v_0}$ :] $\mathcal{V}_{v_0} = \top$
 
@@ -177,11 +178,11 @@ We solve quantitative parity games by encoding them into a CSP with a specialize
         
         % \item [$\mathcal{C}_{{\!N\!O\!C}_\mu}$ :] $\bigwedge_{v_0, \dots, v_k} ((\bigwedge_{i\in 0\dots k-1} \mathcal{E}_{(v_i,v_{i+1})}) \rightarrow\\ \bigwedge_{j\in 0\dots k-1} (v_j=v_k \rightarrow \frac{1}{k-j+1} \sum_{i=j}^{k} Q(v_i, v_{i+1}) \ge \nu ))$
 
-        \item [$\mathcal{C}_{NOC}$ :] $\bigwedge_{v_0, \dots, v_k} \left( \left(\bigwedge_{i=0}^{k-1} \mathcal{E}_{(v_i,v_{i+1})}\right) \to \bigwedge_{j=0}^{k-1} ((v_j = v_k) \to f(v_j, \dots, v_k)) \right)$
+        \item [$\mathcal{C}_{NOC}(f)$ :] $\bigwedge_{v_0, \dots, v_k} \left( \left(\bigwedge_{i=0}^{k-1} \mathcal{E}_{(v_i,v_{i+1})}\right) \to \bigwedge_{j=0}^{k-1} ((v_j = v_k) \to f(v_j, \dots, v_k)) \right)$
 
     \end{itemize}
-
-    \begin{itemize}[itemsep=1.5ex, parsep=0pt]
+    %
+    \begin{itemize}[itemsep=1.0ex, parsep=0pt]
         \item $f_\omega(v_j, \dots, v_k) = \max\{\Omega(v_i) \mid i\in j\dots k\} \bmod 2 \ne \opponent$
 
         \item $f_\eta(v_j, \dots, v_k) = \sum_{i=j}^{k-1} Q(v_i, v_{i+1}) \ge 0$
@@ -240,7 +241,7 @@ $\opponent$ is detected.
 
 Algorithm~\ref{alg:noc-filter} implements the \noc propagator using a recursive DFS traversal. It maintains the current exploration state via $path_V$ and $path_E$. Parameter $\mathcal{E}$ tracks the Boolean decision variables for arena edges. The core logic occurs when a cycle is detected (Line~\ref{alg:noc-filter:pathcheck}). The propagator evaluates $\gamma_{\player}$---the specific combination of parity ($\omega$), energy ($\eta$), and mean-payoff ($\mu$) objectives in the game. 
 %
-If the cycle violates the winning criteria for $\player$, the propagator generates a \textit{conflict clause} consisting of the negation of the edges currently in $path_E$ (Line~\ref{alg:noc-filter:condition}). This clause effectively {\em learns} the failing partial assignment, allowing the underlying SAT/CP solver to perform non-chronological backtracking and prune all other search branches that can lead to the same non-winning cycle.
+If the cycle violates the winning criteria for $\player$, the propagator generates a \textit{conflict clause} consisting of the negation of the edges currently in $path_E$ (Line~\ref{alg:noc-eager:reason}). This clause effectively {\em learns} the failing partial assignment, allowing the underlying SAT/CP solver to perform non-chronological backtracking and prune all other search branches that can lead to the same non-winning cycle.
 
 \section{Tool Description}
 
@@ -296,11 +297,11 @@ $ ./nocq --jurd 15000 50 --weights -50 30 --min
 
 \subsubsection*{Constraint-Based Solving (CPSModels).}
 
-Figure~\ref{fig:nocq-2} illustrates how \nocq implements the CSP model in Definition~\ref{def:csp} and integrates the \noc propagators described in Section~\ref{sec:nocfilter}. A key design principle of \nocq is solver independence: the underlying model can be interfaced with different constraint programming (CP) engines.
+Figure~\ref{fig:nocq-2} illustrates how \nocq implements the CSP model in Definition~\ref{def:csp} and integrates the \noc propagators described in Section~\ref{sec:nocfilter}. A key design principle of \nocq is model independence: the underlying model can be interfaced with different constraint programming (CP) engines.
 %
 Once a game is loaded or created, an instance of \texttt{NOCModel} is instantiated and used to solve the problem. The \texttt{NOCModel} searches for solutions by enforcing all constraints, including $C_{\text{NOC}}$ from Definition~\ref{def:csp}. This constraint is implemented through \texttt{NOCPropagator}, which uses CP techniques to evaluate winning conditions over all relevant cycles in the input game.
 
-In the current version, three different winning conditions are implemented. The system is extensible to incorporate new winning conditions: additional winning objectives can be defined by extending the \texttt{WinningCondition} class. The framework has been validated using two state-of-the-art solvers:
+In the current version, three different winning conditions are implemented. The system is extensible to incorporate new winning conditions by extending the \texttt{WinningCondition} class with additional objectives. The framework has been validated using two state-of-the-art solvers:
 
 \begin{itemize}
     \item \textbf{Chuffed}~\cite{chuffed:2018}, a lazy clause generation solver.
@@ -316,7 +317,7 @@ $ ./nocq --gm /pgsolver/randomgame-50000-10-1-20-0.gm --noc
      --mean-payoff --weights -50 50 --threshold 20
 \end{lstlisting}
 
-\noindent The tool then would have an output in the following format (time in msecs.), indicating that Player \odd (odd) has a winning strategy from vertex~876:
+\noindent The tool then produces output in the following format (time in msecs), indicating that Player \odd (odd) has a winning strategy from vertex~876:
 \begin{lstlisting}
 Game creation time : 0.58195
 Init time          : 0.456748
@@ -380,13 +381,13 @@ The command below first generates a random game with 20 vertices, 10 priorities,
 $ ./nocq --rand 20 10 1 5 --zra --print-solution --export-gm rand.gm
 \end{lstlisting}
 
-\noindent Below is \nocq's output, indicating the vertices where from each player has a winning strategy, that is, the {\em winning regions} for each player in the game:
+\noindent Below is \nocq's output, indicating the vertices from which each player has a winning strategy, that is, the {\em winning regions} for each player in the game:
 \begin{lstlisting}
 EVEN {12,4,7}
 ODD  {11,14,15,2,3,1,6,17,16,5,13,18,0,19,9,10,8}
 \end{lstlisting}
 
-\noindent And, the command below performs SCC decomposition on the exported game:
+\noindent The command below performs SCC decomposition on the exported game:
 \begin{lstlisting}
 $ ./nocq --gm rand.gm --scc
 \end{lstlisting}
@@ -400,7 +401,7 @@ $ ./nocq --gm rand.gm --scc
 Total SCCs: 4
 \end{lstlisting}
 
-\noindent \nocq users can view the full list of supported parameters using \texttt{./nocq -\-help}. For a more in-depth explanation of specific configurations and advanced usage, one should refer to the documentation in the Git repository of \nocq. 
+\noindent \nocq users can view the full list of supported parameters using \texttt{./nocq -\-help}. A more in-depth explanation of specific configurations and advanced usage is available as part of the documentation in the Git repository of \nocq. 
 
 \subsubsection{Exploiting Problem Duality through Parallel Solving.}
 
@@ -430,7 +431,7 @@ To ensure state-of-the-art comparisons, we incorporated \textbf{Oink} (latest Gi
 
 We then evaluated \nocq's performance when solving parity games with quantitative conditions. The objective was to determine the variance in execution time when \nocq evaluates different combinations of $\gamma_{p} = \omega \otimes \eta \otimes \mu$, where $\otimes$ denotes the product composition of the parity, energy, and mean-payoff goals.
 %
-The benchmarks used where taken from the PGSolver Library \cite{Friedmann:2017} and Keiren's benchmarks for parity games \cite{Keiren:2015}. The games were classified into 4 categories:
+The benchmarks used were taken from the PGSolver Library \cite{Friedmann:2017} and Keiren's benchmarks for parity games \cite{Keiren:2015}. The games were classified into 4 categories:
 
 \begin{itemize}
 \item \textbf{Equivalence Checking (EqC):} 77 instances from formal verification tasks ({\em e.g.}, strong and weak bisimulation), featuring complex structural connectivity typical of system architectures.
