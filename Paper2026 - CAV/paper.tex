@@ -512,10 +512,17 @@ To evaluate these conditions, we enriched the existing benchmarks with random ed
 \section{Conclusions and Related Work} 
 
 As demonstrated by our experimental evaluation, \nocq is an efficient toolchain that leverages a constraint-based approach to solve games on graphs with performance competitive with state-of-the-art algorithms used in formal verification to solve parity games. A key advantage of \nocq lies in its ability to solve parity games combined with energy and mean-payoff conditions simultaneously, maintaining a high performance without increasing implementation complexity.
+%
+Because \nocq is built upon CP, the model is inherently extensible; new constraints can be added seamlessly without modifying the underlying solver architecture. 
 
-Several tools have been developed for quantitative games only -- {\em e.g.}, see~\cite{tools-refs}. Much less work has been done regarding tools for parity games (or $\omega$-regular games more generally) with additional quantitative requirements. Of relevance, we mention QUASY~\cite{ChatterjeeHJS11}, which uses mean-payoff parity games but for synthesis; and~\cite{DziadekFS25} which implements some algorithms for $\omega$-regular energy games, but where the parity acceptance condition is not evaluated. 
+Finally, several tools have been developed for quantitative games only -- {\em e.g.}, see~\cite{BenerecettiDM24} and references therein. But, much less work has been done regarding practical tools for parity games (or $\omega$-regular games more generally) with additional quantitative requirements. 
+%
+In~\cite{ChatterjeeHJS11,DziadekFS25} two attempts were made, but in such cases full parity games with quantitative objectives were not evaluated in practice; Our results provide a step forward where the case for positional strategies is accounted for in complex parity games with additional quantitative requirements.  
 
-Because \nocq is built upon Constraint Programming (CP), the model is inherently extensible; new constraints can be integrated seamlessly without modifying the underlying solver architecture. This initial version of \nocq was developed with two core objectives: to provide an accessible, well-documented command-line interface for practitioners, and to establish a robust platform for the rapid prototyping and evaluation of complex quantitative game models.
+%Of relevance, we mention QUASY~\cite{ChatterjeeHJS11}, which uses mean-payoff parity games but for synthesis; and~\cite{DziadekFS25} which implements some algorithms for $\omega$-regular energy games, but where the parity acceptance condition is not evaluated. 
+
+%Because \nocq is built upon Constraint Programming (CP), the model is inherently extensible; new constraints can be integrated seamlessly without modifying the underlying solver architecture. 
+%This initial version of \nocq was developed with two core objectives: to provide an accessible, well-documented command-line interface for practitioners, and to establish a robust platform for the rapid prototyping and evaluation of complex quantitative game models.
 
 \bibliographystyle{splncs04}
 \bibliography{paper}
