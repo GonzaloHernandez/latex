@@ -1,0 +1,61 @@
+\begin{algorithm}[H]
+    \caption{Lexicographic Comparison of Streams of Boolean Variables \( A \succcurlyeq   B \)}
+    \begin{algorithmic}[1]
+    \Function{Lexcomp-GreaterOrEquales}{ $A, B, n$ }
+        \State $C_n \leftrightarrow (A_n \vee \neg B_n)$  \Comment{True if \( A_n \geqslant B_n \)}
+        \For{$i \gets n-1$ \textbf{down to} $1$}
+            \State $Q_i \leftrightarrow (A_i \leftrightarrow B_i)$  \Comment{True if \( A_i = B_i \)}
+            \State $S_i \leftrightarrow (A_i \wedge \neg B_i)$  \Comment{True if \( A_i > B_i \)}
+            \State $C_i \leftrightarrow (S_i \vee (Q_i \wedge C_{i+1}))$ \Comment{Recursively comparation}
+        \EndFor
+        \State \Return $C_1$
+    \EndFunction
+    \end{algorithmic}
+    \label{alg:lex-ge}
+\end{algorithm}
+
+\begin{algorithm}[H]
+    \caption{Lexicographic Comparison of Streams of Boolean Variables \( A \succ  B \)}
+    \begin{algorithmic}[1]
+        \Function{Lexcomp-StrictlyGreater}{ $A, B, n$ }
+        \State $C_n \leftrightarrow (A_n \wedge \neg B_n)$  \Comment{True if \( A_n > B_n \)}
+        \For{$i \gets n-1$ \textbf{down to} $1$}
+            \State $Q_i \leftrightarrow (A_i \leftrightarrow B_i)$  \Comment{True if \( A_i = B_i \)}
+            \State $S_i \leftrightarrow (A_i \wedge \neg B_i)$  \Comment{True if \( A_i > B_i \)}
+            \State $C_i \leftrightarrow (S_i \vee (Q_i \wedge C_{i+1}))$ \Comment{Recursively comparation $A_{i+1..n} \succ B_{i+1..n}$}
+        \EndFor
+        \State \Return $C_1$
+    \EndFunction
+    \end{algorithmic}
+    \label{alg:lex-gs}
+\end{algorithm}
+
+\begin{algorithm}[H]
+    \caption{Lexicographic Comparison of Streams of Boolean Variables IMPROVED \( A \succcurlyeq   B \)}
+    \begin{algorithmic}[1]
+    \Function{Lexcomp-GreaterOrEquales-Improved}{ $A, B, n$ }
+        \State $C_n \leftrightarrow (A_n \vee \neg B_n)$  \Comment{True if \( A_n \geqslant B_n \)}
+        \For{$i \gets n-1$ \textbf{down to} $1$}
+            \State $Q_i \leftrightarrow (\neg A_i \vee B_i)$    
+            \State $C_i \leftrightarrow ((A_i \vee \neg B_i) \wedge (Q_i \rightarrow C_{i+1}) )$ \Comment{Recursively comparation}
+        \EndFor
+        \State \Return $C_1$
+    \EndFunction
+    \end{algorithmic}
+    \label{alg:lex-ge-improved}
+\end{algorithm}
+
+\begin{algorithm}[H]
+    \caption{Lexicographic Comparison of Streams of Boolean Variables IMPROVED \( A \succ B \)}
+    \begin{algorithmic}[1]
+    \Function{Lexcomp-StrictlyGreater-Improved}{ $A, B, n$ }
+        \State $C_n \leftrightarrow (A_n \wedge \neg B_n)$  \Comment{True if \( A_n > B_n \)}
+        \For{$i \gets n-1$ \textbf{down to} $1$}
+            \State $Q_i \leftrightarrow (\neg A_i \vee B_i)$    
+            \State $C_i \leftrightarrow ((A_i \vee \neg B_i) \wedge (Q_i \rightarrow C_{i+1}) )$ \Comment{Recursively comparation}
+        \EndFor
+        \State \Return $C_1$
+    \EndFunction
+    \end{algorithmic}
+    \label{alg:lex-gs-improved}
+\end{algorithm}

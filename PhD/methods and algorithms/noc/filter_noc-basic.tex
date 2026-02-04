@@ -1,0 +1,36 @@
+\begin{algorithm}
+    \caption{Implementation of $\mathsf{NoOpponentCycle}$ as filter based on DFS($\mathsf{Basic}$)}
+    \small
+    \begin{algorithmic}[1]
+    \Function{NOCBasic}{ $path_V,\ path_E,\ v,\ e,\ \mathcal{E},\ \textit{defined}$ }
+        \If{$v \in path_V$} 
+            \State $i_v \gets \textproc{index}(v, path_V)$
+            \State $m \gets \min\{f(v') \mid v' \in path_V[i_v:]\}$
+            \If{$m \mod 2 = opponentParity$} 
+                \State $\text{reason} \gets \text{clausify}(\neg path_E[i_v:])$
+                \State $\mathcal{E}[e] \gets (\bot, \text{reason})$
+            \EndIf
+        \Else 
+            \If{$\textit{defined}$} \label{alg:no-odd-cycle-f1:defcheck}
+                \For{$e' \in \textproc{edges}(v) \textbf{ where } \mathcal{E}[e'] \ne \bot$} \label{alg:no-odd-cycle-f1:edgecheck}
+                    \State \Call{NOCBasic}{$path_V \cup \{v\}, path_E \cup \{e'\}, \textproc{target}(e'), \mathcal{E}, e', \mathcal{E}[e'] = \top$}
+                \EndFor
+            \EndIf        
+        \EndIf
+    \EndFunction
+    \end{algorithmic}
+    \label{alg:noc-basic}
+\end{algorithm}
+
+% ---------------------------------------------------------
+
+\begin{algorithm}[H]
+    \caption{Cycle Filter Propagate (Simple)}
+    % \footnotesize
+    \begin{algorithmic}[1]
+    \Function{propagate}{V,E}
+        \State \Call{NOCMemo}{$\emptyset,\ \emptyset,\ start,\ E,\ -1,\ \top$}
+    \EndFunction
+    \end{algorithmic}
+    \label{alg:propagator-noc-basic}
+\end{algorithm}

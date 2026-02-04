@@ -1,0 +1,17 @@
+\begin{algorithm}[H]
+    \caption{DFS explore}
+    % \footnotesize
+    \begin{algorithmic}[1]
+    \Function{explore}{path, current}
+
+        \If{current $\in$ path}
+            \State print(path)
+        \Else
+            \For{e $\in$ edges(current)}
+                \State explore(path + current, target(e))
+            \EndFor
+        \EndIf
+    \EndFunction
+    \end{algorithmic}
+    \label{alg:dfs-explore}
+\end{algorithm}

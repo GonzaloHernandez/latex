@@ -1,0 +1,24 @@
+\begin{algorithm}[H]
+    \caption{DFS Get Play Parity}
+    % \footnotesize
+    \begin{algorithmic}[1]
+    \Function{getPlay}{path, current}
+
+        \If{current $\in$ path}
+            \State $i_v \gets \text{index}(v, path)$
+            \State $m \gets \min\{f(v') \mid v' \in path[i_v:]\}$
+            \State \Return $m \mod 2$
+        \Else
+            \State $parity \gets \textit{owner}(current) $
+            \For{e $\in$ edges(current)}
+                \State $nextparity = getPlay(path \cup current, target(e))$
+                \If{$nextparity = parity$}
+                    \State \Return \textit{parity}
+                \EndIf
+            \EndFor
+            \State \Return $1-\textit{parity}$
+        \EndIf
+    \EndFunction
+    \end{algorithmic}
+    \label{alg:hra}
+\end{algorithm}

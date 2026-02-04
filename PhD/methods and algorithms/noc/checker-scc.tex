@@ -1,0 +1,46 @@
+\begin{algorithm}[H]
+    \caption{Implementation of $\mathsf{NoOpponentCycle}$ as checker based on SCC($\mathsf{Checker}$)}
+    \begin{algorithmic}[1]
+    \Function{NOCChecker}{ $V,\ E$ }
+        \State \textbf{assert} all variables are assigned
+        \State $Stack \gets \text{empty stack}$
+        \For{$scc \in \textproc{Tarjan}(G)$}
+            \State \textbf{push} $scc$ \textbf{onto} $Stack$
+        \EndFor
+        \While{$Stack \neq \text{empty}$}
+            \State $scc \gets$ \textbf{pop} from $Stack$
+            \If{$|scc| = 1$}
+                \State $v \gets$ the unique vertex in $scc$
+                \If{$\textproc{color}(v) = opponentParity \land 
+                    \exists e\ (\mathcal{E}[e] = true \land \textproc{source}(e) = \textproc{target}(e) = v)$}
+                    \State \textbf{backtrack}
+                \EndIf
+            \Else
+                \State $bestSet \gets bestVertices(scc)$
+                \State $v \gets$ an arbitrary vertex in $bestSet$
+                \If{$\textproc{color}(v) \mod 2 = opponentParity$}
+                    \State \textbf{backtrack}
+                \EndIf
+                \For{$scc \in \textproc{Tarjan}(G \setminus bestSet) $}
+                    \State \textbf{push} $scc$ \textbf{onto} $Stack$
+                \EndFor
+            \EndIf
+        \EndWhile
+        
+    \EndFunction
+    \end{algorithmic}
+    \label{alg:noc-checker}
+\end{algorithm}
+
+% ---------------------------------------------------------
+
+\begin{algorithm}[H]
+    \caption{Propagator using NOCChecker}
+    % \footnotesize
+    \begin{algorithmic}[1]
+    \Function{propagate}{V,E}
+        \State \Call{NOCChecker}{$\emptyset,\ \emptyset,\ start,\ E,\ -1,\ \top$}
+    \EndFunction
+    \end{algorithmic}
+    \label{alg:propgate-noc-checker}
+\end{algorithm}

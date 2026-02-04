@@ -1,0 +1,40 @@
+\documentclass{article}
+\usepackage[letterpaper, margin=1in]{geometry}
+\usepackage{amsmath}
+\usepackage{multicol}
+\usepackage{algpseudocode}
+\usepackage{algorithm}
+\usepackage{amssymb}
+
+\newcommand{\Let}[2]{\State #1 $\gets$ #2}
+
+\begin{document}
+
+\title{Methods \& Algorithms}
+\author{}
+\date{}
+
+\maketitle
+
+\section{$\omega$-regular games}
+\subsection{Reduction to SAT}
+
+\subsection{No-Opponent-Cycle}
+% \subsubsection{General DFS searching}
+% \input{cycle_filter/explore.tex}
+
+% \subsubsection{Replacing difference logic constraint}
+\input{noc/checker-scc}
+\pagebreak
+\input{noc/filter_noc-basic.tex}
+\pagebreak
+\input{noc/filter_noc_memo.tex}
+% \input{noc/clause.tex}
+% \input{sat/lex.tex}
+
+\subsection{Fordware Recursive Algorithm (FRA)}
+\subsubsection{CP + FRA}
+% \input{fra/fra.tex}
+\input{fra/cp_fra}
+
+\end{document}

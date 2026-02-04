@@ -1,0 +1,126 @@
+\documentclass{article}
+\usepackage[letterpaper, margin=1in]{geometry}
+\usepackage{amsmath}
+\usepackage{multicol}
+
+\begin{document}
+
+\title{Equivalences}
+\author{}
+\date{}
+
+\maketitle
+
+\begin{multicols}{2}
+    
+\section{Logic Equivalences}
+\subsection*{Identity Laws}
+\begin{tabular}{l l}
+& $P \land \text{true} \equiv P$ \\
+& $P \lor \text{false} \equiv P$
+\end{tabular}
+
+\subsection*{Domination Laws}
+\begin{tabular}{l l}
+& $P \lor \text{true}  \equiv \text{true}$ \\
+& $P \land \text{false}  \equiv \text{false}$
+\end{tabular}
+
+\subsection*{Idempotent Laws}
+\begin{tabular}{l l}
+& $P \land P  \equiv P$ \\
+& $P \lor P  \equiv P$
+\end{tabular}
+
+\subsection*{Double Negation Law}
+\begin{tabular}{l l}
+& $\neg (\neg P)  \equiv P$
+\end{tabular}
+
+\subsection*{Commutative Laws}
+\begin{tabular}{l l}
+& $P \land Q  \equiv Q \land P$ \\
+& $P \lor Q  \equiv Q \lor P$
+\end{tabular}
+
+\subsection*{Associative Laws}
+\begin{tabular}{l l}
+& $(P \land Q) \land R  \equiv P \land (Q \land R)$ \\
+& $(P \lor Q) \lor R  \equiv P \lor (Q \lor R)$
+\end{tabular}
+
+\subsection*{Distributive Laws}
+\begin{tabular}{l l}
+& $P \land (Q \lor R)  \equiv (P \land Q) \lor (P \land R)$ \\
+& $P \lor (Q \land R)  \equiv (P \lor Q) \land (P \lor R)$
+\end{tabular}
+
+\subsection*{De Morgan's Laws}
+\begin{tabular}{l l}
+& $\neg (P \land Q)  \equiv \neg P \lor \neg Q$ \\
+& $\neg (P \lor Q)  \equiv \neg P \land \neg Q$
+\end{tabular}
+
+\subsection*{Absorption Laws}
+\begin{tabular}{l l}
+& $P \lor (P \land Q) \equiv P$ \\
+& $P \land (P \lor Q) \equiv P$
+\end{tabular}
+
+\subsection*{Negation Laws}
+\begin{tabular}{l l}
+& $P \lor \neg P  \equiv \text{true}$ \\
+& $P \land \neg P \equiv \text{false}$
+\end{tabular}
+
+\subsection*{Implication Equivalences}
+\begin{tabular}{l l}
+& $P \rightarrow Q  \equiv \neg P \lor Q$ \\
+& $P \leftrightarrow Q  \equiv (P \rightarrow Q) \land (Q \rightarrow P)$ \\
+& $P \leftrightarrow Q  \equiv (P \land Q) \lor (\neg P \land \neg Q)$
+\end{tabular}
+
+\section{Involving Quantifiers}
+\subsection*{Negation of Quantifiers}
+\begin{tabular}{l l}
+& $\neg (\forall x \, P(x)) \equiv \exists x \, \neg P(x)$ \\
+& $\neg (\exists x \, P(x)) \equiv \forall x \, \neg P(x)$ \\
+\end{tabular}
+
+\subsection*{Quantifier Distribution}
+\begin{tabular}{l l}
+& $\forall x \, (P(x) \land Q(x)) \equiv (\forall x \, P(x)) \land (\forall x \, Q(x))$ \\
+& $\exists x \, (P(x) \lor Q(x)) \equiv (\exists x \, P(x)) \lor (\exists x \, Q(x))$ \\
+\end{tabular}
+
+\subsection*{Quantifier Exchange}
+\begin{tabular}{l l}
+& $\forall x \, (P(x) \land Q) \equiv (\forall x \, P(x)) \land Q$ \\
+& $\exists x \, (P(x) \lor Q) \equiv (\exists x \, P(x)) \lor Q$
+\end{tabular}
+
+\subsection*{Quantifier and Implication}
+\begin{tabular}{l l}
+& $\forall x \, (P(x) \rightarrow Q) \equiv \exists x \, P(x) \rightarrow Q$ \\
+& $\exists x \, (P(x) \rightarrow Q) \equiv \forall x \, P(x) \rightarrow Q$
+\end{tabular}
+
+\subsection*{Bound Variables}
+\begin{tabular}{l l}
+& $\forall x \, P(x) \equiv \forall y \, P(y)$ \\
+& $\exists x \, P(x) \equiv \exists y \, P(y)$ \\
+\end{tabular}
+\end{multicols}    
+
+\pagebreak
+
+\subsection*{Others}
+
+\begin{tabular}{l l l}
+$A \rightarrow (B \vee C \vee D)$ & $\equiv$ & $\neg A \vee B \vee C \vee D$ \\
+$A \rightarrow (B \wedge C \wedge D)$ & $\equiv$ & $(\neg A \vee B) \wedge (\neg A \vee C) \wedge (\neg A \vee D)$ \\
+$(B \vee C \vee D) \rightarrow A$ & $\equiv$ & $(\neg B \vee A) \wedge (\neg C \vee A) \wedge (\neg D \vee A)$ \\
+$(B \wedge C \wedge D) \rightarrow A$ & $\equiv$ & $A \vee \neg B \vee \neg C \vee \neg D$
+\end{tabular}
+
+\end{document}

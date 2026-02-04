@@ -1,0 +1,46 @@
+\begin{algorithm}
+    \caption{Implementation of $\mathsf{NoOpponentCycle}$ as filter remembering best payoffs (Memo)}
+    \small
+    \begin{algorithmic}[1]
+    \Function{NOCMemo}{ $path_V,\ path_E,\ v,\ e,\ \mathcal{E},\ \textit{defined},\ \textit{memo}$ }
+        \If{$v \in path_V$}
+            \State $i_v \gets$ \textproc{index}$(v,\ path_V)$
+            \State $m \gets \max\{f(v') \mid v' \in path_V[i_v:]\}$
+            \State $\textit{memo}[e] \gets (v,\ m)$
+            \If{$m \bmod 2 = opponentParity$} 
+                \State $\textit{reason} \gets \textproc{clausify}(\neg path_E[i_v:])$
+                \State $\mathcal{E}[e] \gets (\bot,\ \textit{reason})$
+            \EndIf
+        \ElsIf{$\textit{defined}$}
+            \For{$e' \in \textproc{edges}(v)\ \textbf{where}\ \mathcal{E}[e'] \ne \bot$}
+                \State $(v_{memo},\ m_{memo}) \gets \textit{memo}[e']$
+                \If{$(v_v, m_{memo}) = (-1, -1)$}
+                    \State \Call{NOCMemo}{$path_V \cup \{v\},\ path_E \cup \{e'\},\ \textproc{target}(e'),\ \mathcal{E},\ e',\ \mathcal{E}[e'] = \top,\ \textit{memo}$}
+                \Else
+                    \State $i_v \gets \textproc{index}(v_{memo},\ path_V)$
+                    \If{$\max\{f(v') \mid v' \in path_V[i_v:]\} < m_{memo}$}
+                        \State \Call{NOCMemo}{$path_V \cup \{v\},\ path_E \cup \{e'\},\ \textproc{target}(e'),\ \mathcal{E},\ e',\ \mathcal{E}[e'] = \top,\ \textit{memo}$}
+                    \Else
+                        \State $\textit{memo}[e] \gets \textit{memo}[e']$
+                    \EndIf
+                \EndIf
+            \EndFor
+        \EndIf
+    \EndFunction
+    \end{algorithmic}
+    \label{alg:noc-memo}
+\end{algorithm}
+
+% ---------------------------------------------------------
+
+\begin{algorithm}[H]
+    \caption{Propagator using NOCMemo}
+    % \footnotesize
+    \begin{algorithmic}[1]
+    \Function{propagate}{V,E}
+        \State $\textit{memo} \gets \{e \mapsto (-1, -1) \mid e \in E\}$
+        \State \Call{NOCMemo}{$\emptyset,\ \emptyset,\ \textit{start},\ E,\ -1,\ \top,\ \textit{memo}$}
+    \EndFunction
+    \end{algorithmic}
+    \label{alg:propagator-noc-memo}
+\end{algorithm}

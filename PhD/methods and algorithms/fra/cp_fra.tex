@@ -1,0 +1,22 @@
+\begin{algorithm}[H]
+    \caption{DFS Get Play Parity}
+    % \footnotesize
+    \begin{algorithmic}[1]
+    % \Function{Constraints}{}
+        % ---------------------------------------
+        
+        \State $\bigwedge_{v \in V}(\bigvee_{e \in edges(v)}(\mathcal{Q}_{\textit{target}(e)} = \textit{owner}(v)) \rightarrow \mathcal{Q}_v=\textit{owner}(v))$
+
+        \State $\bigwedge_{v \in V}(\bigwedge_{e \in edges(v)}(\mathcal{Q}_{\textit{target}(e)} \neq \textit{owner}(v)) \rightarrow \mathcal{Q}_v = \neg \textit{owner}(v))$
+
+        % \State $\bigwedge_{e \in E}(
+        % v = source(e) \wedge w = target(e) \wedge 
+        % ((v=w \wedge owner(v)=color(v)) \vee |edges(v)|=1)  \rightarrow \mathcal{Q}_v = owner(v))$
+
+        \State $\bigwedge_{e \in E}(
+        ((vEv \wedge owner(v)=color(v)) \vee |edges(v)|=1)  \rightarrow \mathcal{Q}_v = owner(v))$
+
+    % \EndFunction
+    \end{algorithmic}
+    \label{alg:cp-hra}
+\end{algorithm}

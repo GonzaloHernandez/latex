@@ -1,0 +1,237 @@
+\documentclass{article}
+\usepackage[letterpaper, margin=1in]{geometry}
+\setlength{\parskip}{1em}
+\usepackage{graphicx}
+\setlength\parindent{0pt}
+\usepackage{amssymb}
+\usepackage{xcolor}
+\usepackage{tcolorbox}
+
+\definecolor{mygray}{RGB}{230,230,230}
+\newcommand{\definition}[1] {
+    \begin{tcolorbox}[colback=mygray,colframe=mygray,sharp corners=all,top=0.01cm,bottom=0.01cm,left=0.1cm]
+    \small
+    \setlength{\tabcolsep}{2pt}
+    \begin{tabular}{l l l l}
+        \textit{Definitions:} & #1
+    \end{tabular}
+    \end{tcolorbox}
+}
+
+\title{My Database of definitions}
+\author{}
+\date{}
+
+\begin{document}
+
+\maketitle
+
+\section{Games}
+
+\definition{$\Gamma $&$ = (N,(A_i)_{i \in N}, (u_i)_{i \in N})$}{def:game}
+
+A Game is a combinatorial problem involving \textit{Players} $N$, \textit{Strategies} $A_i$ and \textit{Utilities} $u_i$, where each \textit{player} faces decision making using reasoning.
+
+\definition{
+    $\sigma_i $&$: A_i \rightarrow A_i$
+    \\ & $S $&$ = (A_i)_{i \in N}$
+    \\ & $S_i $&$ = A_i$
+    \\ & $S_{-i} $&$ = (A_j)_{(j \neq i) \in N}$
+    \\ & $S_\Pi $&$ = \prod_{i \in N}A_i$
+}
+\textit{Strategies} $\sigma$ corresponds to the \textit{actions} available to each \textit{player} among its \textit{set of strategies} $A_i$, while a \textit{Strategy profile} $S$ refers to the set of \textit{actions} chosen by all players.  The set of $S_\Pi$ encompasses all possible \textit{strategy profiles}, and $S_{-i}$ represents all \textit{strategy profiles} excluding player $i$.
+
+\definition{
+    \textit{$u_i$} &$ : S_\Pi \rightarrow \mathbb{R}$
+    \\ & $\textit{BR}_i$ &= $\{ S \in S_\Pi \mid u_i(S_i,S_{-i}) \geqslant u_i(S'_i,S_{-i})$ for all  $S_i' \in S_\Pi\}$
+    \\ & $\textit{BR}_i$ &= $\{ S \in S_\Pi \mid u_i(S) \geqslant u_i(S')$ for all  $S' \in S_\Pi, j \ne i : S'_j=S_j\}$
+    \\ & \textit{NE}    &$= \{ S \in S_\Pi \mid S \in$ \textit{BR}$_i$ for all $i \in N \}$
+}
+The \textit{Utility} $u_i$ is a function that calculates a value representing the satisfaction or payoff for \textit{player} $i$ based on a \textit{strategy profile} $S$. \textit{Best Response} \textit{BR} refers to a \textit{strategy} that would be selected by a \textit{player} to optimise its \textit{utility} without affection the strategies chosen by others.
+
+To identify an \textit{Equilibrium} \textit{NE} within a game, it’s necessary to analyse whether a \textit{strategy profile} represents a \textit{best response} \textit{BR} for each \textit{player} $i \in N$. From a deterministic perspective, the equilibrium is calculated based on \textit{pure strategies}, resulting in a \textit{Pure Nash equilibrium}.
+
+\section{Constraint Games}
+
+These types of Games are modeled using a Constraint Satisfaction Problems (CSP) framework and solved with Constraint Technologies.
+
+\subsection{CSP}
+
+\definition{\textit{CSP} &$ = (X,(D_i)_{i \in X},C)$}
+
+The definition of a CSP is formulated as a tuple P = ⟨X,D,C⟩ where X represents a set of variables $X = {x_1,\ldots, x_n}$, $D$ represents the set of correspondent domains of each variable $D = {D_1,\ldots,D_n}$ such that $x_i \in D_i$ and $C$ represents the set of constraints associated with the relations of those variables.
+
+\definition{\textit{cpsolver} &:\textit{CSP} $ \rightarrow \{(x_i,d_i)\mid x_i \in X, d_i \in D, \forall C_j \in C : C_j \textit{ is satisfied}\}$}
+
+A \textit{Constraint Solver} is a computational tool designed to find solutions for a constraint satisfaction problem \textit{CSP}.  A \textit{cpsolver} aims to find assignments of values in $D_i$ to variables $X$ that satisfy all the given constraints $C$. 
+
+\definition{
+    \textit{COP} &$ = (X,(D_i)_{i \in X},C,f)$
+    \\ & \textit{f} &$:\Pi_{i \in X}D_i \rightarrow \mathbb{R}$
+}
+
+A constraint optimization problem \textit{COP} extends the \textit{CSP} framework by incorporating an objective function $f$, which is used to calculate the value to be optimised.
+
+
+\subsection{Game in constraint form}
+
+\definition{
+    $\Gamma^c$ &$= (N,X,(D_j)_{j \in X}, C) $
+    \\ & $X $&$ = (X_i)_{i \in N} \cup X_{E} $
+    \\ & $C $&$ = (C_i)_{i \in N} \cup C_{H} $
+}
+
+A \textit{Constraint Game} $\Gamma^c$ is defined as a tuple consisting of a set of \textit{Players} $N$, a set of \textit{variables} $X$ composed of the union of variables controlled by each player $(X_i)_{i \in N}$ and additional variables $X_E$ (existential variables), a set of \textit{domains} $D_j$ for each variable, and a set of \textit{constraints} $C$ that include objectives for each player $(C_i)_{i \in N}$ plus global constraints (hard constraints) $C_H$.
+
+\section{$\omega$-regular Games}
+
+These types of Games are played on a directed graph called \textit{Arena}, with a specific method for computing player utilities known as \textit{Winning Conditions}, defined as follows:
+
+\subsection{Arena}
+\definition{\textit{G} &$ =(V,E,f)$} 
+The Arena  $G$ is defined as a directed graph where vertices $V$ are connected by edges $E$, and each vertex has an additional property mapped by the function $f$.
+
+\definition{\textit{uE} &$ :=\{v \in V \mid (u,v) \in E \} \neq \emptyset\ $ for all $u \in V$}
+Every vertex has at least one edge directed away from it. Therefore, we can infer that the graph must contain at least one cycle or infinite path.
+
+\definition{\textit{f} &$ :V \rightarrow L$}
+The function $f$ assigns labels or values from a finite set $L$ to the vertices as colors.
+
+\subsection{Game in $\omega$-regular form}
+
+\definition{$\Gamma^\omega$ &$ =(N,(V_i)_{i \in N},(W_i)_{i \in N},E,f)$}
+In a \textit{omega-regular Game} $\Gamma^\omega$, played over a graph $G$, each \textit{Player} $i \in N$ governs a subset of vertices $V_i$, each \textit{Player} has a set of \textit{actions} $A_i$ represented by their \textit{Strategies} mapped over the edges $E$ of the graph and a set $W_i$, representing their \textit{Winning Conditions}.  The function $f$ assigns the color of the vertices.
+
+\definition{
+    $\omega$ &$ = \langle t_0,t_1,\ldots,t_h,\ldots \rangle$ for all $h \geqslant 0$, where $(t_k,t_{k+1}) \in E$ for all $k \geqslant 0$
+}
+A play $\omega$ corresponds to an infinite path in $G$, where the initial $h$ states constitute a finite initial segment referred to as the \textit{history}, preceding the infinite segment.  $\Omega$ corresponds to every set of plays over $G$. 
+
+\definition{$\sigma_i $&$ :V^*V_i \rightarrow V$}
+The function $\sigma$ over a $\omega$-regular game determines a \textit{Pure Strategy} for \textit{Player} $i$, assigning to each vertex $v \in V_i$ the next state $\sigma(v)$ such that $(v, \sigma(v)) \in S$.  This \textit{Strategy} is called \textit{positional} when $\sigma$ is calculated only taking account the current vertex, that is the case in \textit{Memory-less Games.} A \textit{Strategy Profile} $(\sigma_i)_{i \in \Pi}$ is a tuple consisting of every \textit{Strategy} chosen by each \textit{Player} $i$.
+
+\definition{
+    $O_i $&$ = \{ O_i \in \Omega \mid O_i = W_i $ for all $i \in N$, where ($O_i \cap O_j) \neq \emptyset$ for all ($i \neq j) \in N \}$
+}
+The set $O_i$ correspond to the \textit{Objective} of \textit{Player} $i$, it contains the set of paths or plays where \textit{Player} $i$ wins $W_i$.  The \textit{Objectives} of every \textit{Player} are mutually exclusive.
+
+\subsection{Playing}
+
+In a \textit{Multiplayer Game} a play $\omega$ is conducted in a turn-based manner using an unique token, what is moved from $t_k$ to $t_{k+1}$ by the \textit{Player} $i$ who controls the current vertex $v$, in accordance with its \textit{set of strategies} $A_i$.  It is helpful to specify a starting vertex $(\Gamma^\omega,v_0)$.
+
+In terms of applicability, we are focusing on \textit{Two-player Turn-based} multiplayer games, where the objective of the \textit{Game} $\Gamma^\omega$ is defined by the specifications of \textit{Winning Conditions} $W_i$.
+
+\subsection{Winning conditions}
+
+\definition{
+    \textit{Reach(M)} &$ = \{\langle t_0,t_1,\ldots \rangle \in \Omega \mid t_k \in M$ for some $k \geqslant 0\}$
+    \\ & \textit{Safe(M)} &$ = \{\langle t_0,t_1,\ldots \rangle \in \Omega \mid t_k \in M$ for all $k \geqslant 0\}$
+}
+\textit{Reachability} condition requires that some states in the set $M \subseteq V$ be visited. Similarly, \textit{Safety} condition requires that only the states in the set $M \subseteq V$ be visited.
+
+\definition{
+    \textit{Inf($\omega$)} &$ = \{t \in \langle t_0,t_1,\ldots \rangle \in \Omega \mid t_k = t$ for infinitely many $k \geqslant 0\}$
+    \\ & \textit{B\"uchi(M)} &$ = \{\omega \in \Omega \mid Inf(\omega) \cap M \neq \emptyset\}$
+    \\ & \textit{coB\"uchi(M)} &$ = \{\omega \in \Omega \mid Inf(\omega) \cap M = \emptyset\}$
+}
+
+% The \textit{B\"uchi} condition requires that some state $B \subseteq S$ be visited infinitely often. On the opposite,  \textit{coB\"uchi} condition requires the any state $C \subseteq S$ be visited infinitely often.
+
+Having a set vertices that are reached infinitely many times, \textit{Inf($\omega$)}, a \textit{B\"uchi} condition requires that some states in the set $M \subseteq V$ be visited infinitely often. Conversely, the \textit{coB\"uchi} condition requires that any state in the set $M \subseteq V$ be visited infinitely often.
+
+\definition{
+    \textit{Pairs} &$ = \{(B_1,F_1),\ldots,(B_d,F_d)\}$ where $1 \leqslant j \leqslant d $
+    \\ & \textit{Rabin(Pairs)} &$ = \{\omega \in \Omega \mid  \exists 1 \leqslant j \leqslant d (Inf(\omega) \cap B_j = \emptyset \wedge Inf(\omega) \cap F_j \neq \emptyset)\}$
+    \\ & \textit{Streett(Pairs)} &$ = \{\omega \in \Omega \mid  \forall 1 \leqslant j \leqslant d (Inf(\omega) \cap B_j \neq \emptyset \vee Inf(\omega) \cap F_j = \emptyset)\}$
+}
+
+Given a set of vertex pairs $(B,F)$ where $B \subseteq V$ and $F \subseteq V$, a \textit{Rabin} condition requires that no vertex in $B$ is visited infinitely often and at least one vertex in $F$ is visited infinitely often. Contrarily, (in the context of $\neg p \vee q \equiv p \rightarrow q$) a \textit{Streett} condition requires that if some vertex in $B$ is visited infinitely often, then at least one vertex in $F$ must be visited infinitely often.
+
+\definition{
+    \textit{priority} &$ : V \rightarrow \mathbb{N}_0 $
+    \\ & \textit{Parity} &$ =\{ \omega \in \Omega \mid max\{priority(t) \mid t \in $ \textit{Inf($\omega$)}$\}$ is even$\}$
+}
+
+Given a function \textit{prior} that assigns a non-negative integer $\mathbb{N}_0$ label to each vertex, the \textit{Parity} condition requires that the highest priority that is reached infinitely often must be \textit{even}.
+
+\definition{
+    \textit{M\"uller(M)} &$ =  \{\omega \in \Omega \mid $ \textit{Inf($\omega$)} $\in M$ where $M \subseteq 2^S \}$ 
+}
+The \textit{M\"uller} condition requires that the set of vertices visited infinitely often must be one of the sets of vertices specified in \textit{M}.
+
+\subsection{Techniques for resolving}
+
+\definition{
+    \textit{$Attr_i(Z)$} &$ =  \{v \in V_i \mid E(v) \cap Z \ne \emptyset\} \cup \{v \in V_{-i} \mid E(v) \cap Z \subseteq Z \}$ for all $Z \subseteq V$ and $i \in N$ 
+}
+
+Given a set of vertex $Z$ the attractor of $Z$ refers to a set of vertex that player $i$ can control the game to reach.
+
+\definition{
+    $\textit{Attr}^0_\bigcirc(U)$ &$ = U$ 
+    \\ & $\textit{Attr}^{n+1}_\bigcirc(U)$ &$ = Attr^n_\bigcirc(U) \cup \{v \in V_\bigcirc \mid \exists E(v) \in \textit{Attr}^n_\bigcirc(U)\} \cup \{v \in V_\square  \mid \forall E(v) \in \textit{Attr}^n_\bigcirc(U)\}$ 
+    \\ & $\textit{Attr}_\bigcirc(U)$ &$ = \bigcup_{i \geqslant 0} \textit{Attr}^i_\bigcirc(U)$
+}
+
+\subsection{Reduction to SAT}
+
+\definition{
+    & = $(S_{v_0} \wedge \Phi_{\exists} \wedge \Phi_{\forall} \wedge \Phi_V \wedge \Phi_A)$
+    \\ & $\Phi_{\exists}$ & $ = \bigwedge_{v \in V_{\exists}} \left(S_v \rightarrow \bigvee_{w \in vE} T_{v,w}\right),$
+    \\ & $\Phi_{\forall}$ & $ = \bigwedge_{v \in V_{\forall}} \left(S_v \rightarrow \bigwedge_{w \in vE} T_{v,w}\right),$
+    \\ & $\Phi_V$ & $ = \bigwedge_{w \in V, w \neq v_0} \left(\left(\bigvee_{v \in Ew} T_{v,w}\right) \rightarrow S_w\right),$
+    \\ & $\Phi_A$ & $ = \bigwedge_{(v,w) \in E} \left(T_{v,w} \rightarrow \Psi_{v,w}\right),$
+}
+
+\definition{
+    $\Psi_{v,w}$ & $ = \bigwedge_{p \in \textit{Odd}^{<\Omega(w)}(G)} (x_p^v \geqslant x_p^w), \textit{ if } \Omega(w) \textit{ is even},$
+    \\ & $\Psi_{v,w}$ & $ = (x_{\Omega(w)}^v > x_{\Omega(w)}^w) \land \bigwedge_{p \in \textit{Odd}^{<\Omega(w)}(G)} (x_p^v \geqslant x_p^w), \textit{ if } \Omega(w) \textit{ is odd},$
+}
+
+\section{Experimental Games}
+
+{\color{red}Still in progress $\downarrow$ }
+
+\subsection{Games in Enumeration Form}
+
+\definition{
+    $\Gamma^n$ &$ = \{ (S, (U_i)_{i \in N}) \mid S \in S_\Pi, U_i = u_i(S) \}$
+}
+
+Given a game $\Gamma$, a $\Gamma^n$ corresponds to a set of pairs of tuples $(S, U)$, where $S$ represents a \textit{strategy profile}, and $U$ is a tuple of utilities (payoffs) calculated with the function $u_i$ for each \textit{player} based on the \textit{strategy profile} $S$.
+
+\subsection{Games in Constraint Form extended}
+
+\definition{
+    $\Gamma^c$ &$= (N,X,(D_j)_{j \in X}, C) $
+    \\ & $X $&$ = (X_i)_{i \in N} \cup X_{E} $
+    \\ & $C $&$ = (C_i)_{i \in N} \cup C_{H} \cup C_W$
+}
+
+\subsection{Zero-sum two players $\omega$-regular Games in Constraint Form}
+
+\newcommand{\even} {\raisebox{0.3ex}{\scalebox{0.7}{$\bigcirc$}}}
+\newcommand{\odd}  {\scalebox{0.9}{$\square$}}
+\newcommand{\subeven} {\raisebox{0.3ex}{\scalebox{0.5}{$\bigcirc$}}}
+\newcommand{\subodd}  {\scalebox{0.6}{$\square$}}
+
+\definition{
+    $\Gamma^c$ & $ = $&$ (N,(V_i)_{i \in N},E,(C_i)_{i \in N},\textit{f},v_0) $
+}
+\definition{
+    $N$ & $ = $&$ \{\even,\odd\}$
+    \\ & $V_{\subeven}$ & $ = $&$ \{v \in V \mid owner(v) = \even\}$
+    \\ & $V_{\subodd}$ & $ = $&$ \{v \in V \mid owner(v) = \odd\}$
+    \\ & $E$ & $ = $&$ \{(v,u) \mid v, u \in V\}$
+    \\ & $f$ & $ : $&$ V \rightarrow \mathbb{N} $
+    \\ & $C_{\subeven}$ & $ = $&$ v_0 \textit{ } \wedge $
+    \\ & & & $ \bigwedge_{v \in V_{\subeven}} (V_v \rightarrow \bigvee_{u \in vE} E_{(v,u)}) \textit{ } \wedge $
+    \\ & & & $ \bigwedge_{v \in V_{\subodd}} (V_v \rightarrow \bigwedge_{u \in vE} E_{(v,u)}) \textit{ } \wedge $
+    \\ & & & $ \bigwedge_{v \in V} ((\bigvee_{u \in vE} E_{(v,u)}) \rightarrow V_v) \textit{ } \wedge $
+    \\ & & & $ \bigwedge_{u \in V, u \neq v_0} ((\bigvee_{v \in Eu} E_{(v,u)}) \rightarrow V_u) \textit{ } \wedge $
+    \\ & & & $ \{ \omega \in \Omega \mid min\{f(v) \mid v \in $ \textit{Inf($\omega$)}$\}$ is even$\} \textit{ } \wedge $
+    \\ & & & $ \{\langle v_0,v_1,\ldots \rangle \in \Omega \mid v_{k \geqslant 0}\}$
+    \\ & $C_{\subodd}$ & $ = $&$ \neg C_{\subeven}$
+}
+
+\end{document}

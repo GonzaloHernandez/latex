@@ -1,0 +1,24 @@
+% Still in progress
+
+\begin{algorithm}[H]
+    \caption{Cycle Close}
+    % \footnotesize
+    \begin{algorithmic}[1]
+    \Function{filter}{path, vertex, E}
+        \If{$\text{vertex} \in \text{path}$} 
+            \State $i_{\text{vertex}} \gets \text{index}(\text{vertex}, \text{path})$
+            \State $c_{\text{min}} \gets \min\{\text{color}(v) \mid v \in \text{path}[i_{\text{vertex}}:]\}$
+            \If{$c_{\text{min}} \mod 2 = 0$} 
+                \State $\text{reason} \gets \text{clausify}(\neg \text{path} \cup \neg \text{vertex})$
+                \State $E[e] \gets (\text{true}, \text{reason})$
+                \State \textit{the remaining variables must be False}
+            \EndIf
+        \Else
+            \For{$e \in \text{edges}(\text{vertex}) \textbf{ where } E[e] = \text{true}$}
+                \State $\text{filter}(\text{path} \cup \{\text{vertex}\}, \text{target}(e), E)$
+            \EndFor
+        \EndIf
+    \EndFunction
+    \end{algorithmic}
+    \label{alg:cycle-close}
+\end{algorithm}
