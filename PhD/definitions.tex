@@ -7,6 +7,8 @@
 \usepackage{xcolor}
 \usepackage{tcolorbox}
 
+\input{macros.tex}
+
 \definecolor{mygray}{RGB}{230,230,230}
 \newcommand{\definition}[1] {
     \begin{tcolorbox}[colback=mygray,colframe=mygray,sharp corners=all,top=0.01cm,bottom=0.01cm,left=0.1cm]
@@ -188,6 +190,69 @@ Given a set of vertex $Z$ the attractor of $Z$ refers to a set of vertex that pl
     \\ & $\Psi_{v,w}$ & $ = (x_{\Omega(w)}^v > x_{\Omega(w)}^w) \land \bigwedge_{p \in \textit{Odd}^{<\Omega(w)}(G)} (x_p^v \geqslant x_p^w), \textit{ if } \Omega(w) \textit{ is odd},$
 }
 
+\subsection{NOC}
+
+\definition{
+    $G=(V,E,\Omega)$, $\mathcal{CSP = (X, D, C)}$
+    \\ & $\mathcal{C}_{v_0} : \mathcal{V}_{v_0} = \top$
+    \\ & $\mathcal{C}_{\player} : \bigwedge_{v \in V_{\player}} (\mathcal{V}_v \rightarrow (\sum_{w \in vE} \mathcal{E}_{(v,w)}= 1))$
+    \\ & $\mathcal{C}_{\opponent} : \bigwedge_{v \in V_{\opponent}} (\mathcal{V}_v \rightarrow \bigwedge_{w \in vE} \mathcal{E}_{(v,w)})$
+    \\ & $\mathcal{C}_{\!E} : \bigwedge_{w \in V, w \neq v_0} ((\bigvee_{v \in Ew} \mathcal{E}_{(v,w)}) \rightarrow \mathcal{V}_w)$
+    \\ & $\mathcal{C}_{\!N\!O\!C} : \bigwedge_{v_0, \dots, v_k} ((\bigwedge_{i\in 0\dots k-1} \mathcal{E}_{(v_i,v_{i+1})}) \rightarrow \bigwedge_{j\in 0\dots k-1} (v_j=v_k \rightarrow \max\{\Omega(v_i) \mid i\in j\dots k\} \bmod 2 \ne \opponent))$
+}
+
+\subsection{NOCQ}
+
+\definition{
+    $G=(V,E, \Omega, Q)$, $\mathcal{P} = (\mathcal{X}, \mathcal{D}, \mathcal{C})$
+    \\ & $\mathcal{C}_{v_0}$ : $\mathcal{V}_{v_0} = \top$
+    \\ & $\mathcal{C}_{\player}$ : $\bigwedge_{v \in V_{\player}} (\mathcal{V}_v \rightarrow (\sum_{w \in vE} \mathcal{E}_{(v,w)}= 1))$
+    \\ & $\mathcal{C}_{\opponent}$ : $\bigwedge_{v \in V_{\opponent}} (\mathcal{V}_v \rightarrow \bigwedge_{w \in vE} \mathcal{E}_{(v,w)})$
+    \\ & $\mathcal{C}_{\!E}$ : $\bigwedge_{w \in V, w \neq v_0} ((\bigvee_{v \in Ew} \mathcal{E}_{(v,w)}) \rightarrow \mathcal{V}_w)$
+    \\ & $\mathcal{C}_{NOC}(f)$ : $\bigwedge_{v_0, \dots, v_k} \left( \left(\bigwedge_{i=0}^{k-1} \mathcal{E}_{(v_i,v_{i+1})}\right) \to \bigwedge_{j=0}^{k-1} ((v_j = v_k) \to f(v_j, \dots, v_k)) \right)$
+}
+\definition{
+    $f_\omega(v_j, \dots, v_k) = \max\{\Omega(v_i) \mid i\in j\dots k\} \bmod 2 \ne \opponent$
+    \\ & $f_\eta(v_j, \dots, v_k) = \sum_{i=j}^{k-1} Q(v_i, v_{i+1}) \ge 0$
+    \\ & $f_\mu(v_j, \dots, v_k) = \frac{1}{k-j} \sum_{i=j}^{k-1} Q(v_i, v_{i+1}) \ge \nu$
+}
+
+\subsection{CrossNOCQ}
+
+\definition{
+    $G=(V,E, \Omega, Q)$, $\mathcal{CSP} = (\mathcal{X}, \mathcal{D}, \mathcal{C})$
+}
+
+% The CSP for an arena $G$ where $\mathcal{X} = \{ \mathcal{V}_v \}_{v \in V} \cup \{ \mathcal{E}^{\subeven}_e \}_{e \in E} \cup \{ \mathcal{E}^{\subodd}_e \}_{e \in E}$ are Boolean variables,  thus, $\mathcal{D} = \{\bot,\top\}$, and the constraints $\mathcal{C}$ are defined in the following way:
+
+The CSP encoding of the parity game with arena $G$, is defined as $\mathcal{CSP = (X, D, C)}$, where the set of variables is given by $\mathcal{X} = \{ \mathcal{V}_v \}_{v \in V} \cup \{ \mathcal{E}^{\subeven}_e \}_{e \in E} \cup \{ \mathcal{E}^{\subodd}_e \}_{e \in E}$. All of these variables are Boolean, thus, $\mathcal{D} = \{\bot,\top\}$. The set of constraints, denoted by $\mathcal{C}$, is defined as:
+
+\definition{
+    %  even ------------------------
+    $\mathcal{C}^{\subeven}_{\player}$ : $\bigwedge_{v \in V_{\player}} (\mathcal{V}_v \rightarrow (\sum_{w \in vE} \mathcal{E}^{\subeven}_{(v,w)}= 1))$
+
+    \\ & $\mathcal{C}^{\subeven}_{\opponent}$ : $\bigwedge_{v \in V_{\opponent}} (\mathcal{V}_v \rightarrow \bigwedge_{w \in vE} \mathcal{E}^{\subeven}_{(v,w)})$
+
+    \\ & $\mathcal{C}^{\subeven}_{\!E}$ : $\bigwedge_{w \in V} ((\bigvee_{v \in Ew} \mathcal{E}^{\subeven}_{(v,w)}) \rightarrow \mathcal{V}_w)$
+
+    \\ & $\mathcal{C}^{\subeven}_{NOC}(f)$ : $\bigwedge_{C \in \mathrm{cycle}(G)} \left( \left(\bigwedge_{e \in C} \mathcal{E}^{\subeven}_{e}\right) \to f(C) \right)$
+
+    % odd ------------------------
+    \\& $\mathcal{C}^{\subodd}_{\player}$ : $\bigwedge_{v \in V_{\player}} (\neg \mathcal{V}_v \rightarrow (\sum_{w \in vE} \neg \mathcal{E}^{\subodd}_{(v,w)}= 1))$
+
+    \\ & $\mathcal{C}^{\subodd}_{\opponent}$ : $\bigwedge_{v \in V_{\opponent}} (\neg \mathcal{V}_v \rightarrow \bigwedge_{w \in vE} \neg \mathcal{E}^{\subodd}_{(v,w)})$
+
+    \\ & $\mathcal{C}^{\subodd}_{\!E}$ : $\bigwedge_{w \in V} (\neg (\bigvee_{v \in Ew} \mathcal{E}^{\subodd}_{(v,w)}) \rightarrow \neg \mathcal{V}_w)$
+
+    \\ & $\mathcal{C}^{\subodd}_{NOC}(f)$ : $\bigwedge_{C \in \mathrm{cycle}(G)} \left( \left(\bigwedge_{e \in C} \mathcal{E}^{\subodd}_{e}\right) \to f(C) \right)$
+}
+
+A cycle in G is defined as $C = (e_0, e_1, \dots, e_{k-1}) \textit{ where } e_i = (v_i, v_{i+1}) \textit{ and } v_k = v_0$
+
+\definition{
+    $f_\omega(C) = \max\{\Omega(v) \mid v \in V(C)\} \bmod 2 \ne \opponent$
+}
+
 \section{Experimental Games}
 
 {\color{red}Still in progress $\downarrow$ }
@@ -210,10 +275,10 @@ Given a game $\Gamma$, a $\Gamma^n$ corresponds to a set of pairs of tuples $(S,
 
 \subsection{Zero-sum two players $\omega$-regular Games in Constraint Form}
 
-\newcommand{\even} {\raisebox{0.3ex}{\scalebox{0.7}{$\bigcirc$}}}
-\newcommand{\odd}  {\scalebox{0.9}{$\square$}}
-\newcommand{\subeven} {\raisebox{0.3ex}{\scalebox{0.5}{$\bigcirc$}}}
-\newcommand{\subodd}  {\scalebox{0.6}{$\square$}}
+% \newcommand{\even} {\raisebox{0.3ex}{\scalebox{0.7}{$\bigcirc$}}}
+% \newcommand{\odd}  {\scalebox{0.9}{$\square$}}
+% \newcommand{\subeven} {\raisebox{0.3ex}{\scalebox{0.5}{$\bigcirc$}}}
+% \newcommand{\subodd}  {\scalebox{0.6}{$\square$}}
 
 \definition{
     $\Gamma^c$ & $ = $&$ (N,(V_i)_{i \in N},E,(C_i)_{i \in N},\textit{f},v_0) $
