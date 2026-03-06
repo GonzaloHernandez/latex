@@ -1,16 +1,23 @@
 \usepackage{amssymb}
 \usepackage{xspace}
+\usepackage{bm}
 
-\newcommand{\even}          {\raisebox{0.3ex}{\scalebox{0.7}{$\bigcirc$}}\xspace}
-\newcommand{\odd}           {\scalebox{0.9}{$\square$}\xspace}
-\newcommand{\subeven}       {\raisebox{0.3ex}{\scalebox{0.5}{$\bigcirc$}}\xspace}
-\newcommand{\subodd}        {\scalebox{0.6}{$\square$}\xspace}
+\newcommand{\even}          {\raisebox{-0.3ex}{\scalebox{1.9}{$\circ$}}\xspace}
+\newcommand{\odd}           {\scalebox{0.9}{$\bm{\square}$}\xspace}
+\newcommand{\nature}        {\scalebox{1.6}{$\diamond$}\xspace}
+
+\newcommand{\subeven}       {\raisebox{0.ex}{\scalebox{1.2}{$\circ$}}\xspace}
+\newcommand{\subodd}        {\scalebox{0.6}{$\bm{\square}$}\xspace}
+\newcommand{\subnature}     {\scalebox{1.0}{$\diamond$}\xspace}
+
 \newcommand{\player}        {\mathsf{p}\xspace}
 \newcommand{\opponent}      {\overline{\mathsf{p}}\xspace}
 
 \newcommand{\wregularform}  {$\omega$-regular form\xspace}
 \newcommand{\wregulargames} {$\omega$-regular games\xspace}
 \newcommand{\noc}           {{\small\textsf{No\textit{-}Opponent\textit{-}Cycle}}\xspace}
+
+\newcommand{\subnoc}        {{\scalebox{0.6}{$\mathrm{\!N\!O\!C}$}}\xspace}
 \newcommand{\nocchecker}    {{\small\textsf{NOC\textit{-}Checker}}\xspace}
 \newcommand{\noceager}      {{\small\textsf{NOC\textit{-}Eager}}\xspace}
 \newcommand{\nocmemo}       {{\small\textsf{NOC\textit{-}Memo}}\xspace}
