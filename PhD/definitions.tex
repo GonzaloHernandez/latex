@@ -266,47 +266,37 @@ An $\mathcal{MDP}$ is a finite set of vertices partitioned between Player \even 
 
     \\ & $\mathcal{C}^{\subeven}_{\opponent}$ : $\bigwedge_{v \in V_{\opponent}} (\mathcal{V}_v \rightarrow \bigwedge_{w \in vE} \mathcal{E}^{\subeven}_{(v,w)})$}
 
-
-
-\subsection{Stochastic-CrossNOC}
+\subsection{Simple Stochastic Games}
 
 \definition{
-    $\mathcal{A} = (V_{\subeven}, V_{\subodd}, V_{\subnature}, E, \Pr)$, $\mathcal{CSP} = (\mathcal{X}, \mathcal{D}, \mathcal{C})$
+    $\mathcal{A} = (
+        V_{\mini}, V_{\maxi}, V_{\rand}, V_{\sink}, E, C)$, $\mathcal{CSP} = (\mathcal{X}, \mathcal{D}, \mathcal{C})$
 }
 
-A game arena $\mathcal{A}$ is a finite set of vertices partitioned between Player \even, Player \odd and Nature \nature, $E \subseteq V \times V$ is a set of directed edges where every vertex has at least one successor, $\Omega: V \to \{0, \dots, d\}$ is a priority mapping, and $\Pr: E_{\subnature} \to (0, 1]$ is a function assigning probabilities to edges originating from Nature vertices, where $E_{\subnature} = E \cap (V_{\subnature} \times V)$, satisfying $\forall v \in V_{\subnature}: \sum_{(v, u) \in E} \Pr(v, u) = 1$.
-
-The CSP encoding of the parity game with arena $\mathcal{A}$, is defined as $\mathcal{CSP = (X, D, C)}$, where the set of variables is given by 
 $\mathcal{X} = 
-\{ \mathcal{V}_v \}_{v \in V} \cup 
-\{ \mathcal{E}^{\subeven}_e \}_{e \in E} \cup \{ \mathcal{E}^{\subodd}_e \}_{e \in E} \cup
-\{\mathcal{U}_e\}_{e \in E}$. 
-All of these variables are Boolean, thus, $\mathcal{D} = \{\bot,\top\}$. The set of constraints, denoted by $\mathcal{C}$, is defined as:
+    \{\mathcal{V}_v \}_{v \in V_{\submini} \cup V_{\submaxi} \cup V_{\subrand} \cup V_{\subsink}} \cup
+    \{\mathcal{E}_e \}_{e \in E} \cup
+    \{\mathcal{P}_v \}_{v \in V}$
 
 \definition{
-    %  even ------------------------
-    $\mathcal{C}^{\subeven}_{\player}$ : $\bigwedge_{v \in V_{\player}} (\mathcal{V}_v \rightarrow (\sum_{w \in vE} \mathcal{E}^{\subeven}_{(v,w)}= 1))$
+    $\mathcal{C}^{1}$ : $\mathcal{V}_{v_0} = \top$
+    \\ & $\mathcal{C}^{2}$ : $\bigwedge_{v \in V_{\submini} \cap V_{\submaxi}} (\mathcal{V}_v \rightarrow (\sum_{w \in vE} \mathcal{E}_{(v,w)}= 1))$
+    \\ & $\mathcal{C}^{3}$ : $\bigwedge_{v \in V_{\rand}} (\mathcal{V}_v \rightarrow \bigwedge_{w \in vE} \mathcal{E}_{(v,w)})$
+    \\ & $\mathcal{C}^{4}$ : $\bigwedge_{v \in V} (\neg \mathcal{V}_v \rightarrow \bigwedge_{w \in vE} \neg \mathcal{E}_{(v,w)})$
+    \\ & $\mathcal{C}_{5}$ : $\bigwedge_{(u,w) \in E} (\mathcal{E}_{(u,w)} \rightarrow \mathcal{V}_w)$
+    \\ & $\mathcal{C}_{6}$ : $\bigwedge_{w \in V, w \neq v_0} (\mathcal{V}_w \rightarrow (\bigvee_{v \in Ew} \mathcal{E}_{(v,w)}))$
+    \\
+    \\ & $\mathcal{C}_{7}$ : $\bigwedge_{v \in V_{\sink}} (\mathcal{P}_v = 1)$
+    \\ & $\mathcal{C}_{8}$ : $\bigwedge_{v \in V_{\maxi}} (V_v \rightarrow (\mathcal{P}_v = max(\dots) \wedge \mathcal{E}[argmax(\dots)]))$
+    \\ & $\mathcal{C}_{8}$ : $\bigwedge_{v \in V_{\mini}} (V_v \rightarrow (\mathcal{P}_v = min(\dots) \wedge \mathcal{E}[argmin(\dots)]))$
+    \\ & $\mathcal{C}_{9}$ : $\bigwedge_{v \in V_{\rand}} (\mathcal{P}_v = (\sum_{w \in vE} C_{(v,w)} \times \mathcal{P}_{w}))$
 
-    \\ & $\mathcal{C}^{\subeven}_{\opponent}$ : $\bigwedge_{v \in V_{\opponent}} (\mathcal{V}_v \rightarrow \bigwedge_{w \in vE} \mathcal{E}^{\subeven}_{(v,w)})$
-
-    \\ & $\mathcal{C}^{\subeven}_{\!E}$ : $\bigwedge_{(u,w) \in E} (\mathcal{E}^{\subeven}_{(u,w)} \rightarrow \mathcal{V}_w)$
-
-    \\ & $\mathcal{C}^{\subeven}_{\subnoc}(f)$ : $\bigwedge_{C \in \mathrm{cycle}(G)} \left( \left(\bigwedge_{e \in C} \mathcal{E}^{\subeven}_{e}\right) \to f(C) \right)$
-
-    % odd ------------------------
-    \\& $\mathcal{C}^{\subodd}_{\player}$ : $\bigwedge_{v \in V_{\player}} (\neg \mathcal{V}_v \rightarrow (\sum_{w \in vE} \neg \mathcal{E}^{\subodd}_{(v,w)}= 1))$
-
-    \\ & $\mathcal{C}^{\subodd}_{\opponent}$ : $\bigwedge_{v \in V_{\opponent}} (\neg \mathcal{V}_v \rightarrow \bigwedge_{w \in vE} \neg \mathcal{E}^{\subodd}_{(v,w)})$
-
-    \\ & $\mathcal{C}^{\subodd}_{\!E}$ : $\bigwedge_{(u,w) \in E} (\neg \mathcal{E}^{\subodd}_{(u,w)} \rightarrow \neg \mathcal{V}_w)$
-
-    \\ & $\mathcal{C}^{\subodd}_{\subnoc}(f)$ : $\bigwedge_{C \in \mathrm{cycle}(G)} \left( \left(\bigwedge_{e \in C} \mathcal{E}^{\subodd}_{e}\right) \to f(C) \right)$
 }
 
-A cycle in G is defined as $C = (e_0, e_1, \dots, e_{k-1}) \textit{ where } e_i = (v_i, v_{i+1}) \textit{ and } v_k = v_0$.  $V(C)$ is the set of vertices in the cycle $C$.
 
-\definition{
-    $f_\omega(C) = \max\{\Omega(v) \mid v \in V(C) \setminus V_{\subnature}\} \bmod 2 \ne \opponent$}
+
+
+
 
 \section{Experimental Games}
 
