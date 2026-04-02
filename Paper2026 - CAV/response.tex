@@ -1,0 +1,136 @@
+\documentclass{article}
+\usepackage[letterpaper, margin=1in]{geometry}
+\setlength{\parskip}{1em}
+\setlength\parindent{0pt}
+\usepackage{xcolor}
+\usepackage{fvextra}
+
+\definecolor{darkblue}{rgb}{0.0, 0.0, 0.60}
+
+\DefineVerbatimEnvironment{reviewer}{Verbatim}
+  {formatcom=\color{darkblue}, breaklines=true, breaksymbolleft={}}
+
+\begin{document}
+
+%-----------------------------------------------------------------------------------------------
+
+\section{Reviewer A(score 3)}\label{rev:A}
+\begin{reviewer}
+Weaknesses
+I am not sure this a tool-paper. Rather, it's a very nice section on the  implementation and on the performance of the algorithm in [19] in practice. It may be more appropriate to add it to a journal version of [19], including the extension to energy and mean-payoff.
+
+Comments for authors
+A minor comment: "parity games" describe the objective of the players. It is better not to write "party games are zero-sum" or "complete information", as there are also non-zero-sum parity games and parity games with incomplete information. Simply say that you consider zero-sum complete information parity games.
+\end{reviewer}
+
+%-----------------------------------------------------------------------------------------------
+
+\section{Reviewer B(score 2)}\label{rev:B}
+\begin{reviewer}
+Weaknesses
+- Not transparent metrics, which prevents meaningful assessment of the reported numbers. No explanation of the PAR2 score, no resource limits (especially timeout, which is crucial for the PAR2 score), and no numbers on how many samples timed out and how many did not.
+- No comparison with other quantitative approaches (despite the title highlighting this tool being about parity games with quantitative objectives)
+- The second experiment is ill-motivated. You say strategies may no longer be optimal (fair enough), but we compute something anyway (for some undisclosed subset of instances) and realize it does not take much longer for joint winning conditions.
+- insufficient discussion of the results (e.g. how come the ZRA+ algorithm performs best on 2/3 categories? I understand that this is not what NOCQ is about, but the best numbers should)
+- generally: inconclusive experiment section. I cannot tell that this tool matches or outperforms the state of the art given the information presented.
+- no preprint/appendix to read about the underlying algorithm, or further explanation of the experiments.
+- smaller presentation issues like the "tensor-product-operator-symbol" not being defined. 
+- No related work section, despite parity games with additional quantitative objectives were explored thoroughly more than a decade ago.
+
+Comments for authors
+Generally speaking, I believe the underlying approach of aggressive pruning of the search space through clause learning in CSPs is really cool. However, this paper is about the tool, not the underlying theory, and thus, this does not play a role. While I believe publishing an implementation of the theory (given that this didn't already happen in [19]), especially in such a modular and extendable form, is useful for the community, I do not think this tool paper (especially the experimental evaluation) meets the requirements of CAV. There is no related work section, which makes it difficult to assess the novelty of this tool and the quality of the experimental results (which feels particularly off given that half a page is spent on auxiliary algorithms which may be nice but seem irrelevant to the contribution of NOCQ). Further, I cannot conclude much from either of the experiments due to either a lack of discussion of metrics and results or a lack of comparison with previous quantitative approaches. Thus, for the time being, I do not recommend acceptance of this paper.
+
+Questions for authors’ response
+Q1: Without the availability of a preprint of [19] it is difficult to judge the contribution of this paper. Can you clearly state whether [19] already contained an implementation and if so what is the novelty compared to that one?
+
+Q2: Why are you implementing and comparing against your own implementation of the ZRA, if you are comparing against oink anyway, which contains a state-of-the-art implementation?
+
+Q3: Please provide the necessary details to assess the numbers you obtain in the x (timeout value, how many samples timed out for every method,)
+
+Q4: Why did you not compare against previous approaches for quantitative objectives?
+\end{reviewer}
+
+%-----------------------------------------------------------------------------------------------
+
+\section{Reviewer C(score 3)}\label{rev:C}
+\begin{reviewer}
+Weaknesses
+- Underlying algorithms have not been published in a peer-reviewed conference or journal. The authors say that their paper is currently under review. Why the rush to publish the tool paper simultaneously?
+- Experimental evaluation is not detailed enough. I would expect cactus plots rather than average times over four sets of benchmarks which can be a rough summary. Random graph benchmarks are too small to give any valuable information in Table 1. Why not increase their sizes? Most importantly, there is no evaluation of parallel versus sequential versions of NOCQ. One needs to figure out if this is the reason behind the performance of NOCQ or whether it is something else.
+- An important missing piece is that the quantitative constraints all refer to threshold 0 (energy levels must remain above 0, and mean payoff must be above 0). In a practical setting, one would want to be able to set different thresholds for different performance measures.
+- A related issue: I am not convinced of the explanations on page 10 on the performance of considering quantitative constraints: the authors claim that mean payoff is the most restrictive constraint and that performance does not change considerably if one also adds energy constraints for instance. I believe this is due to the fixed threshold 0. Things would be likely different if different thresholds could be considered. I believe this would be an easy but very useful addition to the tool. Experimental results might also change considerably.
+
+Comments for authors
+The paper requires the reader to be familiar with the internals of CSP algorithms. In particular, Algorithm 1 is detailed but there is not enough space for explanations; this relies on the reader to know exactly what a propagator is for instance.
+
+- What is the unit in Table 1 and Table 2? Are these seconds?
+- Table 1: What does EqC/MoC mean? This looks like a threshold. Please write "EqC and MoC" or something less ambiguous. What is PAR2 scoring?
+
+Questions for authors’ response
+- Why are the average times often smaller in Table 2 than in Table 1? For instance in EquivalenceCh, we get 16.169 in Table 1, and < 4.6 in Table 2.
+  Does the alg terminate faster under quantitative constraints?
+- How does NOCQ perform if parallel solving (for both players) is disabled? How about if we add this feature to all other solvers? Do they already apply this approach?
+\end{reviewer}
+
+%-----------------------------------------------------------------------------------------------
+
+\section{Reviewer D(score 2)}\label{rev:D}
+\begin{reviewer}
+Weaknesses
+- There are several problems with the description of the algorithm. See below.
+- The evaluation of energy and mean-payoff goals is rather weak: The tool is not compared to any other tool or method, and the inputs were created artificially by assigning random numbers as weights.
+- References to related work about algorithms for solving mean-payoff and energy games are missing.
+- The paper feels like the energy and mean-payoff objectives were added almost as an afterthought – this is notable in the algorithm description, the evaluation and the lack of references to related work.
+
+Comments for authors
+The paper is well-written and the presentation is easy to follow. I really liked the level of detail of the Preliminaries section. However, I have several issues with the algorithm's description. First of all, the role of the m variable on line 3 is not clear as it is never used. This is probably because line 4 was changed from the original description in [19]. Line 4 is now hard to understand; although I can probably guess what the meaning of "if not gamma_p" could be, this condition should be expanded further. Second, it is not exactly clear what the authors mean by "depth-first search". In the standard graph-based DFS, when backtracking through a vertex, the vertex is marked as *finished* and it is not explored again. The presented algorithm (as well as the tool's implementation) explores vertices repeatedly and is thus exponential in the size of the graph. This might actually be intended, as indicated by the note above Algorithm 1, but if so, it should perhaps be commented on. Third, the assignment inside the if-condition on line 6 is very cryptic, and I would have no idea what it means without looking at the tool's code.
+
+The first part of the evaluation is great. The benchmarks are extensive, and the tool is compared to other state-of-the-art approaches. The second part remains rather unconvincing, though. The benchmarks are completely artificial, produced by assigning random weights to the parity games benchmarks. The tool is not compared to any other methods or tools, even though algorithms for solving mean-payoff and energy games exist. Note that related work in this area is not cited, such as the paper https://link.springer.com/article/10.1007/s10703-010-0105-x and other work by its authors. (The authors of this tool paper might want to have a look at J. Chaloupka's PhD thesis called "Algorithms for Mean-Payoff and Energy Games".)
+
+It seems to me that the mean-payoff/energy conditions were added as a last-minute addition to both the tool and this tool paper.
+
+Also, the note that positional strategies might not be optimal for a combination of winning conditions should be given much earlier; I suggest the Preliminaries section. 
+
+Minor issues:
+
+- The notation for a game arena is inconsistent between the "Arenas, Strategies, and Plays" paragraph and Definition 1.
+- Algorithm 1, line 13 should be NOCFilter, not NOCEager (there is no NOCEager in this paper).
+- The implementation of the algorithm could run faster if, instead of using vectors (i.e. dynamic arrays) for the representation of the path sets, the authors used some kind of set implementation. Member queries in (dynamic) arrays are linear, while set implementations can be logarithmic or expected constant.
+
+Questions for authors’ response
+What exactly is the meaning of "not gamma_p" on line 4 in Algorithm 1? What role does the variable "m" play there?
+\end{reviewer}
+
+\section{Response}
+
+We thank the reviewers for their insightful and constructive feedback. We are encouraged that the reviewers found the underlying approach of aggressive pruning through clause learning "really cool" and the first part of the evaluation "great" and "extensive". We acknowledge the concerns regarding experimental transparency, the relationship to previous work, and algorithmic clarity. We address these below and commit to incorporating all technical corrections in the final version.
+
+Response to Reviewer A
+
+Regarding the scope of the paper, we emphasize that while the underlying theory was introduced in [19], NOCQ is a distinct, modular, and user-oriented tool designed for the broader community. We will follow the suggestion to clarify that we focus specifically on zero-sum, complete information parity games to avoid ambiguity regarding non-zero-sum or incomplete information variants.
+
+Response to Reviewer B
+
+Q1: Novelty over [19]: The implementation used in [19] was a research prototype dedicated solely to the experiments of that specific paper. It lacked support for quantitative conditions (energy and mean-payoff) and was not designed for end-users. NOCQ is a significant evolution; it is a standalone tool with a modular architecture, a standardized interface, and extended support for multi-constraint solving.
+
+Q2: ZRA Implementation: We use the version of the ZRA+ of algorithm of [1] because the most recent optimizations are not currently integrated into the Oink solver suite. This allowed for a state-of-the-art baseline comparison that is not currently available in existing tools.
+
+Q3: Transparency in Metrics: We apologize for the omission of resource limits. The timeout was set to 150 seconds for SAT-based approaches and 100 seconds for other solvers. In the final version, we will include PAR2 scores and a detailed table showing the exact number of instances that timed out for each method.
+
+Q4: Quantitative Comparisons: We acknowledge the lack of comparison with specialized quantitative solvers. Our primary goal was to demonstrate that adding quantitative requirements to a parity game does not significantly degrade performance in the NOCQ framework. We will include citations for related work on mean-payoff and energy games, specifically J. Chaloupka's work, as suggested.
+
+Response to Reviewer C
+
+Q1 and Q2: Performance Discrepancies (Table 1 vs. Table 2): The differences in average times between the tables arise because Table 2 uses a different subset of benchmarks tailored for quantitative requirements. Interestingly, as the reviewer suspected, the algorithm often terminates faster under quantitative constraints. In "unsatisfiable" (UNSAT) instances, the additional constraints allow the CP-solver to prune the search space more aggressively. We will clarify these benchmark selections in the text.
+
+Q3: Parallel vs. Sequential Solving: NOCQ leverages the parallel search capabilities inherent in modern CP-solvers, particularly Chuffed. Because our method determines the solution by proving either satisfiability (SAT) or unsatisfiability (UNSAT) for a player's winning condition, the CP solver can effectively explore both perspectives simultaneously. This property is particularly effective in our implementation, and we will add a sequential vs. parallel performance comparison to the evaluation section to isolate the impact of this feature.
+
+Thresholds and Practicality: We appreciate the suggestion regarding non-zero thresholds for energy and mean-payoff. While current experiments used a threshold of 0, our tool is architecturally capable of handling different values. We will add a discussion on how users can set these thresholds and how it might impact performance.
+
+Response to Reviewer D
+
+Q1: Algorithmic Details ($\neg \gamma_p$ and $m$): $\gamma_p$ represents the conjunction of winning conditions being tested. The expression $\neg \gamma_p$ triggers the propagator when any condition in the conjunction is violated. The variable $m$ on line 3 was a vestigial notation and will be removed. 
+
+Data Structures: We appreciate the suggestion to use set implementations rather than dynamic vectors for path representation to improve member query efficiency. We will explore this optimization for the final release.
+
+\end{document}
