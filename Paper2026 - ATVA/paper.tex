@@ -96,19 +96,9 @@ It is known that deciding the winner in parity games is an $\mathsf{NP} \cap \ma
 Due to the importance of parity games in formal verification, several algorithms have been developed \cite{Aggarwal:2023,Benerecetti:2025,Jurdziński:2000,Jurdziński:2022,Zielonka:1998}, all of them suffering from exponential running time limitations for specific classes of games. 
 One such approach involves reducing the solution of a parity game to the solution of a SAT instance representing the game. The generated SAT instance is satisfiable if and only if Player Even has a winning strategy in the original game. 
 %This idea has a lot of potential given the advances in SAT-solving technology, but, as we will show later, it suffers from poor scalability due to the large size of the generated CNF formula for a given game.
-We further developed this idea in~\cite{Hernandez:2026:noc}, introducing a novel CP-based algorithm which performs several orders of magnitude better than any other previous CP-based approach, and very competitively against the state-of-the-art algorithms/implementations for parity games in the literature~\cite{vanDijk:2018,Benerecetti:2025,Aggarwal:2023} -- often matching or exceeding their performance\footnote{
-Paper~\cite{Hernandez:2026:noc} is currently under review with notification due on 9 February. Preliminary reviews indicated strong support (two accept and one best paper nomination).
-}. 
+We further developed this idea in~\cite{Hernandez:2026:noc}, introducing a novel CP-based algorithm which performs several orders of magnitude better than any other previous CP-based approach, and very competitively against the state-of-the-art algorithms/implementations for parity games in the literature~\cite{vanDijk:2018,Benerecetti:2025,Aggarwal:2023} -- often matching or exceeding their performance. 
 
-%In this paper, we address these scalability issues by developing a specialised propagator that takes into account the structure of parity games, resulting in significant improvements in performance and modelling power. 
-%In particular, we show that our method outperforms all other state-of-the-art constraint-based solvers.
-%
-%Specifically, we propose replacing the SAT-based encoding used to forbid cycles corresponding to Player Odd wins in the game graph \cite{Heljanko:2012} with a set of efficient global constraint propagators; this significantly reduces the encoding size of the problem. Two of the proposed propagators are based on depth-first search, and a third is a checker that analyses the strongly connected components (SCCs) of the game graph. These propagators filter edges that would close winning cycles for a selected opponent player and generate explanations for each filtering step, enabling their integration into a Lazy Clause Generation solver~\cite{DBLP:journals/constraints/OhrimenkoSC09}.
 In this paper, we present \nocq, a platform that implements the main algorithms developed in~\cite{Hernandez:2026:noc} for parity games and extended with new functionalities that allows one to include additional {\em quantitative} restrictions, including {\em energy}~\cite{ChatterjeeD12} and {\em mean-payoff}~\cite{ChatterjeeHS17} constraints, which are useful when reasoning about additional long-term average performance -- everything within the same SAT/CP-based framework. This tool paper briefly presents the problem it solves and the underlying algorithms that \nocq is built upon, but focuses on the tool itself (its architecture, implementation, and usage) and some experimental results that demonstrate its performance in practice, in particular when applied to games with additional quantitative (energy and/or mean-payoff) constraints. 
-
-%We show that our implementation not only outperforms existing SAT and CP-based approaches but also achieves performance comparable to that of state-of-the-art specialized non-CP-based algorithms, often matching or exceeding their results. This work contributes to establishing the CP framework as a practical tool for solving both general and specialized classes of parity games.
-
-%The remainder of this paper is organized as follows. We first present the theoretical foundations and necessary definitions used in further sections, and then introduce our proposed approach -- including the design and implementation of the \noc propagators. After that, we provide different experimental results, a comparative analysis against state-of-the-art solvers, and present the extension of our method with additional constraints. At the end of the paper, we focus on the presentation of a number of concluding remarks, a discussion of our main findings, and some proposals for potential future research directions.
 
 \section{Preliminaries and Overview}
 
@@ -428,8 +418,6 @@ In this section, we evaluate \nocq from two primary perspectives. First, we asse
 
 For the SAT backends, we employ several high-performance solvers: \textbf{CaDiCaL} (v2.1.3) \cite{Biere:Cadical:2024}, \textbf{MiniSat} (v2.2.0) \cite{Een:MiniSat:2003}, \textbf{Kissat} (v4.0.2) \cite{Biere:Kissat:2024}, and \textbf{zChaff} (v2007.3.12) \cite{Moskewicz:zChaff:2001}.To establish a robust baseline, we compare our results with \textbf{Oink} \cite{vanDijk:2018}, which implements state-of-the-art algorithms such as Priority Promotion ($\text{PP}$ and $\text{PP+}$) and Parys' improvements ($\text{PAR}$). Additionally, we include Zielonka's Recursive Algorithm ($\text{ZRA}$) featuring the optimized attractor strategy presented in \cite{Aggarwal:2023}, which has not yet been integrated into the official Oink distribution.
 
-Second, we evaluate the performance of \nocq when solving games with quantitative conditions. This evaluation is two-fold: (i) we solve a selection of benchmarks for Energy games as proposed in \cite{Chaloupka:2011}; and (ii) we assess the tool's efficiency across various multi-objective configurations defined by the winning condition $\gamma_{p} = \omega \otimes \eta \otimes \mu$. Here, $\otimes$ denotes the product composition of parity ($\omega$), energy ($\eta$), and mean-payoff ($\mu$) objectives.
-
 The benchmarks used were taken from the PGSolver Library \cite{Friedmann:2017} and Keiren's benchmarks for parity games \cite{Keiren:2015}. The games were classified into 4 categories:
 
 \begin{itemize}
@@ -439,7 +427,7 @@ The benchmarks used were taken from the PGSolver Library \cite{Friedmann:2017} a
 \item \textbf{Random Games (RaG):} 125 game instances with varied priority distributions, serving as a baseline for general robustness and average-case efficiency.
 \end{itemize}
 
-Furthermore, these benchmarks were partitioned into small-scale and large-scale categories based on the size of the input graphs. This distinction allows us to evaluate the feasibility of SAT-based methods on smaller instances while testing the scalability of \nocq against dedicated solvers on larger game graphs. Finally, to evaluate performance on quantitative conditions, we generated a suite of random instances using the SPRAND generator as described in \cite{Chaloupka:2011}, which provides diverse weight distributions for energy and mean-payoff games.
+Furthermore, these benchmarks were partitioned into small-scale and large-scale categories based on the size of the input graphs. This distinction allows us to evaluate the feasibility of SAT-based methods on smaller instances while testing the scalability of \nocq against dedicated solvers on larger game graphs. 
 
 All experiments were conducted on an Intel Xeon 8260 CPU with 24 cores (non-hyperthreaded) and 268.55 GB of RAM running Linux.
 
@@ -499,10 +487,36 @@ Table~\ref{tab:paritygames-small} presents a consolidated performance comparison
 
 For large-scale instances, as shown in Table~\ref{tab:paritygames-large}, standard SAT-based approaches are omitted for several categories due to their inability to scale within reasonable resource limits. In this challenging context, \nocq demonstrates superior robustness and scalability. Specifically, it achieves the best performance on Equivalence Checking and Model Checking benchmarks. Furthermore, on the harder problem families within the PGSolver collection, \nocq solves the highest number of instances (92/93) and is significantly faster than the Oink and ZRA variants. While specialized solvers remain slightly faster on Random Games, \nocq remains competitive within a factor of two, highlighting its effectiveness as a general-purpose solver for large-scale parity games.
 
+Second, we evaluate the performance of \nocq when solving games with quantitative conditions. This evaluation is two-fold: (i) we solve a selection of benchmarks for Energy games as proposed in \cite{Chaloupka:2011}, ; and (ii) we assess the tool's efficiency across various multi-objective configurations defined by the winning condition $\gamma_{p} = \omega \otimes \eta \otimes \mu$. Here, $\otimes$ denotes the product composition of parity ($\omega$), energy ($\eta$), and mean-payoff ($\mu$) objectives.
 
 \begin{table}[ht]
 \centering
-\caption{Performance (in time) of \nocq with different winning conditions on small-scale and large-scale instances. Same configuration as in Table \ref{tab:paritygames}.}
+\caption{Performance of \nocq on random games from SPRAND instances. Average time is reported in seconds using PAR2 scoring with a 60s timeout.}
+\setlength{\tabcolsep}{1.2mm}
+{\small 
+\begin{tabular}{l|r|crc|crc}
+\toprule
+\textbf{Size} & \textbf{|V|} & \multicolumn{3}{c|}{\textbf{Small}} & \multicolumn{3}{c}{\textbf{Large}} \\
+ & & Density & Time & Solved & Density & Time & Solved \\
+\midrule
+\textbf{rand\_m}  &   64k & 5 &  0.296 & 45/45 & 10 &  1.644 &  45/45 \\
+\textbf{rand\_b}  &  128k & 5 &  2.631 & 45/45 & 10 &  5.255 &  45/45 \\
+\textbf{rand\_h}  &  256k & 5 & 21.098 & 45/45 & 10 & 49.655 &  32/45 \\
+\textbf{rand\_B}  &  512k & 5 & 11.566 & 43/45 & 10 &  9.711 &  45/45 \\
+\textbf{rand\_H}  & 1024k & 5 & 33.152 & 34/45 & 10 & 31.147 &  35/45 \\
+\bottomrule
+\end{tabular}
+}
+\label{tab:quantitative-sprand}
+\end{table}
+
+The performance results for the SPRAND \cite{CherkasskyBoris:1996} instances presented in Table \ref{tab:quantitative-sprand} demonstrate the scalability and robustness of the solver across a wide range of game sizes, from 64k to over 1 million vertices. For smaller instances, the solver consistently achieves 100\% coverage with execution times under three seconds. Even as the state space reaches 1024k nodes, the solver maintains a high success rate within the 60-second timeout, confirming that these quantitative games remain computationally tractable at scale.
+
+Notably, the results align with the benchmarks established by \cite{Chaloupka:2011}, showing that random games of this nature can be solved in reasonable time. The data reveals a transient peak in complexity at 256k nodes, where the solver encounters its highest average times and a slight dip in success rates. This suggests that while most instances scale predictably, certain intermediate sizes present unique structural hurdles that are eventually overcome as the graph size continues to increase.
+
+\begin{table}[ht]
+\centering
+\caption{Performance (in time) of \nocq with different winning conditions on small-scale and large-scale instances. Same configuration as in Table \ref{tab:paritygames-small}.}
 \setlength{\tabcolsep}{1.2mm}
 {\small 
 \begin{tabular}{l|cc|cc|cc|cc}
@@ -575,8 +589,6 @@ In~\cite{ChatterjeeHJS11,DziadekFS25} two attempts were made, but in such cases 
  
 %  How does NOCQ perform if parallel solving (for both players) is disabled? How about if we add this feature to all other solvers? Do they already apply this approach?
  
-
-
 % if not gamma_p" could be, this condition should be expanded further.
 
 % if-condition on line 6 is very cryptic, and I would have no idea what it means without looking at the tool's code. (about conflict an razon)
