@@ -494,16 +494,16 @@ Second, we evaluate the performance of \nocq when solving games with quantitativ
 \caption{Performance of \nocq on random games from SPRAND instances. Average time is reported in seconds using PAR2 scoring with a 60s timeout.}
 \setlength{\tabcolsep}{1.2mm}
 {\small 
-\begin{tabular}{l|r|crc|crc}
+\begin{tabular}{l|r|rrc|rrc}
 \toprule
-\textbf{Size} & \textbf{|V|} & \multicolumn{3}{c|}{\textbf{Small}} & \multicolumn{3}{c}{\textbf{Large}} \\
- & & Density & Time & Solved & Density & Time & Solved \\
+\textbf{Size} & \textbf{|V| } & \multicolumn{3}{c|}{\textbf{Small} (Density 5)} & \multicolumn{3}{c}{\textbf{Large} (Density 10)} \\
+ & & |E| & Time & Solved & |E| & Time & Solved \\
 \midrule
-\textbf{rand\_m}  &   64k & 5 &  0.296 & 45/45 & 10 &  1.644 &  45/45 \\
-\textbf{rand\_b}  &  128k & 5 &  2.631 & 45/45 & 10 &  5.255 &  45/45 \\
-\textbf{rand\_h}  &  256k & 5 & 21.098 & 45/45 & 10 & 49.655 &  32/45 \\
-\textbf{rand\_B}  &  512k & 5 & 11.566 & 43/45 & 10 &  9.711 &  45/45 \\
-\textbf{rand\_H}  & 1024k & 5 & 33.152 & 34/45 & 10 & 31.147 &  35/45 \\
+\textbf{rand\_m}  &   65k &  327k &  0.296 & 45/45 &  655k &  1.644 &  45/45 \\
+\textbf{rand\_b}  &  131k &  655k &  2.631 & 45/45 & 1,310k &  5.255 &  45/45 \\
+\textbf{rand\_h}  &  262k & 1,280k & 21.098 & 45/45 & 2,621k & 49.655 &  32/45 \\
+\textbf{rand\_B}  &  524k & 2,621k & 11.566 & 43/45 & 5,242k &  9.711 &  45/45 \\
+\textbf{rand\_H}  & 1048k & 5,242k & 33.152 & 34/45 & 10,485k & 31.147 &  35/45 \\
 \bottomrule
 \end{tabular}
 }
