@@ -161,7 +161,9 @@ These constraints can be solved using SMT technologies: Satisfiability of $S_{v_
 We solve quantitative parity games by encoding them into a Constraint Satisfaction Problem (CSP) with a specialized propagator~\cite{Hernandez:2026:noc}, as follows: 
 
 \begin{definition}\label{def:csp}
-    The CSP for an arena $G=(V,E, \Omega, Q)$ starting at $v_0$ from the perspective of player $\player$ is $\mathcal{P} = (\mathcal{X}, \mathcal{D}, \mathcal{C})$, where $\mathcal{X} = \{ \mathcal{V}_v \}_{v \in V} \cup \{ \mathcal{E}_e \}_{e \in E}$ are Boolean variables, and the constraints $\mathcal{C}$ are defined in the following way:
+    The CSP for an arena $\mathcal{A}$
+    %$G=(V,E, \Omega, Q)$ 
+    starting at $v_0$ from the perspective of player $\player$ is the triple $\mathcal{P} = (\mathcal{X}, \mathcal{D}, \mathcal{C})$, where $\mathcal{X} = \{ \mathcal{V}_v \}_{v \in V} \cup \{ \mathcal{E}_e \}_{e \in E}$ are Boolean variables $\mathcal{D}$, and the constraints $\mathcal{C}$ are defined in the following way:
     \begin{itemize}[leftmargin=2.1cm, labelwidth=1.7cm, align=left, itemsep=1.0ex, parsep=0pt]
 
         \item [$\mathcal{C}_{v_0}$ :] $\mathcal{V}_{v_0} = \top$
@@ -216,7 +218,7 @@ $\opponent$ is detected.
         % \IF{($\player = \even \land \neg(\omega \land \eta \land \mu)) \lor (\player = \odd \land (\omega \land \eta \land \mu)$)}
         % \IF{$\neg satisfyConditions(i_v, path_V, path_E)$} \label{alg:noc-eager:checkopponent}
             \STATE $\textit{reason} \gets \textit{clausify}(\neg path_E[i_v:])$ \label{alg:noc-eager:reason}
-            \STATE \textbf{if }not ($\mathcal{E}[e] \gets (\bot, \textit{reason}))$ \textbf{then return $\bot$}
+            \STATE \textbf{if }not ($\mathcal{E}[e] \gets (\bot, \textit{reason}))$ \textbf{then return $\bot$} \label{alg:noc-eager:ruleoutedge}
         \ENDIF
     \ELSIF{$\textit{defined}$} \label{alg:noc-eager:defcheck}
         \FOR{$e' \in \textit{edges}(v) \textbf{ where } \mathcal{E}[e'] \ne \bot$} \label{alg:no-opponent-cycle-f1:edgecheck}
@@ -240,7 +242,7 @@ $\opponent$ is detected.
 
 Algorithm~\ref{alg:noc-filter} implements the \noc propagator using a recursive DFS traversal. It maintains the current exploration state via $path_V$ and $path_E$. Parameter $\mathcal{E}$ tracks the Boolean decision variables for arena edges. The core logic occurs when a cycle is detected (Line~\ref{alg:noc-filter:pathcheck}). The propagator evaluates $\gamma_{\player}$---the specific combination of parity ($\omega$), energy ($\eta$), and mean-payoff ($\mu$) objectives in the game. 
 %
-If the cycle violates the winning criteria for $\player$, the propagator generates a \textit{conflict clause} consisting of the negation of the edges currently in $path_E$ (Line~\ref{alg:noc-eager:reason}). This clause effectively {\em learns} the failing partial assignment, allowing the underlying SAT/CP solver to perform non-chronological backtracking and prune all other search branches that can lead to the same non-winning cycle.
+If the cycle violates the winning criteria for $\player$, the propagator rules out the edge that closes the cycle (Line~\ref{alg:noc-eager:ruleoutedge}), explained by a \textit{conflict clause} generated in Line~\ref{alg:noc-eager:reason} consisting of the negation of the edges currently in $path_E$. This clause effectively {\em learns} the failing partial assignment, allowing the underlying SAT/CP solver to perform non-chronological backtracking whenever this assginment is part of a failure and prune all other search branches that can lead to the same non-winning cycle.
 
 \section{Tool Description}
 
@@ -422,14 +424,12 @@ To exploit this duality, \nocq executes the CSP concurrently from both perspecti
 
 \section{Experiments and Evaluation}\label{sec:experiments}
 
-In this section, we evaluate \nocq from two primary perspectives. First, we assess the performance of the tool when solving games with parity conditions only. We compare \nocq against state-of-the-art algorithms using standard benchmarks. 
+In this section, we evaluate \nocq from two primary perspectives. First, we assess its performance on games featuring parity conditions only, comparing \nocq against state-of-the-art algorithms using standard benchmarks.
 
-For the SAT backends, we use the following solvers: \textbf{CaDiCaL} (v2.1.3) \cite{Biere:Cadical:2024}, \textbf{MiniSat} (v2.2.0) \cite{Een:MiniSat:2003}, \textbf{Kissat} (v4.0.2) \cite{Biere:Kissat:2024}, \textbf{zChaff} (v2007.3.12) \cite{Moskewicz:zChaff:2001}.
-%
-To ensure state-of-the-art comparisons, we incorporated \textbf{Oink} (latest GitHub version) \cite{vanDijk:2018}, which includes high-performance algorithms such as Priority Promotion ($\text{PP}$ and $\text{PP+}$) and Parys' improvements ($\text{PAR}$). We also included Zielonka's Recursive Algorithm ($\text{ZRA}$), with an improved attractor strategy as presented in \cite{Aggarwal:2023}.
+For the SAT backends, we employ several high-performance solvers: \textbf{CaDiCaL} (v2.1.3) \cite{Biere:Cadical:2024}, \textbf{MiniSat} (v2.2.0) \cite{Een:MiniSat:2003}, \textbf{Kissat} (v4.0.2) \cite{Biere:Kissat:2024}, and \textbf{zChaff} (v2007.3.12) \cite{Moskewicz:zChaff:2001}.To establish a robust baseline, we compare our results with \textbf{Oink} \cite{vanDijk:2018}, which implements state-of-the-art algorithms such as Priority Promotion ($\text{PP}$ and $\text{PP+}$) and Parys' improvements ($\text{PAR}$). Additionally, we include Zielonka's Recursive Algorithm ($\text{ZRA}$) featuring the optimized attractor strategy presented in \cite{Aggarwal:2023}, which has not yet been integrated into the official Oink distribution.
 
-We then evaluated \nocq's performance when solving parity games with quantitative conditions. The objective was to determine the variance in execution time when \nocq evaluates different combinations of $\gamma_{p} = \omega \otimes \eta \otimes \mu$, where $\otimes$ denotes the product composition of the parity, energy, and mean-payoff goals.
-%
+Second, we evaluate the performance of \nocq when solving games with quantitative conditions. This evaluation is two-fold: (i) we solve a selection of benchmarks for Energy games as proposed in \cite{Chaloupka:2011}; and (ii) we assess the tool's efficiency across various multi-objective configurations defined by the winning condition $\gamma_{p} = \omega \otimes \eta \otimes \mu$. Here, $\otimes$ denotes the product composition of parity ($\omega$), energy ($\eta$), and mean-payoff ($\mu$) objectives.
+
 The benchmarks used were taken from the PGSolver Library \cite{Friedmann:2017} and Keiren's benchmarks for parity games \cite{Keiren:2015}. The games were classified into 4 categories:
 
 \begin{itemize}
@@ -439,8 +439,8 @@ The benchmarks used were taken from the PGSolver Library \cite{Friedmann:2017} a
 \item \textbf{Random Games (RaG):} 125 game instances with varied priority distributions, serving as a baseline for general robustness and average-case efficiency.
 \end{itemize}
 
-Moreover, these benchmarks were partitioned further into two categories, small-scale and large-scale, depending on the size of the input games. This distinction allows us to measure the feasibility of SAT-reduction methods on smaller instances while testing the scalability of \nocq against dedicated solvers on larger game graphs.
-%
+Furthermore, these benchmarks were partitioned into small-scale and large-scale categories based on the size of the input graphs. This distinction allows us to evaluate the feasibility of SAT-based methods on smaller instances while testing the scalability of \nocq against dedicated solvers on larger game graphs. Finally, to evaluate performance on quantitative conditions, we generated a suite of random instances using the SPRAND generator as described in \cite{Chaloupka:2011}, which provides diverse weight distributions for energy and mean-payoff games.
+
 All experiments were conducted on an Intel Xeon 8260 CPU with 24 cores (non-hyperthreaded) and 268.55 GB of RAM running Linux.
 
 \begin{table}[ht]
@@ -461,9 +461,9 @@ Oink(PP+)       & 0.649         & 33/33 & 0.324         & 57/57 & 0.126         
 Oink(PAR)       & 0.544         & 33/33 & 0.294         & 57/57 & 2.580         & 65/68 & \textbf{0.001}& 25/25 \\
 ZRA(ImpAttr)    & \textbf{0.190}& 33/33 & \textbf{0.172}& 57/57 & 7.237         & 62/68 & 0.002         & 25/25 \\
 \nocq(Ours)     & 0.399         & 33/33 & 0.289         & 57/57 & 5.043         & 68/68 & 0.003         & 25/25 \\
-SAT(CaDiCaL)    & 16.114        & 5/5   & 20.942        & 8/9   & 59.012        & 14/25 & 1.100         & 20/20 \\
-SAT(Kissat)     & 76.424        & 2/5   & 31.267        & 7/9   & 49.023        & 16/25 & 1.113         & 20/20 \\
-SAT(MiniSat)    & 32.594        & 5/5   & 28.959        & 8/9   & 49.469        & 16/25 & 1.384         & 20/20 \\
+SAT(CaDiCaL)    & 16.114        & 15/15 & 20.942        & 8/9   & 59.012        & 14/25 & 1.100         & 25/25 \\
+SAT(Kissat)     & 76.424        &  6/15 & 31.267        & 7/9   & 49.023        & 16/25 & 1.113         & 25/25 \\
+SAT(MiniSat)    & 32.594        & 15/15 & 28.959        & 8/9   & 49.469        & 16/25 & 1.384         & 25/25 \\
 \bottomrule
 \end{tabular}
 }
@@ -495,9 +495,10 @@ SAT(MiniSat)    & ---           & ---   & ---           & ---   & ---           
 \label{tab:paritygames-large}
 \end{table}
 
-Table \ref{tab:paritygames} presents a consolidated performance comparison. On small-scale games, \nocq outperforms SAT-based methods by up to three orders of magnitude and remains competitive with non-CP algorithms, typically within a factor of two of the fastest solvers. For large-scale instances, SAT-based approaches are omitted due to their inability to scale within reasonable resource limits. In this context, \nocq demonstrates significant robustness: while ZRA \cite{Aggarwal:2023} remains the fastest for structured benchmarks (EqC and MoC), \nocq notably outperforms all tested Oink variants and ZRA in the high-complexity PGSolver collection.
+Table~\ref{tab:paritygames-small} presents a consolidated performance comparison on small-scale instances. In this setting, \nocq outperforms traditional SAT-based reductions by up to three orders of magnitude and remains highly competitive with specialized parity game solvers, typically within a factor of three of the fastest algorithm (ZRA).
 
-% Runtime metrics for NOCQ and ZRA include solver execution and internal preparation time (excluding I/O). For SAT solvers, we report only solving time, as their encoding generation is substantially more expensive.
+For large-scale instances, as shown in Table~\ref{tab:paritygames-large}, standard SAT-based approaches are omitted for several categories due to their inability to scale within reasonable resource limits. In this challenging context, \nocq demonstrates superior robustness and scalability. Specifically, it achieves the best performance on Equivalence Checking and Model Checking benchmarks. Furthermore, on the harder problem families within the PGSolver collection, \nocq solves the highest number of instances (92/93) and is significantly faster than the Oink and ZRA variants. While specialized solvers remain slightly faster on Random Games, \nocq remains competitive within a factor of two, highlighting its effectiveness as a general-purpose solver for large-scale parity games.
+
 
 \begin{table}[ht]
 \centering
@@ -552,8 +553,11 @@ In~\cite{ChatterjeeHJS11,DziadekFS25} two attempts were made, but in such cases 
 \bibliography{paper}
 
 \end{document}
+% 1. NOC was not published yet
+% 2. Quantitative conditions not compared with state of the art
+% 3. Metrics in Tables
 
-% Pro-rata:
+
 % Arena in Preliminaries \mathcal{A} vs Arena in CSP definition "G".
 % Metrics in experiments
 % No comparison with other quantitative approaches
@@ -561,7 +565,6 @@ In~\cite{ChatterjeeHJS11,DziadekFS25} two attempts were made, but in such cases 
 % No related work section, despite parity games with additional quantitative objectives were explored thoroughly more than a decade ago.
 % second experiment is ill-motivated. Table 2. it does not take much longer for joint winning conditions.
 % ZRA+ is better, discusse.
-% Random graph benchmarks are too small to give any valuable information in Table 1
 % Most importantly, there is no evaluation of parallel versus sequential versions of NOCQ One needs to figure out if this is the reason behind the performance of NOCQ or whether it is something else.
 % Experiments with threshold different to 0.
 % - What is the unit in Table 1 and Table 2? Are these seconds?
@@ -572,5 +575,8 @@ In~\cite{ChatterjeeHJS11,DziadekFS25} two attempts were made, but in such cases 
  
 %  How does NOCQ perform if parallel solving (for both players) is disabled? How about if we add this feature to all other solvers? Do they already apply this approach?
  
+
+
 % if not gamma_p" could be, this condition should be expanded further.
+
 % if-condition on line 6 is very cryptic, and I would have no idea what it means without looking at the tool's code. (about conflict an razon)
