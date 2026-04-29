@@ -487,11 +487,11 @@ Table~\ref{tab:paritygames-small} presents a consolidated performance comparison
 
 For large-scale instances, as shown in Table~\ref{tab:paritygames-large}, standard SAT-based approaches are omitted for several categories due to their inability to scale within reasonable resource limits. In this challenging context, \nocq demonstrates superior robustness and scalability. Specifically, it achieves the best performance on Equivalence Checking and Model Checking benchmarks. Furthermore, on the harder problem families within the PGSolver collection, \nocq solves the highest number of instances (92/93) and is significantly faster than the Oink and ZRA variants. While specialized solvers remain slightly faster on Random Games, \nocq remains competitive within a factor of two, highlighting its effectiveness as a general-purpose solver for large-scale parity games.
 
-Second, we evaluate the performance of \nocq when solving games with quantitative conditions. This evaluation is two-fold: (i) we solve a selection of benchmarks for Energy games as proposed in \cite{Chaloupka:2011}, ; and (ii) we assess the tool's efficiency across various multi-objective configurations defined by the winning condition $\gamma_{p} = \omega \otimes \eta \otimes \mu$. Here, $\otimes$ denotes the product composition of parity ($\omega$), energy ($\eta$), and mean-payoff ($\mu$) objectives.
+Second, we evaluate the performance of \nocq when solving games with quantitative conditions. This evaluation is two-fold: (i) we solve a selection of benchmarks for Energy games as proposed in \cite{Chaloupka:2011}, utilizing random positional vertex assignments and randomly generated thresholds; and (ii) we assess the tool's efficiency across various multi-objective configurations defined by the winning condition $\gamma_{p} = \omega \otimes \eta \otimes \mu$. Here, $\otimes$ denotes the product composition of parity ($\omega$), energy ($\eta$), and mean-payoff ($\mu$) objectives.
 
 \begin{table}[ht]
 \centering
-\caption{Performance of \nocq on random games from SPRAND instances. Average time is reported in seconds using PAR2 scoring with a 60s timeout.}
+\caption{Performance of \nocq on random games from SPRAND instances solving Enegery Condition. Average time is reported in seconds using PAR2 scoring with a 60s timeout.}
 \setlength{\tabcolsep}{1.2mm}
 {\small 
 \begin{tabular}{l|r|rrc|rrc}
@@ -499,11 +499,11 @@ Second, we evaluate the performance of \nocq when solving games with quantitativ
 \textbf{Size} & \textbf{|V| } & \multicolumn{3}{c|}{\textbf{Small} (Density 5)} & \multicolumn{3}{c}{\textbf{Large} (Density 10)} \\
  & & |E| & Time & Solved & |E| & Time & Solved \\
 \midrule
-\textbf{rand\_m}  &   65k &  327k &  0.296 & 45/45 &  655k &  1.644 &  45/45 \\
-\textbf{rand\_b}  &  131k &  655k &  2.631 & 45/45 & 1,310k &  5.255 &  45/45 \\
-\textbf{rand\_h}  &  262k & 1,280k & 21.098 & 45/45 & 2,621k & 49.655 &  32/45 \\
-\textbf{rand\_B}  &  524k & 2,621k & 11.566 & 43/45 & 5,242k &  9.711 &  45/45 \\
-\textbf{rand\_H}  & 1048k & 5,242k & 33.152 & 34/45 & 10,485k & 31.147 &  35/45 \\
+\textbf{rand\_m}  &    65k &   327k &  0.296 & 45/45 &    655k &  1.644 &  45/45 \\
+\textbf{rand\_b}  &   131k &   655k &  2.631 & 45/45 &  1,310k &  5.255 &  45/45 \\
+\textbf{rand\_h}  &   262k & 1,280k & 21.098 & 45/45 &  2,621k & 49.655 &  32/45 \\
+\textbf{rand\_B}  &   524k & 2,621k & 11.566 & 43/45 &  5,242k &  9.711 &  45/45 \\
+\textbf{rand\_H}  & 1,048k & 5,242k & 33.152 & 34/45 & 10,485k & 31.147 &  35/45 \\
 \bottomrule
 \end{tabular}
 }
