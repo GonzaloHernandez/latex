@@ -98,7 +98,7 @@ One such approach involves reducing the solution of a parity game to the solutio
 %This idea has a lot of potential given the advances in SAT-solving technology, but, as we will show later, it suffers from poor scalability due to the large size of the generated CNF formula for a given game.
 We further developed this idea in~\cite{Hernandez:2026:noc}, introducing a novel CP-based algorithm which performs several orders of magnitude better than any other previous CP-based approach, and very competitively against the state-of-the-art algorithms/implementations for parity games in the literature~\cite{vanDijk:2018,Benerecetti:2025,Aggarwal:2023} -- often matching or exceeding their performance. 
 
-In this paper, we present \nocq, a platform that implements the main algorithms developed in~\cite{Hernandez:2026:noc} for parity games and extended with new functionalities that allows one to include additional {\em quantitative} restrictions, including {\em energy}~\cite{ChatterjeeD12} and {\em mean-payoff}~\cite{ChatterjeeHS17} constraints, which are useful when reasoning about additional long-term average performance -- everything within the same SAT/CP-based framework. This tool paper briefly presents the problem it solves and the underlying algorithms that \nocq is built upon, but focuses on the tool itself (its architecture, implementation, and usage) and some experimental results that demonstrate its performance in practice, in particular when applied to games with additional quantitative (energy and/or mean-payoff) constraints. 
+In this paper, we present \nocq, a platform that implements the main algorithms developed in~\cite{Hernandez:2026:noc} for parity games. The platform extends the algorithms with new functionalities that support additional {\em quantitative} restrictions, including {\em energy}~\cite{ChatterjeeD12} and {\em mean-payoff}~\cite{ChatterjeeHS17} constraints, which are useful when reasoning about additional long-term average performance. All algorithms are implemented within the same SAT/CP-based framework. This tool paper briefly presents the problem it solves and the underlying algorithms that \nocq is built upon, but focuses on the tool itself (its architecture, implementation, and usage) and some experimental results that demonstrate its performance in practice, in particular when applied to games with additional quantitative (energy and/or mean-payoff) constraints. 
 
 \section{Preliminaries and Overview}
 
@@ -123,7 +123,7 @@ A play $\pi$ is evaluated against three different criteria:
 We define Player \even's winning goal as the combined condition formed by the conjunction of these requirements:
 $\gamma_{\subeven} = \omega \wedge \eta \wedge \mu$. As these are zero-sum games, Player \odd wins if the play satisfies $\gamma_{\subodd} = \neg \gamma_{\subeven}$.
 %
-Given an initial vertex $v_0$, a strategy is said to be winning from $v_0$ for Player~$\even$ (Player~$\odd$) if it only generates winning plays for Player~$\even$ (Player~$\odd$) starting at $v_0$, for all strategies of the other player. It is known that for every vertex~$v\in V$ in these games, one of the two players always has a winning strategy from that vertex~$v$. Solving a zero-sum game is deciding, for every~$v\in V$, which player has a winning strategy from that vertex.
+Given an initial vertex $v_0$, a strategy is said to be winning from $v_0$ for Player~$\even$ (Player~$\odd$) if, starting at $v_0$, it only generates winning plays for Player~$\even$ (Player~$\odd$), for all strategies of the other player. It is known that for every vertex~$v\in V$ in these games, one of the two players always has a winning strategy from that vertex~$v$. Solving a zero-sum game is deciding, for every~$v\in V$, which player has a winning strategy from that vertex.
 
 \subsubsection{SMT/SAT Encodings.}\label{sec:satencoding}
 
@@ -416,7 +416,7 @@ To exploit this duality, \nocq executes the CSP concurrently from both perspecti
 
 In this section, we evaluate \nocq from two primary perspectives. First, we assess its performance on games featuring parity conditions only, comparing \nocq against state-of-the-art algorithms using standard benchmarks.
 
-For the SAT backends, we employ several high-performance solvers: \textbf{CaDiCaL} (v2.1.3) \cite{Biere:Cadical:2024}, \textbf{MiniSat} (v2.2.0) \cite{Een:MiniSat:2003}, \textbf{Kissat} (v4.0.2) \cite{Biere:Kissat:2024}, and \textbf{zChaff} (v2007.3.12) \cite{Moskewicz:zChaff:2001}.To establish a robust baseline, we compare our results with \textbf{Oink} \cite{vanDijk:2018}, which implements state-of-the-art algorithms such as Priority Promotion ($\text{PP}$ and $\text{PP+}$) and Parys' improvements ($\text{PAR}$). Additionally, we include Zielonka's Recursive Algorithm ($\text{ZRA}$) featuring the optimized attractor strategy presented in \cite{Aggarwal:2023}, which has not yet been integrated into the official Oink distribution.
+For the SAT backends, we employ several high-performance solvers: \textbf{CaDiCaL} (v2.1.3) \cite{Biere:Cadical:2024}, \textbf{MiniSat} (v2.2.0) \cite{Een:MiniSat:2003}, \textbf{Kissat} (v4.0.2) \cite{Biere:Kissat:2024}, and \textbf{zChaff} (v2007.3.12) \cite{Moskewicz:zChaff:2001}. To establish a robust baseline, we compare our results with \textbf{Oink} \cite{vanDijk:2018}, which implements state-of-the-art algorithms such as Priority Promotion ($\text{PP}$ and $\text{PP+}$) and Parys' improvements ($\text{PAR}$). Additionally, we include Zielonka's Recursive Algorithm ($\text{ZRA}$) featuring the optimized attractor strategy presented in \cite{Aggarwal:2023}, which has not yet been integrated into the official Oink distribution.
 
 The benchmarks used were taken from the PGSolver Library \cite{Friedmann:2017} and Keiren's benchmarks for parity games \cite{Keiren:2015}. The games were classified into 4 categories:
 
@@ -496,7 +496,7 @@ Second, we evaluate the performance of \nocq when solving games with quantitativ
 {\small 
 \begin{tabular}{l|r|rrc|rrc}
 \toprule
-\textbf{Size} & \textbf{|V| } & \multicolumn{3}{c|}{\textbf{Density 5}} & \multicolumn{3}{c}{\textbf{Density 10}} \\
+\textbf{Size} & \textbf{|V| } & \multicolumn{3}{c|}{\textbf{Small} (Density 5)} & \multicolumn{3}{c}{\textbf{Large} (Density 10)} \\
  & & |E| & Time & Solved & |E| & Time & Solved \\
 \midrule
 \textbf{rand\_m}  &    65k &   327k &  0.296 & 45/45 &    655k &  1.644 &  45/45 \\
@@ -510,7 +510,7 @@ Second, we evaluate the performance of \nocq when solving games with quantitativ
 \label{tab:quantitative-sprand}
 \end{table}
 
-The performance results for the SPRAND \cite{CherkasskyBoris:1996} instances presented in Table \ref{tab:quantitative-sprand} demonstrate the scalability and robustness of the solver across a wide range of game sizes, from 64k to over 1 million vertices. For smaller instances, the solver consistently achieves 100\% coverage with execution times under three seconds. Even as the state space reaches 1024k nodes, the solver maintains a high success rate within the 60-second timeout, confirming that these quantitative games remain computationally tractable at scale.
+The performance results for the SPRAND \cite{CherkasskyBoris:1996} instances presented in Table~\ref{tab:quantitative-sprand} demonstrate the scalability and robustness of the solver across a wide range of game sizes, from 64k to over 1 million vertices. For smaller instances, the solver consistently achieves 100\% coverage with execution times under three seconds. Even as the state space reaches 1024k nodes, the solver maintains a high success rate within the 60-second timeout, confirming that these quantitative games remain computationally tractable at scale.
 
 Notably, the results align with the benchmarks established by \cite{Chaloupka:2011}, showing that random games of this nature can be solved in reasonable time. The data reveals a transient peak in complexity at 256k nodes, where the solver encounters its highest average times and a slight dip in success rates. This suggests that while most instances scale predictably, certain intermediate sizes present unique structural hurdles that are eventually overcome as the graph size continues to increase.
 
@@ -550,13 +550,13 @@ To evaluate these conditions, we enriched the existing benchmarks with random ed
 
 \section{Conclusions and Related Work} 
 
-As demonstrated by our experimental evaluation, \nocq is an efficient toolchain that leverages a constraint-based approach to solve games on graphs with performance competitive with state-of-the-art algorithms used in formal verification to solve parity games. A key advantage of \nocq lies in its ability to solve parity games combined with energy and mean-payoff conditions simultaneously, maintaining a high performance without increasing implementation complexity.
+As demonstrated by our experimental evaluation, \nocq is an efficient toolchain that leverages a constraint-based approach to solve games on graphs with performance competitive with state-of-the-art algorithms used in formal verification to solve parity games. A key advantage of \nocq lies in its ability to solve parity games combined with energy and mean-payoff conditions simultaneously, maintaining high performance without increasing implementation complexity.
 %
 Because \nocq is built upon CP, the model is inherently extensible; new constraints can be added seamlessly without modifying the underlying solver architecture. 
 
 Finally, several tools have been developed for quantitative games only -- {\em e.g.}, see~\cite{BenerecettiDM24} and references therein. But, much less work has been done regarding practical tools for parity games (or $\omega$-regular games more generally) with additional quantitative requirements. 
 %
-In~\cite{ChatterjeeHJS11,DziadekFS25} two attempts were made, but in such cases full parity games with quantitative objectives were not evaluated in practice; Our results provide a step forward where the case for positional strategies is accounted for in complex parity games with additional quantitative requirements.  
+In~\cite{ChatterjeeHJS11,DziadekFS25} two attempts were made, but in such cases full parity games with quantitative objectives were not evaluated in practice. Our results provide a step forward where the case for positional strategies is accounted for in complex parity games with additional quantitative requirements.  
 
 %Of relevance, we mention QUASY~\cite{ChatterjeeHJS11}, which uses mean-payoff parity games but for synthesis; and~\cite{DziadekFS25} which implements some algorithms for $\omega$-regular energy games, but where the parity acceptance condition is not evaluated. 
 
