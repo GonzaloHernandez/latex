@@ -1,0 +1,235 @@
+
+\documentclass[a4paper,UKenglish,cleveref, autoref, thm-restate, anonymous]{lipics-v2021}
+\usepackage{algpseudocode}
+\usepackage{algorithm}
+\usepackage[noend]{algorithmic}
+\usepackage{comment}
+%This is a template for producing LIPIcs articles. 
+%See lipics-v2021-authors-guidelines.pdf for further information.
+%for A4 paper format use option "a4paper", for US-letter use option "letterpaper"
+%for british hyphenation rules use option "UKenglish", for american hyphenation rules use option "USenglish"
+%for section-numbered lemmas etc., use "numberwithinsect"
+%for enabling cleveref support, use "cleveref"
+%for enabling autoref support, use "autoref"
+%for anonymousing the authors (e.g. for double-blind review), add "anonymous"
+%for enabling thm-restate support, use "thm-restate"
+%for enabling a two-column layout for the author/affilation part (only applicable for > 6 authors), use "authorcolumns"
+%for producing a PDF according the PDF/A standard, add "pdfa"
+
+%\pdfoutput=1 %uncomment to ensure pdflatex processing (mandatatory e.g. to submit to arXiv)
+%\hideLIPIcs  %uncomment to remove references to LIPIcs series (logo, DOI, ...), e.g. when preparing a pre-final version to be uploaded to arXiv or another public repository
+
+%\graphicspath{{./graphics/}}%helpful if your graphic files are in another directory
+
+\input{macros.tex}
+
+\bibliographystyle{plainurl}% the mandatory bibstyle
+
+\title{NOCQ: A Constraint-Based Toolchain for\\Parity Games with Quantitative Conditions} %TODO Please add
+
+%\titlerunning{Dummy short title} %TODO optional, please use if title is longer than one line
+\author{Gonzalo Hernandez}{Monash University \and Universidad de Nariño}{gonzalo.hernandez@monash.edu\footnote{Also reachable at \texttt{gonzalo.hernandez@udenar.edu.co}}}{}{}
+\author{Julian Garcia}{Monash University}{julian.garcia@monash.edu}{}{}
+\author{Julian Gutierrez}{University of Sussex}{J.Gutierrez@sussex.ac.uk}{}{}
+\author{Guido Tack}{Monash University \and OPTIMA ARC ITTC}{guido.tack@monash.edu}{}{}
+
+%TODO mandatory, please use full name; only 1 author per \author macro; first two parameters are mandatory, other parameters can be empty. Please provide at least the name of the affiliation and the country. The full address is optional. Use additional curly braces to indicate the correct name splitting when the last name consists of multiple name parts.
+
+% \author{Joan R. Public\footnote{Optional footnote, e.g. to mark corresponding author}}{Department of Informatics, Dummy College, [optional: Address], Country}{joanrpublic@dummycollege.org}{[orcid]}{[funding]}
+
+% \authorrunning{J. Open Access and J.\,R. Public} %TODO mandatory. First: Use abbreviated first/middle names. Second (only in severe cases): Use first author plus 'et al.'
+
+\Copyright{Gonzalo Hernandez, Julian Garcia, Julian Gutierrez, , Guido Tack} %TODO mandatory, please use full first names. LIPIcs license is "CC-BY";  http://creativecommons.org/licenses/by/3.0/
+
+\ccsdesc[100]{\textcolor{red}{Replace ccsdesc macro with valid one}} %TODO mandatory: Please choose ACM 2012 classifications from https://dl.acm.org/ccs/ccs_flat.cfm 
+
+\keywords{constraint programming, game theory, parity games, synthesis of reactive systems, model checking} %TODO mandatory; please add comma-separated list of keywords
+
+\category{} %optional, e.g. invited paper
+
+\relatedversion{} %optional, e.g. full version hosted on arXiv, HAL, or other respository/website
+%\relatedversiondetails[linktext={opt. text shown instead of the URL}, cite=DBLP:books/mk/GrayR93]{Classification (e.g. Full Version, Extended Version, Previous Version}{URL to related version} %linktext and cite are optional
+
+%\supplement{}%optional, e.g. related research data, source code, ... hosted on a repository like zenodo, figshare, GitHub, ...
+%\supplementdetails[linktext={opt. text shown instead of the URL}, cite=DBLP:books/mk/GrayR93, subcategory={Description, Subcategory}, swhid={Software Heritage Identifier}]{General Classification (e.g. Software, Dataset, Model, ...)}{URL to related version} %linktext, cite, and subcategory are optional
+
+%\funding{(Optional) general funding statement \dots}%optional, to capture a funding statement, which applies to all authors. Please enter author specific funding statements as fifth argument of the \author macro.
+
+\acknowledgements{I want to thank \dots}%optional
+
+%\nolinenumbers %uncomment to disable line numbering
+
+
+
+%Editor-only macros:: begin (do not touch as author)%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\EventEditors{John Q. Open and Joan R. Access}
+\EventNoEds{2}
+\EventLongTitle{42nd Conference on Very Important Topics (CVIT 2016)}
+\EventShortTitle{CVIT 2016}
+\EventAcronym{CVIT}
+\EventYear{2016}
+\EventDate{December 24--27, 2016}
+\EventLocation{Little Whinging, United Kingdom}
+\EventLogo{}
+\SeriesVolume{42}
+\ArticleNo{23}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{document}
+
+\maketitle
+
+%TODO mandatory: add short abstract of the document
+\begin{abstract}
+Solving parity games is a cornerstone problem in formal verification and synthesis, with significant applications across industrial-scale system design. We present \nocq, an efficient constraint-based toolchain designed to solve parity games under quantitative conditions. By leveraging the inherent duality of zero-sum game players, \nocq implements several constraint programming (CP) techniques that exploit search space symmetries. Our experimental evaluation demonstrates that \nocq performs competitively against state-of-the-art specialized solvers, often matching or exceeding their performance, while maintaining the modularity and flexibility of a CP-based framework. This flexibility allows users to easily incorporate additional constraints to search for preferred solutions, such as average quantitative performance requirements. We describe the tool's architecture, provide a comprehensive performance analysis, and discuss its extensibility. \nocq is open-source and available at: \url{https://github.com/gonzalohernandez/nocq}.
+
+\end{abstract}
+
+\section{Introduction}
+
+Parity games are two-player zero-sum infinite-duration games played on a labelled directed graph, where vertices represent states of the players in the game and edges represent their possible available actions at every state. 
+Solving these games is central to several techniques in automated formal verification, in particular, when solving model checking and automated synthesis problems.
+
+Since parity games are zero-sum, perfect-information games, solving them amounts to finding which player (usually called Player Even, or $\even$, and Player Odd, or $\odd$) has a winning strategy, from a given starting vertex in the graph. 
+It is known that deciding the winner in parity games is an $\mathsf{NP} \cap \mathsf{co\textit{-}NP}$ problem~\cite{Jurdziński:1998}, but it is not known whether or not they can be solved in polynomial time; a problem that has remained open for nearly 50 years. 
+% (Done) Remove Arcucci's reference and add, instead, a reference to priority promotion and the latest result on its coplexity, where it is shown that they are quasi-polynomial, especially this last one is important as it is the main complexity result at the moment. 
+Due to the importance of parity games in formal verification, several algorithms have been developed \cite{Aggarwal:2023,Benerecetti:2025,Jurdziński:2000,Jurdziński:2022,Zielonka:1998}, all of them suffering from exponential running time limitations for specific classes of games. 
+One such approach involves reducing the solution of a parity game to the solution of a SAT instance representing the game. The generated SAT instance is satisfiable if and only if Player Even has a winning strategy in the original game. 
+%This idea has a lot of potential given the advances in SAT-solving technology, but, as we will show later, it suffers from poor scalability due to the large size of the generated CNF formula for a given game.
+We further developed this idea in~\cite{Hernandez:2026:noc}, introducing a novel CP-based algorithm which performs several orders of magnitude better than any other previous CP-based approach, and very competitively against the state-of-the-art algorithms/implementations for parity games in the literature~\cite{vanDijk:2018,Benerecetti:2025,Aggarwal:2023} -- often matching or exceeding their performance. 
+
+In this paper, we present \nocq, a platform that implements the main algorithms developed in~\cite{Hernandez:2026:noc} for parity games. The platform extends the algorithms with new functionalities that support additional {\em quantitative} restrictions, including {\em energy}~\cite{ChatterjeeD12} and {\em mean-payoff}~\cite{ChatterjeeHS17} constraints, which are useful when reasoning about additional long-term average performance. All algorithms are implemented within the same SAT/CP-based framework. This tool paper briefly presents the problem it solves and the underlying algorithms that \nocq is built upon, but focuses on the tool itself (its architecture, implementation, and usage) and some experimental results that demonstrate its performance in practice, in particular when applied to games with additional quantitative (energy and/or mean-payoff) constraints. 
+
+\section{Preliminaries and Overview}
+
+This section presents the graph games that \nocq solves, and some translations into Boolean Satisfiability (SAT) and Satisfiability Modulo Theories (SMT).
+
+%\subsection{Arenas, Strategies, and Plays}
+\subsubsection{Arenas, Strategies, and Plays.}
+
+A game arena is a tuple $\mathcal{A} = (V_{\subeven}, V_{\subodd}, E, \Omega, Q)$, where $V = V_{\subeven} \cup V_{\subodd}$ is a finite set of vertices partitioned between Player \even ($0$) and Player \odd ($1$), $E \subseteq V \times V$ is a set of directed edges where every vertex has at least one successor, $\Omega: V \to \{0, \dots, d\}$ is a priority mapping, and $Q: E \to \mathbb{Z}$ is a weight function.
+%
+A \textit{positional strategy} for player $i \in \{\even, \odd\}$ is a function $f_{i} : V_{i} \to V$ such that $(v, f_i(v)) \in E$. A pair of strategies $(f_{\subeven}, f_{\subodd})$ uniquely determines an infinite path $\pi = v_0 v_1 \dots$, called a \textit{play}. We denote by $\text{Inf}(\pi)$ the set of priorities $\{\Omega(v) \mid v \text{ occurs infinitely often in } \pi\}$.
+
+\subsubsection{Winning Conditions.}
+A play $\pi$ is evaluated against three different criteria:
+%
+\begin{enumerate}
+    \item \textbf{Parity ($\omega$):} Satisfied if $\max(\text{Inf}(\pi))$ is even.
+    \item \textbf{Energy ($\eta$):} For $E_{init} \in \mathbb{N}$, satisfied if $\forall n \ge 0: E_{init} + \sum_{i=0}^{n-1} Q(v_i, v_{i+1}) \ge 0$.
+    \item \textbf{Mean-Payoff ($\mu$):} Satisfied if $\liminf_{n \to \infty} \frac{1}{n} \sum_{i=0}^{n-1} Q(v_i, v_{i+1}) \ge 0$.
+\end{enumerate}
+
+We define Player \even's winning goal as the combined condition formed by the conjunction of these requirements:
+$\gamma_{\subeven} = \omega \wedge \eta \wedge \mu$. As these are zero-sum games, Player \odd wins if the play satisfies $\gamma_{\subodd} = \neg \gamma_{\subeven}$.
+%
+Given an initial vertex $v_0$, a strategy is said to be winning from $v_0$ for Player~$\even$ (Player~$\odd$) if, starting at $v_0$, it only generates winning plays for Player~$\even$ (Player~$\odd$), for all strategies of the other player. It is known that for every vertex~$v\in V$ in these games, one of the two players always has a winning strategy from that vertex~$v$. Solving a zero-sum game is deciding, for every~$v\in V$, which player has a winning strategy from that vertex.
+
+\subsubsection{SMT/SAT Encodings.}\label{sec:satencoding}
+
+Beyond dedicated algorithms, parity games can be solved by encoding them into constraint-based formalisms like SAT or SMT~\cite{Heljanko:2012}. This approach reduces the existence of a winning strategy for player \even to the satisfiability of a formula $\Phi$. We define Boolean variables $S_v$ for $v \in V$ and $T_{v,w}$ for $(v, w) \in E$, representing whether vertices and edges belong to a winning strategy for Player~\even. The structural winning conditions are:
+
+\begin{itemize}[itemsep=1.0ex, parsep=0pt]
+    \item $\Phi_\exists = \bigwedge_{v \in V_{\subeven}} (S_v \rightarrow \bigvee_{w \in vE} T_{(v,w)})$ 
+    \item $\Phi_\forall = \bigwedge_{v \in V_{\subodd}} (S_v \rightarrow \bigwedge_{w \in vE} T_{(v,w)})$
+    \item $\Phi_V = \bigwedge_{w \in V, w \neq v_0} \left( \left(\bigvee_{v \in Ev} T_{(v,w)}\right) \rightarrow S_w \right)$
+\end{itemize}
+such that, 
+$\Phi_\exists$ and $\Phi_\forall$ ensure valid moves for Player \even and \odd, respectively, while $\Phi_V$ ensures consistency between edge and vertex selection. To satisfy the parity condition $\omega$, we employ a \textit{discrete progress measure}~\cite{Jurdziński:2000} to rule out cycles where the maximum priority is odd. We introduce integer variables $x_p^v$ for each $v \in V$ and each odd priority $p \in \text{Odd}(G)$, where $\text{Odd}^{>k}(G) = \{p \in \text{Odd}(G) \mid p > k\}$. The progress constraints are $\Phi_A = \bigwedge_{(v,w) \in E} (T_{v,w} \to \Psi_{v,w})$, where:
+%
+\[
+\Psi_{v,w} = 
+\begin{cases} 
+\bigwedge_{p \in \text{Odd}^{>\Omega(w)}} (x_p^v \geq x_p^w) & \text{if } \Omega(w) \text{ is even} \\
+(x_{\Omega(w)}^v > x_{\Omega(w)}^w) \land \bigwedge_{p \in \text{Odd}^{>\Omega(w)}} (x_p^v \geq x_p^w) & \text{if } \Omega(w) \text{ is odd}.
+\end{cases}
+\]
+
+These constraints can be solved using SMT technologies: Satisfiability of $S_{v_0} \wedge \Phi_\exists \wedge \Phi_\forall \wedge \Phi_V \wedge \Phi_A$ determines if Player~\even wins from $v_0$. Alternatively, $\Phi_A$ can be bit-blasted into pure CNF for use with modern SAT solvers~\cite{Heljanko:2012}.
+
+\subsubsection{Solving Quantitative Parity Games.}
+We solve quantitative parity games by encoding them into a Constraint Satisfaction Problem (CSP) with a specialized propagator~\cite{Hernandez:2026:noc}, as follows: 
+
+\begin{definition}\label{def:csp}
+    The CSP for an arena $\mathcal{A}$
+    %$G=(V,E, \Omega, Q)$ 
+    starting at $v_0$ from the perspective of player $\player$ is the triple $\mathcal{P} = (\mathcal{X}, \mathcal{D}, \mathcal{C})$, where $\mathcal{X} = \{ \mathcal{V}_v \}_{v \in V} \cup \{ \mathcal{E}_e \}_{e \in E}$ are Boolean variables $\mathcal{D}$, and the constraints $\mathcal{C}$ are defined in the following way:
+    \begin{itemize}[leftmargin=2.1cm, labelwidth=1.7cm, align=left, itemsep=1.0ex, parsep=0pt]
+
+        \item [$\mathcal{C}_{v_0}$ :] $\mathcal{V}_{v_0} = \top$
+
+        \item [$\mathcal{C}_{\player}$ :] $\bigwedge_{v \in V_{\player}} (\mathcal{V}_v \rightarrow (\sum_{w \in vE} \mathcal{E}_{(v,w)}= 1))$
+
+        \item [$\mathcal{C}_{\opponent}$ :] $\bigwedge_{v \in V_{\opponent}} (\mathcal{V}_v \rightarrow \bigwedge_{w \in vE} \mathcal{E}_{(v,w)})$
+
+        \item [$\mathcal{C}_{\!E}$ :] $\bigwedge_{w \in V, w \neq v_0} ((\bigvee_{v \in Ew} \mathcal{E}_{(v,w)}) \rightarrow \mathcal{V}_w)$
+
+        % \item [$\mathcal{C}_{{\!N\!O\!C}_\omega}$ :] $\bigwedge_{v_0, \dots, v_k} ((\bigwedge_{i\in 0\dots k-1} \mathcal{E}_{(v_i,v_{i+1})}) \rightarrow\\ \bigwedge_{j\in 0\dots k-1} (v_j=v_k \rightarrow \max\{\Omega(v_i) \mid i\in j\dots k\} \bmod 2 \ne \opponent))$
+        
+        % \item [$\mathcal{C}_{{\!N\!O\!C}_\eta}$ :] $\bigwedge_{v_0, \dots, v_k} ((\bigwedge_{i\in 0\dots k-1} \mathcal{E}_{(v_i,v_{i+1})}) \rightarrow\\ \bigwedge_{j\in 0\dots k-1} (v_j=v_k \rightarrow \sum_{i=j}^{k} Q(v_i, v_{i+1}) \ge 0))$
+        
+        % \item [$\mathcal{C}_{{\!N\!O\!C}_\mu}$ :] $\bigwedge_{v_0, \dots, v_k} ((\bigwedge_{i\in 0\dots k-1} \mathcal{E}_{(v_i,v_{i+1})}) \rightarrow\\ \bigwedge_{j\in 0\dots k-1} (v_j=v_k \rightarrow \frac{1}{k-j+1} \sum_{i=j}^{k} Q(v_i, v_{i+1}) \ge \nu ))$
+
+        \item [$\mathcal{C}_{NOC}(f)$ :] $\bigwedge_{v_0, \dots, v_k} \left( \left(\bigwedge_{i=0}^{k-1} \mathcal{E}_{(v_i,v_{i+1})}\right) \to \bigwedge_{j=0}^{k-1} ((v_j = v_k) \to f(v_j, \dots, v_k)) \right)$
+
+    \end{itemize}
+    %
+    \begin{itemize}[itemsep=1.0ex, parsep=0pt]
+        \item $f_\omega(v_j, \dots, v_k) = \max\{\Omega(v_i) \mid i\in j\dots k\} \bmod 2 \ne \opponent$
+
+        \item $f_\eta(v_j, \dots, v_k) = \sum_{i=j}^{k-1} Q(v_i, v_{i+1}) \ge 0$
+
+        \item $f_\mu(v_j, \dots, v_k) = \frac{1}{k-j} \sum_{i=j}^{k-1} Q(v_i, v_{i+1}) \ge \nu$
+    \end{itemize}
+\end{definition}
+
+While $\mathcal{C}_{v_0}, \mathcal{C}_{\opponent}$, and $\mathcal{C}_{\!E}$ %(analogous to $\Phi_{v_0}, \Phi_\forall$, and $\Phi_V$), 
+enforce connectivity, 
+$\mathcal{C}_{\player}$ ensures that $\player$ selects exactly one strategy edge per vertex.  
+%We observe that progress measure constraints $\Phi_A$ are computationally expensive, scaling up to $O(|V|^3)$—and can generate hundreds of millions of clauses for games with only a few thousand nodes. Our approach replaces $\Phi_A$ with a global constraint that avoids the use of new variables and rules out cycles winning for $\opponent$.
+Moreover, $\mathcal{C}_{\!N\!O\!C}$ ensures that every reachable cycle is winning for $\player$ by satisfying the given combination of parity ($\omega$), energy ($\eta$), and mean-payoff ($\mu$) requirements. Lastly, in~$f_\mu$, parameter~$\nu \in \mathbb{Z}$ is a given performance threshold used to evaluate the mean-payoff condition. This generalized construction allows \nocq to search from the perspective of either player by swapping $\player$ and $\opponent$. Satisfiability under $\player$ proves a winning strategy for $\player$, while unsatisfiability (if the solver explores the full space) proves the win for $\opponent$.
+
+\subsubsection{A No-Opponent-Cycle filter.} \label{sec:nocfilter}
+We have developed a complete propagator based on Depth-first Search (DFS) to explore the arena. The resulting DFS tree captures all possible paths from $v_0$, and can be used to detect all existing cycles. We define the propagator in the context of a \textit{Lazy Clause Generation} solver~\cite{DBLP:journals/constraints/OhrimenkoSC09}, to take advantage of the strong performance of this type of solver, in particular for problems that contain a very large number of Boolean clauses. Algorithm~\ref{alg:noc-filter} presents this version of the propagator, which checks for cycles and reports failure if a cycle 
+%with highest priority in favour of 
+satisfying the winning condition for 
+$\opponent$ is detected.
+
+\begin{algorithm}[htb]
+\small
+\caption{\textbf{\textit{NOCFilter}}}
+\textbf{Input}: $path_V,\ path_E,\ v,\ e,\ \mathcal{E},\ \textit{defined}$ \\
+\textbf{Output}: $\top$ is valid; $\bot$ otherwise
+\begin{algorithmic}[1]
+    \IF{$v \in path_V$} \label{alg:noc-filter:pathcheck}
+        \STATE $i_v \gets \textit{index}(v, path_V)$
+        \IF{$\neg \gamma_{\player}$} \label{alg:noc-filter:condition}
+        % \IF{$\neg \gamma_{\even} \lor \neg \gamma_{\odd}$}
+        % \IF{($\player = \even \land \neg(\omega \land \eta \land \mu)) \lor (\player = \odd \land (\omega \land \eta \land \mu)$)}
+        % \IF{$\neg satisfyConditions(i_v, path_V, path_E)$} \label{alg:noc-eager:checkopponent}
+            \STATE $\textit{reason} \gets \textit{clausify}(\neg path_E[i_v:])$ \label{alg:noc-eager:reason}
+            \STATE \textbf{if }not ($\mathcal{E}[e] \gets (\bot, \textit{reason}))$ \textbf{then return $\bot$} \label{alg:noc-eager:ruleoutedge}
+        \ENDIF
+    \ELSIF{$\textit{defined}$} \label{alg:noc-eager:defcheck}
+        \FOR{$e' \in \textit{edges}(v) \textbf{ where } \mathcal{E}[e'] \ne \bot$} \label{alg:no-opponent-cycle-f1:edgecheck}
+            \STATE $p_V \gets path_V \cup \{v\}$
+            \STATE $p_E \gets path_E \cup \{e'\}$
+            \STATE $w \gets \textit{target}(e')$
+            \STATE $\textit{def} \gets \mathcal{E}[e'] = \top$
+            \STATE \textit{NOCEager}(
+                $p_V$,
+                $p_E$,
+                $w$,
+                $e'$,
+                $\mathcal{E}$,
+                $\textit{def}$\ )
+        \ENDFOR
+    \ENDIF
+    \RETURN $\top$
+\end{algorithmic}
+\label{alg:noc-filter}
+\end{algorithm}
+
+\bibliography{main.bib}
+
+\end{document}
