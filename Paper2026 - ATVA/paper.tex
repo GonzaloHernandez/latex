@@ -516,26 +516,86 @@ Notably, the results align with the benchmarks established by \cite{Chaloupka:20
 
 \begin{table}[ht]
 \centering
-\caption{Performance (in time) of \nocq with different winning conditions on small-scale and large-scale instances. Same configuration as in Table \ref{tab:paritygames-small}.}
+\caption{Transposed performance results: comparing heuristic configurations across SPRAND instances. Time is in seconds; 'Sol.' indicates the number of instances solved out of 50.}
 \setlength{\tabcolsep}{1.2mm}
 {\small 
-\begin{tabular}{l|cc|cc|cc|cc}
+\begin{tabular}{l|rr|rr|rr|rr|rr}
 \toprule
-\textbf{Conditions} & \multicolumn{2}{c|}{\textbf{EquivalenceCh}} & \multicolumn{2}{c|}{\textbf{ModelCh}} & \multicolumn{2}{c|}{\textbf{PGSolver}} & \multicolumn{2}{c}{\textbf{RandomG}} \\
-$\gamma$ & Small & Large & Small & Large & Small & Large & Small & Large \\
+\textbf{Conditions} & \multicolumn{2}{c|}{\textbf{R\_5m}} & \multicolumn{2}{c|}{\textbf{R\_5b}} & \multicolumn{2}{c|}{\textbf{R\_5h}} & \multicolumn{2}{c|}{\textbf{R\_5xm}} & \multicolumn{2}{c}{\textbf{R\_5xh}} \\
+& Time & Sol. & Time & Sol. & Time & Sol. & Time & Sol. & Time & Sol. \\
 \midrule
-\textbf{$\omega$}                           & 0.001 & 2.308 & 0.001 & 3.750 & 2.815 & 15.095 & 0.001 &  0.082 \\
-\textbf{$\omega \otimes \eta$}              & 0.001 & 2.308 & 3.158 & 3.750 & 2.505 & 12.119 & 0.001 &  0.063 \\
-\textbf{$\omega \otimes \mu$}               & 0.001 & 2.308 & 0.001 & 3.750 & 8.850 & 17.250 & 3.601 &  6.050 \\
-\textbf{$\omega \otimes \eta \otimes \mu$}  & 0.001 & 2.308 & 1.053 & 3.750 & 3.756 & 15.241 & 4.316 &  7.010 \\
-\textbf{$\eta$}                             & 0.001 & 2.308 & 1.439 & 3.750 & 1.686 & 12.010 & 0.001 &  0.065 \\
-\textbf{$\mu$}                              & 0.001 & 4.616 & 1.053 & 3.750 & 3.771 & 15.067 & 4.202 & 10.697 \\
-\textbf{$\eta \otimes \mu$}                 & 0.001 & 4.616 & 1.374 & 3.750 & 0.850 & 14.833 & 1.861 &  4.355 \\
+\textbf{$\omega$}
+    & 0.053 & 50 & 0.538 & 50 & 0.284 & 50 & 0.638 & 50 & 1.407 & 50 \\
+\textbf{$\eta$}
+    & 0.051 & 50 & 0.679 & 50 & 21.836& 41 & 53.160& 28 & 44.102& 32 \\
+\textbf{$\mu$}
+    & 0.051 & 50 & 7.701 & 47 & 0.284 & 50 & 3.020 & 49 & 20.356& 42 \\
+\textbf{$\omega \otimes \eta$}
+    & 0.051 & 50 & 2.915 & 49 & 0.287 & 50 & 0.644 & 50 & 1.388 & 50 \\
+\textbf{$\omega \otimes \mu$}
+    & 0.051 & 50 & 7.697 & 47 & 0.286 & 50 & 3.033 & 49 & 20.343& 42 \\
+\textbf{$\eta \otimes \mu$}
+    & 0.051 & 50 & 7.713 & 47 & 0.283 & 50 & 3.018 & 49 & 20.345& 42 \\
+\textbf{$\omega \otimes \eta \otimes \mu$}
+    & 0.051 & 50 & 7.715 & 47 & 0.289 & 50 & 3.021 & 49 & 20.344& 42 \\
 \bottomrule
 \end{tabular}
 }
-\label{tab:quantitativeparitygames}
+\label{tab:transposed-performance}
 \end{table}
+
+\begin{table}[ht]
+\centering
+\caption{Transposed performance results for $R\_10$ instances: comparing heuristic configurations across SPRAND instances. Time is in seconds; 'Sol.' indicates the number of instances solved out of 50.}
+\setlength{\tabcolsep}{1.2mm}
+{\small 
+\begin{tabular}{l|rr|rr|rr|rr|rr}
+\toprule
+\textbf{Conditions} & \multicolumn{2}{c|}{\textbf{R\_10m}} & \multicolumn{2}{c|}{\textbf{R\_10b}} & \multicolumn{2}{c|}{\textbf{R\_10h}} & \multicolumn{2}{c|}{\textbf{R\_10xm}} & \multicolumn{2}{c}{\textbf{R\_10xh}} \\
+& Time & Sol. & Time & Sol. & Time & Sol. & Time & Sol. & Time & Sol. \\
+\midrule
+\textbf{$\omega$}
+    & 0.081 & 50 & 0.192 & 50 & 0.475 & 50 & 2.100 & 50 & 2.170 & 50 \\
+\textbf{$\eta$}
+    & 0.080 & 50 & 0.246 & 50 & 12.239& 46 & 43.807& 32 & 32.674& 37 \\
+\textbf{$\mu$}
+    & 0.080 & 50 & 4.983 & 48 & 26.724& 39 & 17.607& 43 & 39.812& 34 \\
+\textbf{$\omega \otimes \eta$}
+    & 0.080 & 50 & 0.295 & 50 & 5.221 & 49 & 3.313 & 49 & 2.158 & 50 \\
+\textbf{$\omega \otimes \mu$}
+    & 0.081 & 50 & 4.981 & 48 & 26.729& 39 & 17.604& 43 & 39.786& 34 \\
+\textbf{$\eta \otimes \mu$}
+    & 0.081 & 50 & 4.980 & 48 & 26.728& 39 & 19.990& 42 & 39.795& 34 \\
+\textbf{$\omega \otimes \eta \otimes \mu$}
+    & 0.081 & 50 & 4.980 & 48 & 26.726& 39 & 19.974& 42 & 39.750& 34 \\
+\bottomrule
+\end{tabular}
+}
+\label{tab:transposed-performance-r10}
+\end{table}
+
+% \begin{table}[ht]
+% \centering
+% \caption{Performance (in time) of \nocq with different winning conditions on small-scale and large-scale instances. Same configuration as in Table \ref{tab:paritygames-small}.}
+% \setlength{\tabcolsep}{1.2mm}
+% {\small 
+% \begin{tabular}{l|cc|cc|cc|cc}
+% \toprule
+% \textbf{Conditions} & \multicolumn{2}{c|}{\textbf{EquivalenceCh}} & \multicolumn{2}{c|}{\textbf{ModelCh}} & \multicolumn{2}{c|}{\textbf{PGSolver}} & \multicolumn{2}{c}{\textbf{RandomG}} \\
+% $\gamma$ & Small & Large & Small & Large & Small & Large & Small & Large \\
+% \midrule
+% \textbf{$\omega$}                           & 0.001 & 2.308 & 0.001 & 3.750 & 2.815 & 15.095 & 0.001 &  0.082 \\
+% \textbf{$\omega \otimes \eta$}              & 0.001 & 2.308 & 3.158 & 3.750 & 2.505 & 12.119 & 0.001 &  0.063 \\
+% \textbf{$\omega \otimes \mu$}               & 0.001 & 2.308 & 0.001 & 3.750 & 8.850 & 17.250 & 3.601 &  6.050 \\
+% \textbf{$\omega \otimes \eta \otimes \mu$}  & 0.001 & 2.308 & 1.053 & 3.750 & 3.756 & 15.241 & 4.316 &  7.010 \\
+% \textbf{$\eta$}                             & 0.001 & 2.308 & 1.439 & 3.750 & 1.686 & 12.010 & 0.001 &  0.065 \\
+% \textbf{$\mu$}                              & 0.001 & 4.616 & 1.053 & 3.750 & 3.771 & 15.067 & 4.202 & 10.697 \\
+% \textbf{$\eta \otimes \mu$}                 & 0.001 & 4.616 & 1.374 & 3.750 & 0.850 & 14.833 & 1.861 &  4.355 \\
+% \bottomrule
+% \end{tabular}
+% }
+% \label{tab:quantitativeparitygames}
+% \end{table}
 
 \subsubsection*{Quantitative Goals and Verification.}
 One of \nocq's main features is the ability to handle quantitative goals within the same CP-based framework. 
