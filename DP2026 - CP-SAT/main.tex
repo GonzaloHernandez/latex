@@ -1,90 +1,94 @@
-% This is samplepaper.tex, a sample chapter demonstrating the
-% LLNCS macro package for Springer Computer Science proceedings;
-% Version 2.21 of 2022/01/12
-%
-\documentclass[runningheads]{llncs}
-%
-\usepackage[T1]{fontenc}
-% T1 fonts will be used to generate the final print and online PDFs,
-% so please use T1 fonts in your manuscript whenever possible.
-% Other font encondings may result in incorrect characters.
-%
-\usepackage{graphicx}
-% If you use the hyperref package, please uncomment the following two lines
-% to display URLs in blue roman font according to Springer's eBook style:
-%\usepackage{color}
-%\renewcommand\UrlFont{\color{blue}\rmfamily}
-%\urlstyle{rm}
-%
 
-\usepackage{listings}
-\usepackage{xcolor}
-\usepackage[hyphens]{url}
+\documentclass[a4paper,UKenglish,cleveref, autoref, thm-restate, anonymous]{lipics-v2021}
 \usepackage{algorithm}
 \usepackage[noend]{algorithmic}
-\usepackage{amssymb}
-\usepackage{subcaption}
-\usepackage{tabularx}
+\usepackage{comment}
+\usepackage{enumitem}
 \usepackage{booktabs}
 \usepackage[table]{xcolor}
-\usepackage{amsmath}
 \usepackage{multirow}
-% \usepackage{bibentry}
-\usepackage[skip=5pt]{caption}
-\usepackage{hyperref}
-\usepackage{enumitem}
 
-\hypersetup{
-    colorlinks=true,
-    linkcolor=black,
-    filecolor=black,      
-    urlcolor=black,
-    citecolor=black
-}
+%This is a template for producing LIPIcs articles. 
+%See lipics-v2021-authors-guidelines.pdf for further information.
+%for A4 paper format use option "a4paper", for US-letter use option "letterpaper"
+%for british hyphenation rules use option "UKenglish", for american hyphenation rules use option "USenglish"
+%for section-numbered lemmas etc., use "numberwithinsect"
+%for enabling cleveref support, use "cleveref"
+%for enabling autoref support, use "autoref"
+%for anonymousing the authors (e.g. for double-blind review), add "anonymous"
+%for enabling thm-restate support, use "thm-restate"
+%for enabling a two-column layout for the author/affilation part (only applicable for > 6 authors), use "authorcolumns"
+%for producing a PDF according the PDF/A standard, add "pdfa"
+
+%\pdfoutput=1 %uncomment to ensure pdflatex processing (mandatatory e.g. to submit to arXiv)
+%\hideLIPIcs  %uncomment to remove references to LIPIcs series (logo, DOI, ...), e.g. when preparing a pre-final version to be uploaded to arXiv or another public repository
+
+%\graphicspath{{./graphics/}}%helpful if your graphic files are in another directory
 
 \input{macros.tex}
 
-\setlength{\textfloatsep}{10pt plus 1.0pt minus 2.0pt}
-\setlength{\intextsep}{10pt plus 1.0pt minus 2.0pt}
+\bibliographystyle{plainurl}% the mandatory bibstyle
+
+\title{NOCQ: A Constraint-Based Toolchain for\\Parity Games with Quantitative Conditions} %TODO Please add
+
+%\titlerunning{Dummy short title} %TODO optional, please use if title is longer than one line
+\author{Gonzalo Hernandez}{Monash University \and Universidad de Nariño}{gonzalo.hernandez@monash.edu\footnote{Also reachable at \texttt{gonzalo.hernandez@udenar.edu.co}}}{}{}
+\author{Julian Garcia}{Monash University}{julian.garcia@monash.edu}{}{}
+\author{Julian Gutierrez}{University of Sussex}{J.Gutierrez@sussex.ac.uk}{}{}
+\author{Guido Tack}{Monash University \and OPTIMA ARC ITTC}{guido.tack@monash.edu}{}{}
+
+%TODO mandatory, please use full name; only 1 author per \author macro; first two parameters are mandatory, other parameters can be empty. Please provide at least the name of the affiliation and the country. The full address is optional. Use additional curly braces to indicate the correct name splitting when the last name consists of multiple name parts.
+
+% \author{Joan R. Public\footnote{Optional footnote, e.g. to mark corresponding author}}{Department of Informatics, Dummy College, [optional: Address], Country}{joanrpublic@dummycollege.org}{[orcid]}{[funding]}
+
+% \authorrunning{J. Open Access and J.\,R. Public} %TODO mandatory. First: Use abbreviated first/middle names. Second (only in severe cases): Use first author plus 'et al.'
+
+\Copyright{Gonzalo Hernandez, Julian Garcia, Julian Gutierrez, , Guido Tack} %TODO mandatory, please use full first names. LIPIcs license is "CC-BY";  http://creativecommons.org/licenses/by/3.0/
+
+\ccsdesc[100]{\textcolor{red}{Replace ccsdesc macro with valid one}} %TODO mandatory: Please choose ACM 2012 classifications from https://dl.acm.org/ccs/ccs_flat.cfm 
+
+\keywords{constraint programming, game theory, parity games, synthesis of reactive systems, model checking} %TODO mandatory; please add comma-separated list of keywords
+
+\category{} %optional, e.g. invited paper
+
+\relatedversion{} %optional, e.g. full version hosted on arXiv, HAL, or other respository/website
+%\relatedversiondetails[linktext={opt. text shown instead of the URL}, cite=DBLP:books/mk/GrayR93]{Classification (e.g. Full Version, Extended Version, Previous Version}{URL to related version} %linktext and cite are optional
+
+%\supplement{}%optional, e.g. related research data, source code, ... hosted on a repository like zenodo, figshare, GitHub, ...
+%\supplementdetails[linktext={opt. text shown instead of the URL}, cite=DBLP:books/mk/GrayR93, subcategory={Description, Subcategory}, swhid={Software Heritage Identifier}]{General Classification (e.g. Software, Dataset, Model, ...)}{URL to related version} %linktext, cite, and subcategory are optional
+
+%\funding{(Optional) general funding statement \dots}%optional, to capture a funding statement, which applies to all authors. Please enter author specific funding statements as fifth argument of the \author macro.
+
+\acknowledgements{I want to thank \dots}%optional
+
+%\nolinenumbers %uncomment to disable line numbering
+
+
+
+%Editor-only macros:: begin (do not touch as author)%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\EventEditors{John Q. Open and Joan R. Access}
+\EventNoEds{2}
+\EventLongTitle{42nd Conference on Very Important Topics (CVIT 2016)}
+\EventShortTitle{CVIT 2016}
+\EventAcronym{CVIT}
+\EventYear{2016}
+\EventDate{December 24--27, 2016}
+\EventLocation{Little Whinging, United Kingdom}
+\EventLogo{}
+\SeriesVolume{42}
+\ArticleNo{23}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \begin{document}
-%
-\title{NOCQ: A Constraint-Based Toolchain for\\Parity Games with Quantitative Conditions}
 
-% \author{Authors' Names Omitted for Double-Blind Review}
-\author{
-    Gonzalo Hernandez\inst{1,3} \and
-    Julian Gutierrez\inst{2} \and
-    Guido Tack\inst{1}
-}
-%
+\maketitle
 
-% \authorrunning{Anonymized Submission}
-\authorrunning{G. Hernandez et al.}
-\titlerunning{NOCQ}
-% First names are abbreviated in the running head.
-% If there are more than two authors, 'et al.' is used.
-%
-
-% \institute{Affiliations Omitted for Double-Blind Review}
-\institute{
-    Monash University, Australia
-    \email{\{gonzalo.hernandez,guido.tack\}@monash.edu} \and
-    University of Sussex, United Kingdom
-    \email{\{J.Gutierrez\}@sussex.ac.uk} \and
-    Universidad de Nariño, Colombia
-    \email{\{gonzalo.hernandez\}@udenar.edu.co}
-}
-
-%
-\maketitle              % typeset the header of the contribution
-%
+%TODO mandatory: add short abstract of the document
 \begin{abstract}
 Solving parity games is a cornerstone problem in formal verification and synthesis, with significant applications across industrial-scale system design. We present \nocq, an efficient constraint-based toolchain designed to solve parity games under quantitative conditions. By leveraging the inherent duality of zero-sum game players, \nocq implements several constraint programming (CP) techniques that exploit search space symmetries. Our experimental evaluation demonstrates that \nocq performs competitively against state-of-the-art specialized solvers, often matching or exceeding their performance, while maintaining the modularity and flexibility of a CP-based framework. This flexibility allows users to easily incorporate additional constraints to search for preferred solutions, such as average quantitative performance requirements. We describe the tool's architecture, provide a comprehensive performance analysis, and discuss its extensibility. \nocq is open-source and available at: \url{https://github.com/gonzalohernandez/nocq}.
 
-\keywords{Constraint programming \and Games on graphs \and Verification.}
 \end{abstract}
-%
+
 \section{Introduction}
 
 Parity games are two-player zero-sum infinite-duration games played on a labelled directed graph, where vertices represent states of the players in the game and edges represent their possible available actions at every state. 
@@ -154,7 +158,7 @@ We solve quantitative parity games by encoding them into a Constraint Satisfacti
     The CSP for an arena $\mathcal{A}$
     %$G=(V,E, \Omega, Q)$ 
     starting at $v_0$ from the perspective of player $\player$ is the triple $\mathcal{P} = (\mathcal{X}, \mathcal{D}, \mathcal{C})$, where $\mathcal{X} = \{ \mathcal{V}_v \}_{v \in V} \cup \{ \mathcal{E}_e \}_{e \in E}$ are Boolean variables $\mathcal{D}$, and the constraints $\mathcal{C}$ are defined in the following way:
-    \begin{itemize}[leftmargin=2.1cm, labelwidth=1.7cm, align=left, itemsep=1.0ex, parsep=0pt]
+    \begin{itemize}[leftmargin=2.5cm, labelwidth=1.7cm, align=left, itemsep=1.0ex, parsep=0pt]
 
         \item [$\mathcal{C}_{v_0}$ :] $\mathcal{V}_{v_0} = \top$
 
@@ -174,12 +178,12 @@ We solve quantitative parity games by encoding them into a Constraint Satisfacti
 
     \end{itemize}
     %
-    \begin{itemize}[itemsep=1.0ex, parsep=0pt]
-        \item $f_\omega(v_j, \dots, v_k) = \max\{\Omega(v_i) \mid i\in j\dots k\} \bmod 2 \ne \opponent$
+    \begin{itemize}[leftmargin=3.3cm, itemsep=1.0ex, parsep=0pt]
+        \item [$f_\omega(v_j, \dots, v_k) =$] $\max\{\Omega(v_i) \mid i\in j\dots k\} \bmod 2 \ne \opponent$
 
-        \item $f_\eta(v_j, \dots, v_k) = \sum_{i=j}^{k-1} Q(v_i, v_{i+1}) \ge 0$
+        \item [$f_\eta(v_j, \dots, v_k) =$] $\sum_{i=j}^{k-1} Q(v_i, v_{i+1}) \ge 0$
 
-        \item $f_\mu(v_j, \dots, v_k) = \frac{1}{k-j} \sum_{i=j}^{k-1} Q(v_i, v_{i+1}) \ge \nu$
+        \item [$f_\mu(v_j, \dots, v_k) =$] $\frac{1}{k-j} \sum_{i=j}^{k-1} Q(v_i, v_{i+1}) \ge \nu$
     \end{itemize}
 \end{definition}
 
@@ -584,32 +588,6 @@ In~\cite{ChatterjeeHJS11,DziadekFS25} two attempts were made, but in such cases 
 %Because \nocq is built upon Constraint Programming (CP), the model is inherently extensible; new constraints can be integrated seamlessly without modifying the underlying solver architecture. 
 %This initial version of \nocq was developed with two core objectives: to provide an accessible, well-documented command-line interface for practitioners, and to establish a robust platform for the rapid prototyping and evaluation of complex quantitative game models.
 
-\bibliographystyle{splncs04}
-\bibliography{paper}
+\bibliography{main.bib}
 
 \end{document}
-% 1. NOC was not published yet
-% 2. Quantitative conditions not compared with state of the art
-% 3. Metrics in Tables
-
-
-% Arena in Preliminaries \mathcal{A} vs Arena in CSP definition "G".
-% Metrics in experiments
-% No comparison with other quantitative approaches
-% Smaller presentation issues like the "tensor-product-operator-symbol" not being defined. 
-% No related work section, despite parity games with additional quantitative objectives were explored thoroughly more than a decade ago.
-% second experiment is ill-motivated. Table 2. it does not take much longer for joint winning conditions.
-% ZRA+ is better, discusse.
-% Most importantly, there is no evaluation of parallel versus sequential versions of NOCQ One needs to figure out if this is the reason behind the performance of NOCQ or whether it is something else.
-% Experiments with threshold different to 0.
-% - What is the unit in Table 1 and Table 2? Are these seconds?
-
-%  Table 1: What does EqC/MoC mean? This looks like a threshold. Please write "EqC and MoC" or something less ambiguous. What is PAR2 scoring?
- 
-%  Why are the average times often smaller in Table 2 than in Table 1? For instance in EquivalenceCh, we get 16.169 in Table 1, and < 4.6 in Table 2.
- 
-%  How does NOCQ perform if parallel solving (for both players) is disabled? How about if we add this feature to all other solvers? Do they already apply this approach?
- 
-% if not gamma_p" could be, this condition should be expanded further.
-
-% if-condition on line 6 is very cryptic, and I would have no idea what it means without looking at the tool's code. (about conflict an razon)
