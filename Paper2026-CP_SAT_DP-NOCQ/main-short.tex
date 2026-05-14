@@ -272,14 +272,17 @@ In the current version, three different winning conditions are implemented. The 
     \item \textbf{Gecode}~\cite{Gecode:2019}, a comprehensive constraint-based toolkit.
 \end{itemize}
 
-Once a game has been loaded or created, one can invoke the constraint-based solver from the command line. Several parameters are available to tailor the solving process. The following command solves a mean-payoff parity game from a given initial vertex (876), and reports the execution times:
+Once a game has been loaded or created, one can invoke the constraint-based solver from the command line. Several parameters are available to tailor the solving process. The following command solves a parity+energy game (threshold=20) from a given initial vertex (18), and reports the execution times:
 
 \begin{lstlisting}
-$ ./nocq --gm /pgsolver/randomgame-50000-10-1-20-0.gm --noc --init 876
-    --print-times --parity --mean-payoff --weights -50 50 --threshold 20
+$ ./nocq --gm /games/rand_50_20_1_5_-20_30.gmw --noc --init 18
+    --parity --energy 20 --print-times
 \end{lstlisting}
 
-The architecture of \nocq is very modular, allowing new CP solvers to be integrated into the whole toolchain using the model developed in~\cite{Hernandez:2026:noc}.
+% $ ./nocq --gm /examples/randomgame-50000-10-1-20-0.gm --noc --init 876
+    % --weights -50 50 --parity --mean-payoff 20 --print-times
+
+    The architecture of \nocq is very modular, allowing new CP solvers to be integrated into the whole toolchain using the model developed in~\cite{Hernandez:2026:noc}.
 
 \begin{figure}[htb]
      \centering
