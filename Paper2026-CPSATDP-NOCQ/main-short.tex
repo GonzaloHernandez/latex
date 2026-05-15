@@ -162,7 +162,7 @@ $\mathcal{C}_{v_0}, \mathcal{C}_{\player}, \mathcal{C}_{\opponent}$, and $\mathc
 Moreover, $\mathcal{C}_{\!N\!O\!C}$ ensures that every reachable cycle is winning for $\player$ by satisfying the given combination of parity ($\omega$), energy ($\eta$), and mean-payoff ($\mu$) requirements. Lastly, in~$f_\mu$, parameter~$\nu \in \mathbb{Z}$ is a given performance threshold used to evaluate the mean-payoff condition. This generalized construction allows \nocq to search from the perspective of either player by swapping $\player$ and $\opponent$. Satisfiability under $\player$ proves a winning strategy for $\player$, while unsatisfiability (if the solver explores the full space) proves the win for $\opponent$.
 
 \subsubsection{A No-Opponent-Cycle filter.} \label{sec:nocfilter}
-We have developed a complete propagator based on Depth-first Search (DFS) to explore the arena. The resulting DFS tree captures all possible paths from $v_0$, and can be used to detect all existing cycles. We define the propagator in the context of a \textit{Lazy Clause Generation} solver~\cite{DBLP:journals/constraints/OhrimenkoSC09}, to take advantage of the strong performance of this type of solver, in particular for problems that contain a very large number of Boolean clauses. Algorithm~\ref{alg:noc-filter} presents this version of the propagator, which checks for cycles and reports failure if a cycle 
+We have developed a complete propagator based on Depth-first Search (DFS) to explore the arena. The resulting DFS tree captures all possible paths from $v_0$, and can be used to detect all existing cycles. We define the propagator in the context of a \textit{Lazy Clause Generation} solver~\cite{chuffed:2018}, to take advantage of the strong performance of this type of solver, in particular for problems that contain a very large number of Boolean clauses. Algorithm~\ref{alg:noc-filter} presents this version of the propagator, which checks for cycles and reports failure if a cycle 
 %with highest priority in favour of 
 satisfying the winning condition for 
 $\opponent$ is detected.
@@ -310,7 +310,7 @@ $ ./nocq --gm /games/rand_50_20_1_5_-20_30.gmw --noc --init 18
 
 \subsubsection*{SAT Encoding.}
 
-\nocq also provides a dedicated SAT encoding pipeline, enabling parity games to be dispatched to a number of high-performance SAT solvers, including \emph{CaDiCaL}~\cite{Biere:Cadical:2024}, \emph{Kissat}~\cite{Biere:Kissat:2024}, and \emph{MiniSat}~\cite{Een:MiniSat:2003}. Figure~\ref{fig:nocq-3} illustrates the \texttt{SATEncoder} class, which implements the encoding techniques proposed by Heljanko {\em et al}~\cite{Heljanko:2012}.
+\nocq also provides a dedicated SAT encoding pipeline, enabling parity games to be dispatched to a number of high-performance SAT solvers, including \emph{CaDiCaL}~\cite{Biere:Kissat:2024}, \emph{Kissat}~\cite{Biere:Kissat:2024}, and \emph{MiniSat}~\cite{Een:MiniSat:2003}. Figure~\ref{fig:nocq-3} illustrates the \texttt{SATEncoder} class, which implements the encoding techniques proposed by Heljanko {\em et al}~\cite{Heljanko:2012}.
 
 The \texttt{SATEncoder} maintains references to the \texttt{Game} instance and maps graph components to integer representations of vertices ($V$) and edges ($E$). The module produces standard CNF output in DIMACS format, ensuring compatibility with any compliant SAT solver. We note that the SAT reduction proposed in~\cite{Heljanko:2012} is restricted to parity objectives/games only, and does not support quantitative winning conditions such as energy or mean-payoff, as we do within \nocq.
 
@@ -326,7 +326,7 @@ $ ./cadical tower5.cnf
 Beyond CP and SAT technologies, \nocq includes procedures for evaluation and preprocessing, as illustrated in Figure~\ref{fig:nocq-4}:
 
 \begin{itemize}
-    \item \textbf{Zielonka}~\cite{Araya:2008}: parity games algorithm with improved attractor computation.
+    \item \textbf{Zielonka}~\cite{Aggarwal:2023}: parity games algorithm with improved attractor computation.
     \item \textbf{TarjanSCC}~\cite{Tarjan:1972}: efficient SCC decomposition of game arenas.
 \end{itemize}
 
@@ -356,7 +356,7 @@ In this section, we evaluate \nocq across two dimensions: qualitative parity gam
 
 First, we assess its performance on games featuring parity conditions only, comparing \nocq against state-of-the-art algorithms using standard benchmarks.
 
-For the SAT backends, we employ several high-performance solvers: \textbf{CaDiCaL} (v2.1.3) \cite{Biere:Cadical:2024}, \textbf{MiniSat} (v2.2.0) \cite{Een:MiniSat:2003}, \textbf{Kissat} (v4.0.2) \cite{Biere:Kissat:2024}, and \textbf{zChaff} (v2007.3.12) \cite{Moskewicz:zChaff:2001}. To establish a robust baseline, we compare our results with \textbf{Oink} \cite{vanDijk:2018}, which implements state-of-the-art algorithms such as Priority Promotion ($\text{PP}$ and $\text{PP+}$) and Parys' improvements ($\text{PAR}$). Additionally, we include Zielonka's Recursive Algorithm ($\text{ZRA}$) featuring the optimized attractor strategy presented in \cite{Aggarwal:2023}, which is not yet integrated into Oink.
+For the SAT backends, we employ several high-performance solvers: \textbf{CaDiCaL} (v2.1.3) \cite{Biere:Kissat:2024}, \textbf{MiniSat} (v2.2.0) \cite{Een:MiniSat:2003}, and \textbf{Kissat} (v4.0.2) \cite{Biere:Kissat:2024}. To establish a robust baseline, we compare our results with \textbf{Oink} \cite{vanDijk:2018}, which implements state-of-the-art algorithms such as Priority Promotion ($\text{PP}$ and $\text{PP+}$) and Parys' improvements ($\text{PAR}$). Additionally, we include Zielonka's Recursive Algorithm ($\text{ZRA}$) featuring the optimized attractor strategy presented in \cite{Aggarwal:2023}, which is not yet integrated into Oink.
 
 The benchmarks used were taken from the PGSolver Library \cite{Friedmann:2017} and Keiren's benchmarks for parity games \cite{Keiren:2015}. The evaluation utilizes 469 benchmark instances categorized into four groups: \textbf{Equivalence Checking (EqC)}, containing 77 instances from formal verification tasks with complex structural connectivity; \textbf{Model Checking (MoC)}, consisting of 106 organic benchmarks derived from $\mu$-calculus problems ; the \textbf{PGSolver Collection (PGS)}, with 161 games from difficult families designed to test theoretical worst-case bounds ; and \textbf{Random Games (RaG)}, comprising 125 instances with varied priority distributions used to assess average-case efficiency and general robustness.
 
