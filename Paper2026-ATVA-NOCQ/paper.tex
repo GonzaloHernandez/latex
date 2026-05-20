@@ -240,7 +240,7 @@ In this section, we describe the implementation of \nocq, a C++ framework develo
 
 \subsection*{Core Architecture and Modules}
 
-\nocq is organised into four independent modules: \emph{Game Manager}, \emph{CPSModels}, \emph{SATEncoding}, and \emph{Utils}. This modular design ensures flexibility, allowing the tool to be used either as a standalone CP/SAT solver or as a reusable library.
+\nocq is organised into four independent modules: \emph{Game Manager}, \emph{CPModels}, \emph{SATEncoding}, and \emph{Utils}. This modular design ensures flexibility, allowing the tool to be used either as a standalone CP/SAT solver or as a reusable library.
 
 
 \subsubsection*{Game Manager.}
@@ -286,7 +286,7 @@ $ ./nocq --jurd 15000 50 --weights -50 30 --min
      \label{fig:nocq-combined}
 \end{figure}
 
-\subsubsection*{Constraint-Based Solving (CPSModels).}
+\subsubsection*{Constraint-Based Solving (CPModels).}
 
 Figure~\ref{fig:nocq-2} illustrates how \nocq implements the CSP model in Definition~\ref{def:csp} and integrates the \noc propagators described in Section~\ref{sec:nocfilter}. A key design principle of \nocq is model independence: the underlying model can be interfaced with different constraint programming (CP) engines.
 %
@@ -480,9 +480,9 @@ Oink(PP+)       & 29.392         & 30/36 & 8.986         & 33/33 & 8.371        
 Oink(PAR)       & 28.525         & 30/36 & 8.345         & 33/33 & 16.798        & 43/50 & \textbf{0.015}& 100/100 \\
 ZRA(ImpAttr)    & 21.249         & 35/36 & 8.606         & 33/33 & 16.632        & 43/50 & 0.053         & 100/100 \\
 \nocq(Ours)     & \textbf{13.502}& 36/36 & \textbf{3.838}& 33/33 & \textbf{5.669}& 54/50 & 0.035         & 100/100 \\
-SAT(CaDiCaL)    & ---            & ---   & ---           & ---   & ---           & ---   & ---        & ---   \\
-SAT(Kissat)     & ---            & ---   & ---           & ---   & ---           & ---   & ---        & ---   \\
-SAT(MiniSat)    & ---            & ---   & ---           & ---   & ---           & ---   & ---        & ---   \\
+% SAT(CaDiCaL)    & ---            & ---   & ---           & ---   & ---           & ---   & ---        & ---   \\
+% SAT(Kissat)     & ---            & ---   & ---           & ---   & ---           & ---   & ---        & ---   \\
+% SAT(MiniSat)    & ---            & ---   & ---           & ---   & ---           & ---   & ---        & ---   \\
 
 \bottomrule
 \end{tabular}
@@ -492,7 +492,7 @@ SAT(MiniSat)    & ---            & ---   & ---           & ---   & ---          
 
 Table~\ref{tab:paritygames-small} presents a consolidated performance comparison on small-scale instances. In this setting, \nocq outperforms traditional SAT-based reductions by up to three orders of magnitude and remains highly competitive with specialized parity game solvers, typically within a factor of three of the fastest algorithm (ZRA).
 
-For large-scale instances, as shown in Table~\ref{tab:paritygames-large}, standard SAT-based approaches are omitted for several categories due to their inability to scale within reasonable resource limits. In this challenging context, \nocq demonstrates superior robustness and scalability. Specifically, it achieves the best performance on Equivalence Checking and Model Checking benchmarks. Furthermore, on the harder problem families within the PGSolver collection, \nocq solves the highest number of instances (92/93) and is significantly faster than the Oink and ZRA variants. While specialized solvers remain slightly faster on Random Games, \nocq remains competitive within a factor of two, highlighting its effectiveness as a general-purpose solver for large-scale parity games.
+For large-scale instances, as shown in Table~\ref{tab:paritygames-large}, standard SAT-based approaches are omitted due to their inability to scale within reasonable resource limits. In this challenging context, \nocq demonstrates superior robustness and scalability. Specifically, it achieves the best performance on Equivalence Checking and Model Checking benchmarks. Furthermore, on the harder problem families within the PGSolver collection, \nocq solves the highest number of instances (92/93) and is significantly faster than the Oink and ZRA variants. While specialized solvers remain slightly faster on Random Games, \nocq remains competitive within a factor of two, highlighting its effectiveness as a general-purpose solver for large-scale parity games.
 
 \subsection{Quantitative Goas and Verification}
 
