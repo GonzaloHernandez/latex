@@ -413,7 +413,7 @@ To exploit this duality, \nocq executes the CSP concurrently from both perspecti
 
 In this section, we evaluate \nocq from two primary perspectives.
 
-\subsection{Parity conditions}
+\subsection{Parity conditions}\label{sec:experiments-parity}
 
 First, we assess its performance on games featuring parity conditions only, comparing \nocq against state-of-the-art algorithms using standard benchmarks.
 
@@ -453,7 +453,6 @@ ZRA(ImpAttr)    & 0.539         & 33/33 & 0.266         & 57/57 & 0.154         
 SAT(CaDiCaL)    & 60.732        & 19/33 & 75.560        & 23/57 & 6.815         & 22/23 & 20.860         & 25/25 \\
 SAT(Kissat)     & 113.050       &  2/33 & 79.001        & 21/57 & 6.064         & 22/23 & 26.289         & 24/25 \\
 SAT(MiniSat)    & 79.766        & 17/33 & 79.639        & 22/57 & 6.491         & 22/23 & 28.064         & 24/25 \\
-
 \bottomrule
 \end{tabular}
 }
@@ -495,71 +494,74 @@ One of \nocq's main features is the ability to handle quantitative goals within 
 %
 In this context, the next set of benchmarks demonstrates \nocq's performance when solving such kinds of games when enriched with additional quantitative (energy and/or mean-payoff) requirements.  
 %
-To this end, we solve a selection of random benchmarks as proposed in \cite{Chaloupka:2011}, following the design of the \texttt{SPRAND} generator \cite{CherkasskyBoris:1996} for energy and mean-payoff games. These benchmarks utilize random positional vertex assignments and randomly generated thresholds. We assess the tool's efficiency across various multi-objective configurations defined by the winning condition $\gamma_{p} = \omega \otimes \eta \otimes \mu$, where $\otimes$ denotes the product composition of parity ($\omega$), energy ($\eta$), and mean-payoff ($\mu$) objectives.
-
-The benchmarks are categorized by their structural properties using the naming convention \texttt{R\_<d><s\_key>} proposed by \cite{Chaloupka:2011}, where \texttt{<d>} represents the out-degree (density) and \texttt{<s\_key>} denotes the state-space size. We consider two density levels: low density ($5$ outgoing edges per vertex) and high density ($10$ outgoing edges per vertex). The vertex counts are scaled as follows: $m = 2^{16}$, $b = 2^{17}$, $h = 2^{18}$, $xb = 2^{19}$, and $xh = 2^{20}$.
+To this end, first, we used the same games of Section \ref{sec:experiments-parity} but now added with random weights over the edges using a fair distribution between -1,000 and 1,000. These benchmarks utilize random positional vertex assignments and randomly generated thresholds. We assess the tool's efficiency across various multi-objective configurations defined by the winning condition $\gamma_{p} = \omega \otimes \eta \otimes \mu$, where $\otimes$ denotes the product composition of parity ($\omega$), energy ($\eta$), and mean-payoff ($\mu$) objectives.
 
 \begin{table}[ht]
 \centering
-\caption{Performance (in time) of \nocq with different winning conditions on instances with low density. Average time is reported in seconds using PAR2 scoring with a 60s timeout. 'Sol.' indicates the number of instances solved out of 50.}
+\caption{Performance of \nocq with different winning conditions on small and large-scale instances on specialized families of Games. Same configuration as Table \ref{tab:paritygames-large}.}
 \setlength{\tabcolsep}{1.2mm}
 {\small 
-\begin{tabular}{l|rr|rr|rr|rr|rr}
+\begin{tabular}{l|rr|rr|rr|rr}
 \toprule
-\textbf{Conditions} & \multicolumn{2}{c|}{\textbf{R\_5m}} & \multicolumn{2}{c|}{\textbf{R\_5b}} & \multicolumn{2}{c|}{\textbf{R\_5h}} & \multicolumn{2}{c|}{\textbf{R\_5xb}} & \multicolumn{2}{c}{\textbf{R\_5xh}} \\
-& Time & Sol. & Time & Sol. & Time & Sol. & Time & Sol. & Time & Sol. \\
+\textbf{Algorithm} & \multicolumn{2}{c|}{\textbf{EquivalenceCh}} & \multicolumn{2}{c|}{\textbf{ModelCh}} & \multicolumn{2}{c|}{\textbf{PGSolver}} & \multicolumn{2}{c}{\textbf{RandomG}} \\
+ & Time & Solved & Time & Solved & Time & Solved & Time & Solved \\
 \midrule
 \textbf{$\omega$}
-    & 0.064 & 30 & 0.139 & 30 & 0.339 & 30 & 1.909 & 30 & 2.226 & 30 \\
+    & 6.950  & 69/69 & 2.019 & 90/90 & 2.838  & 78/78 & 0.042  & 75/75 \\
 \textbf{$\eta$}
-    & 40.134 & 20 & 16.694 & 26 & 28.228 & 23 & 42.495 & 20 & 41.224 & 20 \\
+    & 21.272 & 57/69 & 2.019 & 90/90 & 6.371  & 74/78 & 1.671  & 74/75 \\
 \textbf{$\mu$}
-    & 52.038 & 17 & 24.105 & 24 & 32.259 & 22 & 33.483 & 22 & 49.617 & 18 \\
+    & 21.271 & 57/69 & 2.019 & 90/90 & 13.568 & 70/78 & 30.990 & 56/75 \\
 \textbf{$\omega \otimes \eta$}
-    & 40.354 & 20 & 17.344 & 26 & 12.312 & 27 & 6.999 & 29 & 18.083 & 26 \\
+    & 21.272 & 57/69 & 2.021 & 90/90 & 6.391  & 74/78 & 1.669  & 74/75 \\
 \textbf{$\omega \otimes \mu$}
-    & 48.041 & 18 & 24.105 & 24 & 32.260 & 22 & 33.548 & 22 & 49.661 & 18 \\
+    & 21.274 & 57/69 & 2.019 & 90/90 & 11.126 & 71/78 & 21.066 & 62/75 \\
 \textbf{$\eta \otimes \mu$}
-    & 48.040 & 18 & 24.588 & 24 & 32.259 & 22 & 33.577 & 22 & 49.584 & 18 \\
+    & 21.271 & 57/69 & 2.021 & 90/90 & 8.044  & 73/78 & 16.079 & 65/75 \\
 \textbf{$\omega \otimes \eta \otimes \mu$}
-    & 48.039 & 18 & 24.975 & 24 & 32.255 & 22 & 33.512 & 22 & 49.635 & 18 \\
+    & 23.010 & 56/69 & 2.019 & 90/90 & 10.685 & 72/78 & 22.457 & 61/75 \\
 \bottomrule
 \end{tabular}
 }
-\label{tab:quantitative-small}
+\label{tab:quantitative-benchmarks}
 \end{table}
+
+
+Table~\ref{tab:quantitative-benchmarks} shows that while the baseline condition~$\omega$ consistently achieves a 100\% solving rate and minimal execution times across all datasets, the introduction of~$\eta$ and~$\mu$ imposes distinct computational overheads, with~$\mu$ acting as the primary bottleneck for performance degradation and timeouts. This complexity is highly dependent on graph structure: while the large-scale \texttt{Model Checking} instances remain entirely unaffected by condition complexity due to structural properties that neutralize evaluation overhead, chaotic environments like \texttt{Random Games} show extreme sensitivity, causing pure~$\mu$ to drop to 56/75 solved instances. Interestingly, the data reveals a beneficial constraint interaction where combining~$\mu$ with~$\omega$ or~$\eta$ (such as in~$\eta \otimes \mu$) frequently mitigates this overhead, improving runtimes and solving more instances than~$\mu$ alone by effectively pruning the search space.
+
+Second, we evaluated a selection of random benchmarks as proposed by~\cite{Chaloupka:2011}, which follow the design of the \texttt{SPRAND} generator~\cite{CherkasskyBoris:1996} for energy and mean-payoff games. These benchmarks are categorized by their structural properties using the naming convention \texttt{R\_<d><s\_key>} introduced in~\cite{Chaloupka:2011}, where \texttt{<d>} represents the vertex out-degree (density) and \texttt{<s\_key>} denotes the state-space size. For this benchmarking suite, we consider a high density of $10$ outgoing edges per vertex. The vertex counts scale according to the criteria and labeling defined in~\cite{Chaloupka:2011}: $b = 2^{17}$ and $h = 2^{18}$. Furthermore, we extended the evaluation to larger games by introducing two additional scales: $xb = 2^{19}$ and $xh = 2^{20}$, while broadening the edge weight range to approximately $\pm 10^4$ (from $-10,000$ to $10,000$).
 
 \begin{table}[ht]
 \centering
-\caption{Performance (in time) of \nocq with different winning conditions on instances with high density. Same configuration as in Table \ref{tab:quantitative-small}}
+\caption{Performance of \nocq with different winning conditions on random instances with SPRAND structure \cite{Chaloupka:2011}. Same configuration as Table \ref{tab:quantitative-benchmarks}.}
 \setlength{\tabcolsep}{1.2mm}
 {\small 
-\begin{tabular}{l|rr|rr|rr|rr|rr}
+\begin{tabular}{l|rr|rr|rr|rr}
 \toprule
-\textbf{Conditions} & \multicolumn{2}{c|}{\textbf{R\_10m}} & \multicolumn{2}{c|}{\textbf{R\_10b}} & \multicolumn{2}{c|}{\textbf{R\_10h}} & \multicolumn{2}{c|}{\textbf{R\_10xb}} & \multicolumn{2}{c}{\textbf{R\_10xh}} \\
-& Time & Sol. & Time & Sol. & Time & Sol. & Time & Sol. & Time & Sol. \\
+\textbf{Conditions} & \multicolumn{2}{c|}{\textbf{R\_10b}} & \multicolumn{2}{c|}{\textbf{R\_10h}} & \multicolumn{2}{c|}{\textbf{R\_10xb}} & \multicolumn{2}{c}{\textbf{R\_10xh}} \\
+& Time & Solved & Time & Solved & Time & Solved & Time & Solved \\
 \midrule
 \textbf{$\omega$}
-    & 0.087 & 30 & 0.201 & 30 & 0.456 & 30 & 1.046 & 30 & 2.137 & 30 \\
+    &  0.201 & 30/30 &  0.456 & 30/30 &  1.046 & 30/30 &  2.137 & 30/30 \\
 \textbf{$\eta$}
-    & 36.612 & 21 & 30.721 & 23 & 37.617 & 21 & 26.367 & 24 & 38.197 & 21 \\
+    & 30.721 & 23/30 & 37.617 & 21/30 & 26.367 & 24/30 & 38.197 & 21/30 \\
 \textbf{$\mu$}
-    & 36.419 & 21 & 40.134 & 20 & 52.263 & 17 & 52.568 & 17 & 37.439 & 21 \\
+    & 40.134 & 20/30 & 52.263 & 17/30 & 52.568 & 17/30 & 37.439 & 21/30 \\
 \textbf{$\omega \otimes \eta$}
-    & 37.761 & 21 & 31.389 & 23 & 23.013 & 25 & 6.674 & 29 & 10.722 & 28 \\
+    & 31.389 & 23/30 & 23.013 & 25/30 &  6.674 & 29/30 & 10.722 & 28/30 \\
 \textbf{$\omega \otimes \mu$}
-    & 36.469 & 21 & 36.139 & 21 & 52.254 & 17 & 56.530 & 16 & 37.405 & 21 \\
+    & 36.139 & 21/30 & 52.254 & 17/30 & 56.530 & 16/30 & 37.405 & 21/30 \\
 \textbf{$\eta \otimes \mu$}
-    & 48.052 & 18 & 40.130 & 20 & 52.258 & 17 & 56.528 & 16 & 37.383 & 21 \\
+    & 40.130 & 20/30 & 52.258 & 17/30 & 56.528 & 16/30 & 37.383 & 21/30 \\
 \textbf{$\omega \otimes \eta \otimes \mu$}
-    & 48.052 & 18 & 40.129 & 20 & 52.258 & 17 & 56.515 & 16 & 37.375 & 21 \\
+    & 40.129 & 20/30 & 52.258 & 17/30 & 56.515 & 16/30 & 37.375 & 21/30 \\
 \bottomrule
 \end{tabular}
 }
-\label{tab:quantitative-large}
+\label{tab:quantitative-chpk}
 \end{table}
 
-The results across Table~\ref{tab:quantitative-small} and Table~\ref{tab:quantitative-large} reveal that the performance of \nocq is highly dependent on the specific combination of objectives and the density of the game graph. For single-objective instances, the parity condition ($\omega$) remains consistently the easiest to solve, maintaining a 100\% success rate regardless of graph size or density. In contrast, energy ($\eta$) and mean-payoff ($\mu$) objectives exhibit greater sensitivity to state-space scaling; as the vertex count increases, there is a noticeable decline in the number of instances solved within the time limit. Interestingly, the solver often performs more efficiently on higher-density graphs ($d=10$) for certain configurations, suggesting that increased connectivity may facilitate faster convergence or propagation of quantitative constraints.
+The results in Table~\ref{tab:quantitative-chpk} are highly consistent with the trends observed in Table~\ref{tab:quantitative-benchmarks}, confirming that the composition of winning conditions does not inherently compound computational difficulty. The baseline condition~$\omega$ scale exceptionally well across the high-density random benchmarks, maintaining a 100\% solving rate (30/30) and completing in under 2.2 seconds even on the largest $R\_10xh$ instances.
 
 A key strength of the \nocq toolchain is highlighted in the multi-objective configurations. When combining parity with an energy objective (e.g., $\omega \otimes \eta$), the solver frequently demonstrates a pruning effect, where the parity condition helps narrow the search space, leading to more robust solving times compared to other combinations. However, for the most complex triple-objective configurations ($\omega \otimes \eta \otimes \mu$), the performance tends to be bottlenecked by the mean-payoff component.
 
