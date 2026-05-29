@@ -1,0 +1,46 @@
+\documentclass{article}
+\usepackage[paperwidth=1920pt,paperheight=1080pt,margin=0pt]{geometry}
+\usepackage{xcolor}
+\usepackage{anyfontsize}
+\usepackage{t1enc}
+
+% --- PRESENTATION FONT SETUP ---
+\usepackage{helvet} % Loads a clean, professional sans-serif font (Helvetica clone)
+\renewcommand{\familydefault}{\sfdefault} % Sets the entire document to use sans-serif
+
+\begin{document}
+\pagestyle{empty} % Added back to keep the canvas clean without page numbers
+\fontsize{40pt}{52pt}\selectfont
+
+% --- COLUMN 1 (Left - Width: 1400pt) ---
+\begin{minipage}[t][1080pt]{1400pt}
+    \vspace{40pt}\hspace{40pt}% Adds a clean margin from the top/left edge
+    \begin{minipage}{1320pt}% Inner container to prevent text touching the line
+
+        \begin{itemize}
+            \item Soudness
+            \item Completness
+            \item Unification
+            \item Subsumtion
+        \end{itemize}
+        $V_{i \in E}$
+    \end{minipage}
+\end{minipage}%
+%
+% --- COLUMN 2 (Middle Line - Width: 20pt) ---
+\begin{minipage}[t][1080pt]{20pt}
+    \vspace*{20pt}
+    \color{blue}\vrule width 2pt height 1020pt
+\end{minipage}%
+%
+% --- COLUMN 3 (Right - Width: 500pt) ---
+\begin{minipage}[t][1080pt]{500pt}
+    \vspace{40pt}\hspace{20pt}% Adds a clean margin from the top/line edge
+    \begin{minipage}{430pt}% Inner container
+        {\Large\bfseries Title 2}\par\vspace{0.5cm}
+        Paragraph 2 content goes here. This text will stay confined to the 
+        remaining space on the right side.
+    \end{minipage}
+\end{minipage}
+
+\end{document}
