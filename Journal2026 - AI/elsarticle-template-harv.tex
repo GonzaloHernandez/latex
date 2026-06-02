@@ -47,6 +47,8 @@
 %% for the whole article with \linenumbers.
 %% \usepackage{lineno}
 
+\input{macros.tex}
+
 \journal{Artificial Intelligence}
 
 \begin{document}
@@ -78,38 +80,50 @@
 %%            country={}}
 %% \fntext[label3]{}
 
-\title{} %% Article title
+\title{Constraint base approach for solving deterministic \wregulargames} %% Article title
 
 %% use optional labels to link authors explicitly to addresses:
-%% \author[label1,label2]{}
-%% \affiliation[label1]{organization={},
-%%             addressline={},
-%%             city={},
-%%             postcode={},
-%%             state={},
-%%             country={}}
-%%
-%% \affiliation[label2]{organization={},
-%%             addressline={},
-%%             city={},
-%%             postcode={},
-%%             state={},
-%%             country={}}
+\author[label1,label3]{Gonzalo Hernandez}
+\author[label1]{Julian Garcia}
+\author[label2]{Julian Gutierrez}
+\author[label3]{Guido Tack}
 
-\author{} %% Author name
+\affiliation[label1]{organization={Monash University},
+  addressline={},
+  city={},
+  postcode={},
+  state={},
+  country={Australia}}
 
-%% Author affiliation
-\affiliation{organization={},%Department and Organization
-            addressline={}, 
-            city={},
-            postcode={}, 
-            state={},
-            country={}}
+\affiliation[label2]{organization={University of Sussex},
+  addressline={},
+  city={},
+  postcode={},
+  state={},
+  country={United Kingdom}}
+
+\affiliation[label2]{organization={Universidad de Nariño},
+  addressline={},
+  city={},
+  postcode={},
+  state={},
+  country={Colombia}}
+
+% \author{} %% Author name
+
+% %% Author affiliation
+% \affiliation{organization={},%Department and Organization
+%             addressline={}, 
+%             city={},
+%             postcode={}, 
+%             state={},
+%             country={}}
 
 %% Abstract
 \begin{abstract}
-%% Text of abstract
-Abstract text.
+Solving \wregulargames is a core problem in formal verification, particularly within model checking and synthesis methods that have several industrial-scale applications. In this paper, we propose a constraint-based approach for games on graphs, built upon a novel propagation algorithm that eliminates opponent cycles from the game graph. This approach yields an efficient method that directly exploits the duality between players in a parity game. Our implementation within a Lazy Clause Generation framework outperforms all existing constraint-based methods for parity games. Furthermore, it performs competitively against the most specialized, non-CP-based algorithms---often matching and sometimes exceeding their performance---while retaining the inherent flexibility of general constraint-based approaches. 
+
+Because new constraints can be seamlessly integrated, our method provides a highly flexible framework for refining existing problem formulations to search for preferred solutions. This extensibility allows the framework to solve multi-conditioned games, such as those combining parity conditions with cost or resource-bounded requirements. Finally, we present the theoretical foundations of our approach, a comprehensive experimental evaluation, and an analysis of different algorithmic variants.
 \end{abstract}
 
 %%Graphical abstract
@@ -125,13 +139,7 @@ Abstract text.
 
 %% Keywords
 \begin{keyword}
-%% keywords here, in the form: keyword \sep keyword
-
-%% PACS codes here, in the form: \PACS code \sep code
-
-%% MSC codes here, in the form: \MSC code \sep code
-%% or \MSC[2008] code \sep code (2000 is the default)
-
+Constraint programming  \sep Parity games \sep Verification.
 \end{keyword}
 
 \end{frontmatter}
