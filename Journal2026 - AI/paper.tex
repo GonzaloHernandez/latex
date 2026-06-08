@@ -1,0 +1,221 @@
+%% 
+%% Copyright 2007-2024 Elsevier Ltd
+%% 
+%% This file is part of the 'Elsarticle Bundle'.
+%% ---------------------------------------------
+%% 
+%% It may be distributed under the conditions of the LaTeX Project Public
+%% License, either version 1.3 of this license or (at your option) any
+%% later version.  The latest version of this license is in
+%%    http://www.latex-project.org/lppl.txt
+%% and version 1.3 or later is part of all distributions of LaTeX
+%% version 1999/12/01 or later.
+%% 
+%% The list of all files belonging to the 'Elsarticle Bundle' is
+%% given in the file `manifest.txt'.
+%% 
+%% Template article for Elsevier's document class `elsarticle'
+%% with harvard style bibliographic references
+
+\documentclass[preprint,12pt,authoryear]{elsarticle}
+
+%% Use the option review to obtain double line spacing
+%% \documentclass[authoryear,preprint,review,12pt]{elsarticle}
+
+%% Use the options 1p,twocolumn; 3p; 3p,twocolumn; 5p; or 5p,twocolumn
+%% for a journal layout:
+%% \documentclass[final,1p,times,authoryear]{elsarticle}
+%% \documentclass[final,1p,times,twocolumn,authoryear]{elsarticle}
+%% \documentclass[final,3p,times,authoryear]{elsarticle}
+%% \documentclass[final,3p,times,twocolumn,authoryear]{elsarticle}
+%% \documentclass[final,5p,times,authoryear]{elsarticle}
+%% \documentclass[final,5p,times,twocolumn,authoryear]{elsarticle}
+
+%% For including figures, graphicx.sty has been loaded in
+%% elsarticle.cls. If you prefer to use the old commands
+%% please give \usepackage{epsfig}
+
+%% The amssymb package provides various useful mathematical symbols
+\usepackage{amssymb}
+%% The amsmath package provides various useful equation environments.
+\usepackage{amsmath}
+%% The amsthm package provides extended theorem environments
+%% \usepackage{amsthm}
+
+%% The lineno packages adds line numbers. Start line numbering with
+%% \begin{linenumbers}, end it with \end{linenumbers}. Or switch it on
+%% for the whole article with \linenumbers.
+%% \usepackage{lineno}
+
+\input{macros.tex}
+
+\journal{Artificial Intelligence}
+
+\begin{document}
+
+\begin{frontmatter}
+
+%% Title, authors and addresses
+
+%% use the tnoteref command within \title for footnotes;
+%% use the tnotetext command for theassociated footnote;
+%% use the fnref command within \author or \affiliation for footnotes;
+%% use the fntext command for theassociated footnote;
+%% use the corref command within \author for corresponding author footnotes;
+%% use the cortext command for theassociated footnote;
+%% use the ead command for the email address,
+%% and the form \ead[url] for the home page:
+%% \title{Title\tnoteref{label1}}
+%% \tnotetext[label1]{}
+%% \author{Name\corref{cor1}\fnref{label2}}
+%% \ead{email address}
+%% \ead[url]{home page}
+%% \fntext[label2]{}
+%% \cortext[cor1]{}
+%% \affiliation{organization={},
+%%            addressline={}, 
+%%            city={},
+%%            postcode={}, 
+%%            state={},
+%%            country={}}
+%% \fntext[label3]{}
+
+\title{Constraint base approach for solving deterministic \wregulargames} %% Article title
+
+% %% use optional labels to link authors explicitly to addresses:
+% \author[label1,label3]{}
+% \author[label1]{}
+
+% \affiliation[label1]{organization={},
+%   addressline={},
+%   city={},
+%   postcode={},
+%   state={},
+%   country={}}
+
+% \affiliation[label2]{organization={},
+%   addressline={},
+%   city={},
+%   postcode={},
+%   state={},
+%   country={}}
+
+
+\author{} %% Author name
+
+% %% Author affiliation
+% \affiliation{organization={},%Department and Organization
+%             addressline={}, 
+%             city={},
+%             postcode={}, 
+%             state={},
+%             country={}}
+
+%% Abstract
+\begin{abstract}
+Solving \wregulargames is a core problem in formal verification, particularly within model checking and synthesis methods that have several industrial-scale applications. In this paper, we propose a constraint-based approach for games on graphs, built upon a novel propagation algorithm that eliminates opponent cycles from the game graph. This approach yields an efficient method that directly exploits the duality between players in a parity game. Our implementation within a Lazy Clause Generation framework outperforms all existing constraint-based methods for parity games. Furthermore, it performs competitively against the most specialized, non-CP-based algorithms---often matching and sometimes exceeding their performance---while retaining the inherent flexibility of general constraint-based approaches. 
+
+Because new constraints can be seamlessly integrated, our method provides a highly flexible framework for refining existing problem formulations to search for preferred solutions. This extensibility allows the framework to solve multi-conditioned games, such as those combining parity conditions with cost or resource-bounded requirements. Finally, we present the theoretical foundations of our approach, a comprehensive experimental evaluation, and an analysis of different algorithmic variants.
+\end{abstract}
+
+%%Graphical abstract
+\begin{graphicalabstract}
+%\includegraphics{grabs}
+\end{graphicalabstract}
+
+%%Research highlights
+\begin{highlights}
+\item Research highlight 1
+\item Research highlight 2
+\end{highlights}
+
+%% Keywords
+\begin{keyword}
+Constraint programming  \sep Parity games \sep Verification.
+\end{keyword}
+
+\end{frontmatter}
+
+%% Add \usepackage{lineno} before \begin{document} and uncomment 
+%% following line to enable line numbers
+%% \linenumbers
+
+%% main text
+%%
+\newpage
+\section{Introduction}
+Two-player, zero-sum, infinite-duration games played on graphs provide the foundational mathematical framework for the automated verification and synthesis of reactive systems. In this paradigm, vertices represent states of the system and its environment, edges denote possible transitions or actions, and infinite paths (plays) represent the ongoing behavior of the system. Solving these games—determining which player can force a play to satisfy a specific objective—is central to model checking, synthesis of controllers, and verifying specifications against adversarial environments.
+%
+Depending on the system requirements, these objectives are specified using different winning conditions on infinite paths. These are broadly categorized into qualitative and quantitative conditions. Qualitative conditions focus on the structural or topological properties of infinite paths; classic examples include Büchi conditions (visiting designated states infinitely often), Rabin conditions, and parity conditions (evaluating the parity of the maximum priority seen infinitely often). Quantitative conditions, on the other hand, incorporate resource constraints or performance metrics, such as energy conditions (keeping a running resource counter above zero) and mean-payoff conditions (optimizing the long-run average reward).
+%
+While specialized, highly tuned algorithms exist for isolated game types—most notably for parity games, which belong to $\mathsf{NP} \cap \mathsf{co\textit{-}NP}$~\cite{Jurdziński:1998}  —handling multi-conditioned objectives or transitioning between qualitative and quantitative variants often requires abandoning the underlying algorithmic machinery entirely. Because these state-of-the-art approaches rely on dedicated engines hardcoded to exploit the distinct mathematical structure of a single winning condition, they lack architectural modularity. Consequently, extending them to multi-conditioned settings typically requires complex reductions that fundamentally alter the game graph, leading to severe state-space explosion.
+%
+Traditional attempts to apply general combinatorial optimization frameworks, such as static reductions to Boolean Satisfiability (SAT), suffer from severe scalability bottlenecks. Forbidding winning cycles for an opponent via propositional logic leads to a massive explosion in formula size~\cite{Heljanko:2012}, severely limiting their practical application. In this paper, we overcome these limitations by presenting a unified, constraint-based approach capable of solving deterministic \wregulargames across a spectrum of winning conditions. Instead of relying on rigid, monolithic encodings, our approach is built upon a novel propagation algorithm designed to dynamically eliminate opponent winning cycles from the game graph. By abstracting the core graph reasoning into a dedicated constraint propagator, our method directly exploits the inherent duality between players, providing a symmetric and highly efficient mechanism for filtering invalid actions.
+%
+We implement this system within a Lazy Clause Generation (LCG) framework~\cite{DBLP:journals/constraints/OhrimenkoSC09}. By dynamically reasoning about the graph's structure during search and generating precise explanations for edge prunings, our framework combines the operational efficiency of specialized graph algorithms with the conflict-driven learning capabilities of modern constraint solvers. Empirical evaluations \cite{Hernandez:2026:noc} demonstrate that this approach not only outperforms previous constraint-based and SAT-based formulations for qualitative games like parity, but also performs highly competitively against state-of-the-art, non-CP-based specialized algorithms. More importantly, we show that the inherent flexibility of general constraint programming allows our framework to seamlessly scale from purely qualitative objectives (Büchi, Rabin, parity) to complex quantitative settings (energy, mean-payoff), as well as multi-conditioned formulations where qualitative and quantitative constraints must be satisfied simultaneously.
+
+The remainder of this paper is organized as follows. Section...
+
+\section{Preliminaries}\label{sec:prelims}
+
+\subsection{Turn-Based Games on Graphs}
+\label{subsec:turn_based_games}
+
+An \wregulargame is a two-player, zero-sum game of infinite duration played on a directed graph called an \textit{arena}. Two players, \textit{Even} (denoted as $\even$ or $0$) and \textit{Odd} (denoted as $\odd$ or $1$), move a token along adjacent vertices. The vertex where the token currently resides determines which player chooses the next transition. This ongoing process generates an infinite sequence of states. The ultimate winner of the game depends on whether this sequence satisfies a specific objective, defined by the game's winning condition.
+
+\begin{definition}[Arena]\label{def:arena}
+A turn-based game \textit{arena} $\mathcal{A}$ is a tuple $\mathcal{A} = (V, E, \Omega, Q)$, where:
+\begin{itemize}
+    \item $V$ is a finite set of vertices partitioned into two disjoint sets: $V_{\even}$ (vertices controlled by Player~$\even$) and $V_{\odd}$ (vertices controlled by Player~$\odd$).
+    \item $E \subseteq V \times V$ is a set of directed transitions such that every vertex has at least one outgoing edge, i.e., $\forall v \in V, |vE| \geq 1$, where $vE = \{ w \in V \mid (v, w) \in E \}$ denotes the set of successors of $v$. We denote $Ev = \{ u \in V \mid (u, v) \in E \}$ as the set of predecessors of $v$.
+    \item $\Omega: V \to \mathbb{N}$ is a priority coloring function that assigns to each vertex a non-negative integer priority (primarily utilized in qualitative and parity contexts).
+    \item $Q: E \to \mathbb{Z}$ is a weight function that assigns an integer weight to each transition, representing resource costs or rewards (primarily utilized in quantitative contexts).
+\end{itemize}
+\end{definition}
+
+A game begins with a token placed at an initial vertex $v_0 \in V$. If $v_0 \in V_{\even}$, Player~$\even$ selects a successor $v_1 \in v_0E$; if $v_0 \in V_{\odd}$, Player~$\odd$ makes the selection. The token is then moved to $v_1$, and the process repeats indefinitely. This sequence of choices produces an infinite path $\pi = v_0 v_1 v_2 \ldots$ such that $(v_i, v_{i+1}) \in E$ for all $i \geq 0$, which is formally termed a \textit{play}. We denote the set of all infinite plays in $\mathcal{A}$ as $\text{Plays}(\mathcal{A})$. Given a play $\pi$, we define $\text{Inf}(\pi) \subseteq V$ as the set of vertices that appear infinitely often in $\pi$.
+
+\subsection*{Strategies and Determinism}
+A \textit{strategy} for a player is a recipe specifying which successor to choose based on the history of the play up to the current vertex. In this work, we focus on \textit{memoryless} (or positional) strategies, which are sufficient for solving the standard classes of deterministic $\omega$-regular games considered here. A memoryless strategy for Player~$\even$ is a function $\sigma: V_{\even} \to V$ such that $\sigma(v) \in vE$ for all $v \in V_{\even}$. Symmetrically, a memoryless strategy for Player~$\odd$ is a function $\tau: V_{\odd} \to V$ such that $\tau(v) \in vE$ for all $v \in V_{\odd}$. 
+
+A profile consisting of a pair of memoryless strategies $(\sigma, \tau)$ completely determines a unique play $\pi(v_0, \sigma, \tau) = v_0 v_1 v_2 \ldots$ starting from any initial vertex $v_0$, where $v_{i+1} = \sigma(v_i)$ if $v_i \in V_{\even}$ and $v_{i+1} = \tau(v_i)$ if $v_i \in V_{\odd}$. 
+
+An objective $\mathcal{W}$ for Player~$\even$ is a subset of all possible infinite plays, $\mathcal{W} \subseteq \text{Plays}(\mathcal{A})$. A play $\pi$ is winning for Player~$\even$ if $\pi \in \mathcal{W}$; otherwise, because the games are zero-sum, the play is winning for Player~$\odd$. A strategy $\sigma$ is a winning strategy for Player~$\even$ from a vertex $v_0$ if for all possible strategies $\tau$ of the opponent, the resulting play $\pi(v_0, \sigma, \tau)$ belongs to $\mathcal{W}$. Solving a game means partitioning the vertex set $V$ into two winning regions $W_{\even}$ and $W_{\odd}$, containing the vertices from which Player~$\even$ and Player~$\odd$ possess a winning strategy, respectively.
+
+\subsection{Winning Conditions for \wregulargames}\label{subsec:winning_conditions}
+\subsubsection{Qualitative conditions}
+\subsubsection{Quantitative conditions}
+
+\section{Constraint Programming Framework for Game Solving}\label{sec:cp_framework}
+\subsection{Decision Variables and Local Strategy Characterization}\label{subsec:variables_local}
+\subsection{Baseline Formulation: Monolithic SAT Encoding}\label{subsec:sat_baseline}
+
+\section{Global Opponent Cycle Elimination Propagators}\label{sec:global_propagators}
+\subsection{The Boolean Formulation (\noc-Bool)}\label{subsec:noc_bool}
+\subsection{The Integer Formulation (\noc-Int)}\label{subsec:noc_int}
+\subsection{Search Strategies and Game-Specific Heuristics}\label{subsec:search_heuristics}
+\subsection{Global Cycle Elimination Logic}\label{subsec:cycle_elimination_logic}
+
+
+\section{Functional Formulation of Winning Conditions}\label{sec:function_conditions}
+\subsection{Formulating Qualitative Objectives}\label{subsec:cp_qualitative}
+\subsection{Formulating Quantitative Objectives}\label{subsec:cp_quantitative}
+\subsection{Handling Multi-Conditioned Games}\label{subsec:multi_conditioned}
+
+\section{Experimental Evaluation}\label{sec:experiments}
+
+\subsection{Experimental Setup and Benchmarks}\label{subsec:exp_setup}
+\subsection{Qualitative Objectives: Parity Games}\label{subsec:exp_parity}
+\subsection{Quantitative Goals and Formal Verification}\label{subsec:exp_quantitative}
+\subsection{Variant Analysis and Heuristic Impact}\label{subsec:ablation_study}
+
+\section{Conclusions and Future Work}\label{sec:conclusion}
+
+\newpage
+\bibliographystyle{elsarticle-harv} 
+\bibliography{paper}
+
+\end{document}
+
+\endinput
+
