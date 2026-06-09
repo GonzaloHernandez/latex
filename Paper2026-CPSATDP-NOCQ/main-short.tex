@@ -1,5 +1,5 @@
 
-\documentclass[a4paper,UKenglish,cleveref, autoref, thm-restate, anonymous]{lipics-v2021}
+\documentclass[a4paper,UKenglish,cleveref, autoref, thm-restate]{lipics-v2021}
 \usepackage{algorithm}
 \usepackage[noend]{algorithmic}
 \usepackage{comment}
@@ -29,10 +29,10 @@
 
 \bibliographystyle{plainurl}% the mandatory bibstyle
 
-\title{NOCQ: A Constraint-Based Toolchain for\\Parity Games with Quantitative Conditions} %TODO Please add
-
-%\titlerunning{Dummy short title} %TODO optional, please use if title is longer than one line
-\author{Gonzalo Hernandez}{Monash University \and Universidad de Nariño}{gonzalo.hernandez@monash.edu\footnote{Also reachable at \texttt{gonzalo.hernandez@udenar.edu.co}}}{}{}
+\title{NOCQ: A Constraint-Based Toolchain for\\Parity with Quantitative Conditions} %TODO Please add
+\titlerunning{NOCQ: A Constraint-Based Toolchain for Parity Games with Quantitative Conditions} %TODO optional, please use i title is longer than one line
+% \author{Gonzalo Hernandez}{Monash University \and Universidad de Nariño}{gonzalo.hernandez@monash.edu\footnote{Also reachable at \texttt{gonzalo.hernandez@udenar.edu.co}}}{}{}
+\author{Gonzalo Hernandez}{Monash University \and Universidad de Nariño}{gonzalo.hernandez@monash.edu, gonzalo.hernandez@udenar.edu.co}{}{}
 \author{Julian Garcia}{Monash University}{julian.garcia@monash.edu}{}{}
 \author{Julian Gutierrez}{University of Sussex}{J.Gutierrez@sussex.ac.uk}{}{}
 \author{Guido Tack}{Monash University \and OPTIMA ARC ITTC}{guido.tack@monash.edu}{}{}
@@ -41,7 +41,7 @@
 
 % \author{Joan R. Public\footnote{Optional footnote, e.g. to mark corresponding author}}{Department of Informatics, Dummy College, [optional: Address], Country}{joanrpublic@dummycollege.org}{[orcid]}{[funding]}
 
-% \authorrunning{J. Open Access and J.\,R. Public} %TODO mandatory. First: Use abbreviated first/middle names. Second (only in severe cases): Use first author plus 'et al.'
+\authorrunning{Gonzalo Hernandez} %TODO mandatory. First: Use abbreviated first/middle names. Second (only in severe cases): Use first author plus 'et al.'
 
 \Copyright{Gonzalo Hernandez, Julian Garcia, Julian Gutierrez, , Guido Tack} %TODO mandatory, please use full first names. LIPIcs license is "CC-BY";  http://creativecommons.org/licenses/by/3.0/
 
@@ -204,7 +204,7 @@ $\opponent$ is detected.
 
 Algorithm~\ref{alg:noc-filter} implements the \noc propagator using a recursive DFS traversal. It maintains the current exploration state via $path_V$ and $path_E$. Parameter $\mathcal{E}$ tracks the Boolean decision variables for arena edges. The core logic occurs when a cycle is detected (Line~\ref{alg:noc-filter:pathcheck}). The propagator evaluates $\gamma_{\player}$---the specific combination of parity ($\omega$), energy ($\eta$), and mean-payoff ($\mu$) objectives in the game. 
 %
-If the cycle violates the winning criteria for $\player$, the propagator rules out the edge that closes the cycle (Line~\ref{alg:noc-eager:ruleoutedge}), explained by a \textit{conflict clause} generated in Line~\ref{alg:noc-eager:reason} consisting of the negation of the edges currently in $path_E$. This clause effectively {\em learns} the failing partial assignment, allowing the underlying SAT/CP solver to perform non-chronological backtracking whenever this assginment is part of a failure and prune all other search branches that can lead to the same non-winning cycle.
+If the cycle violates the winning criteria for $\player$, the propagator rules out the edge that closes the cycle (Line~\ref{alg:noc-eager:ruleoutedge}), explained by a \textit{conflict clause} generated in Line~\ref{alg:noc-eager:reason} consisting of the negation of the edges currently in $path_E$. This clause effectively {\em learns} the failing partial assignment, allowing the underlying SAT/CP solver to perform non-chronological backtracking whenever this assignment is part of a failure and prune all other search branches that can lead to the same non-winning cycle.
 
 \section{Tool Description}
 
@@ -391,7 +391,7 @@ SAT(MiniSat)    & ---           & ---   & ---           & ---   & ---           
 
 As shown in Table~\ref{tab:paritygames-large}, standard SAT-based approaches are omitted for several categories due to their inability to scale within reasonable resource limits. In this challenging context, \nocq demonstrates superior robustness and scalability. Specifically, it achieves the best performance on Equivalence Checking and Model Checking benchmarks. Furthermore, on the harder problem families within the PGSolver collection, \nocq solves the highest number of instances (92/93) and is significantly faster. While specialized solvers remain slightly faster on Random Games, \nocq remains competitive within a factor of two, highlighting its effectiveness as a general-purpose solver for large-scale parity games.
 
-\subsection{Quantitative Goas and Verification}
+\subsection{Quantitative Goals and Verification}
 
 One of \nocq's main features is the ability to handle quantitative goals within the same CP-based framework. 
 %
