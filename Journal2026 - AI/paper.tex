@@ -191,11 +191,64 @@ An objective $\mathcal{W}$ for Player~$\even$ is a subset of all possible infini
 
 In this work, we focus on the \textit{initial-vertex game solving problem}. Given a game arena $\mathcal{A}$ and a specific starting vertex $v_0 \in V$, the goal is to determine which of the two players has a winning strategy starting from $v_0$, and to construct that specific winning strategy.
 
+\subsection{Winning Conditions for \wregulargames}
+\label{subsec:winning_conditions}
+
+The classification of an infinite play as winning or losing is governed by the game's \textit{winning condition}, which dictates how the path's structural or numerical properties are evaluated. From a player's perspective, this condition defines their \textit{objective} $\mathcal{W} \subseteq \text{Plays}(\mathcal{A})$, representing the specific set of plays they aim to enforce. For consistency across all discussed variants, we focus on the objective $\mathcal{W}$ from the perspective of Player~$\even$. Because these games are zero-sum, a play $\pi$ is winning for Player~$\even$ if $\pi \in \mathcal{W}$, and winning for Player~$\odd$ if $\pi \notin \mathcal{W}$. 
+
+We partition these objectives into two major paradigms: \textit{qualitative conditions}, which evaluate the structural topology of the vertices visited infinitely often, and \textit{quantitative conditions}, which evaluate the numerical accumulation of resource weights along the traversed edges.
+
+\subsubsection{Qualitative Conditions}
+\label{subsubsec:qualitative}
+
+Qualitative conditions depend strictly on the set of vertices that appear infinitely often in a play $\pi$, denoted as $\text{Inf}(\pi) \subseteq V$.
+
+\paragraph{Büchi and co-Büchi Objectives:}
+A Büchi condition is defined relative to a designated set of target vertices $F \subseteq V$. The objective for Player~$\even$ is to visit this set infinitely often. Formally, a play $\pi$ satisfies the Büchi objective if:
+\[
+\text{Inf}(\pi) \cap F \neq \emptyset
+\]
+Conversely, the dual co-Büchi objective requires that the play eventually settles outside the complement of $F$, meaning that vertices outside of $F$ are visited only finitely many times. A play $\pi$ satisfies the co-Büchi objective if $\text{Inf}(\pi) \subseteq F$.
+
+\paragraph{Rabin and Streett Objectives:}
+A Rabin condition is parameterized by a finite collection of pairs $R = \{(E_1, F_1), (E_2, F_2), \ldots, (E_k, F_k)\}$, where $E_j, F_j \subseteq V$ for each $j \in \{1, \ldots, k\}$. Player~$\even$ wins the Rabin objective if there exists at least one index $j$ where the play visits $E_j$ infinitely often but $F_j$ only finitely often:
+\[
+\exists j \in \{1, \ldots, k\} \text{ such that } \text{Inf}(\pi) \cap E_j \neq \emptyset \text{ and } \text{Inf}(\pi) \cap F_j = \emptyset
+\]
+The Streett condition is the deterministic complement of the Rabin condition. It requires that for every index $j$, if the set $E_j$ is visited infinitely often, then the set $F_j$ must also be visited infinitely often:
+\[
+\forall j \in \{1, \ldots, k\}, \quad \text{Inf}(\pi) \cap E_j \neq \emptyset \implies \text{Inf}(\pi) \cap F_j \neq \emptyset
+\]
+
+\paragraph{Parity Objectives:}
+The parity condition evaluates a play using the arena's priority coloring function $\Omega: V \to \mathbb{N}$. Player~$\even$ satisfies the parity objective if the maximum priority that appears infinitely often along the play is an even integer:
+\[
+\max \{ \Omega(v) \mid v \in \text{Inf}(\pi) \} \bmod 2 = 0
+\]
+If the maximum infinite priority is odd, the play is won by Player~$\odd$.
 
 
-\subsection{Winning Conditions for \wregulargames}\label{subsec:winning_conditions}
-\subsubsection{Qualitative conditions}
-\subsubsection{Quantitative conditions}
+\subsubsection{Quantitative Conditions}
+\label{subsubsec:quantitative}
+
+Quantitative conditions shift the evaluation to the infinite sequence of transitions $e_0 e_1 e_2 \ldots$ generated during a play $\pi = v_0 v_1 v_2 \ldots$, tracking numerical behaviors via the arena's edge weight function $Q: E \to \mathbb{Z}$.
+
+\paragraph{Energy Objectives:}
+Energy conditions model games with physical resource constraints (such as fuel, electricity, or memory). Given an initial resource capacity $c_{\text{init}} \in \mathbb{N}$ and an upper storage boundary $W \in \mathbb{N} \cup \{\infty\}$, the energy level $c_k$ after $k$ transitions is tracked dynamically via the recurrence relation $c_{k+1} = \min(W, c_k + Q(e_k))$, where $c_0 = c_{\text{init}}$. Player~$\even$ wins the energy objective if the running resource total remains non-negative at every step along the infinite play:
+\[
+\forall k \geq 0, \quad c_k \geq 0
+\]
+
+\paragraph{Mean-Payoff Objectives:}
+The mean-payoff condition evaluates the long-term average reward or cost accumulated per transition. The numerical value assigned to a play $\pi$ is defined as the limit inferior of the average edge weights over time:
+\[
+\mu(\pi) = \liminf_{n \to \infty} \frac{1}{n} \sum_{i=0}^{n-1} Q(e_i)
+\]
+Given a target performance threshold $\nu \in \mathbb{R}$, Player~$\even$ satisfies the mean-payoff objective if the long-run average meet or exceeds this bound:
+\[
+\mu(\pi) \geq \nu
+\]
+
 
 \section{Constraint Programming Framework for Game Solving}\label{sec:cp_framework}
 \subsection{Decision Variables and Local Strategy Characterization}\label{subsec:variables_local}
@@ -204,8 +257,8 @@ In this work, we focus on the \textit{initial-vertex game solving problem}. Give
 \section{Global Opponent Cycle Elimination Propagators}\label{sec:global_propagators}
 \subsection{The Boolean Formulation (\noc-Bool)}\label{subsec:noc_bool}
 \subsection{The Integer Formulation (\noc-Int)}\label{subsec:noc_int}
-\subsection{Search Strategies and Game-Specific Heuristics}\label{subsec:search_heuristics}
 \subsection{Global Cycle Elimination Logic}\label{subsec:cycle_elimination_logic}
+\subsection{Search Strategies and Game-Specific Heuristics}\label{subsec:search_heuristics}
 
 
 \section{Functional Formulation of Winning Conditions}\label{sec:function_conditions}
