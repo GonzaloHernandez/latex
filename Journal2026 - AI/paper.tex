@@ -47,6 +47,13 @@
 %% for the whole article with \linenumbers.
 %% \usepackage{lineno}
 
+\usepackage{enumitem}
+\usepackage{hyperref}
+\hypersetup{
+    colorlinks=true,
+    allcolors=black
+}
+
 \input{macros.tex}
 
 \journal{Artificial Intelligence}
@@ -135,6 +142,9 @@ Constraint programming  \sep Parity games \sep Verification.
 \end{keyword}
 
 \end{frontmatter}
+
+\newpage
+\tableofcontents
 
 %% Add \usepackage{lineno} before \begin{document} and uncomment 
 %% following line to enable line numbers
@@ -250,21 +260,192 @@ Given a target performance threshold $\nu \in \mathbb{R}$, Player~$\even$ satisf
 \]
 
 
-\section{Constraint Programming Framework for Game Solving}\label{sec:cp_framework}
-\subsection{Decision Variables and Local Strategy Characterization}\label{subsec:variables_local}
-\subsection{Baseline Formulation: Monolithic SAT Encoding}\label{subsec:sat_baseline}
+% \section{Constraint Programming Framework for Game Solving}\label{sec:cp_framework}
+% \subsection{Decision Variables and Local Strategy Characterization}\label{subsec:variables_local}
+% \subsection{Baseline Formulation: Monolithic SAT Encoding}\label{subsec:sat_baseline}
 
-\section{Global Opponent Cycle Elimination Propagators}\label{sec:global_propagators}
-\subsection{The Boolean Formulation (\noc-Bool)}\label{subsec:noc_bool}
-\subsection{The Integer Formulation (\noc-Int)}\label{subsec:noc_int}
-\subsection{Global Cycle Elimination Logic}\label{subsec:cycle_elimination_logic}
-\subsection{Search Strategies and Game-Specific Heuristics}\label{subsec:search_heuristics}
+\section{Constraint Programming Framework for Game Solving}
+\label{sec:cp_framework}
 
+This section describes our constraint programming (CP) framework for solving deterministic \wregulargames\ from an initial-vertex perspective. We first formalize how local memoryless strategies are characterized via Boolean decision variables. We then outline the traditional monolithic SAT/SMT baseline formulation to highlight the structural and scalability challenges that motivate our unified global propagator approach.
+
+% =========================================================================
+% SUBSECTION 3.1: DECISION VARIABLES AND LOCAL STRATEGY CHARACTERIZATION
+% =========================================================================
+\subsection{Decision Variables and Local Strategy Characterization}
+\label{subsec:variables_local}
+
+To solve an initial-vertex game using a constraint-based approach, the search space for a winning memoryless strategy must be mapped into finite-domain decision variables. Let $\player \in \{\even, \odd\}$ denote the \textit{player of interest}, and let $\opponent = 1 - \player$ represent their designated opponent. We partition the finite set of vertices $V$ of the arena $\mathcal{A}$ into $V_{\player}$ (vertices controlled by the player of interest) and $V_{\opponent}$ (vertices controlled by the opponent). 
+
+Given a specific starting vertex $v_0 \in V$, we introduce two sets of Boolean decision variables to track the active sub-graph induced by the players' strategic choices during the search:
+\begin{itemize}
+    \item $\mathcal{V}_v \in \{\top, \bot\}$ for each vertex $v \in V$, denoting whether vertex $v$ is reachable from $v_0$ under the currently explored strategy profile.
+    \item $\mathcal{E}_e \in \{\top, \bot\}$ for each directed edge $e \in E$, denoting whether transition $e$ is actively selected or traversed within the strategy sub-graph.
+\end{itemize}
+
+The structural conditions required to characterize a valid winning region from $v_0$ for the player of interest are deeply rooted in the classic game-theoretic concept of an \textit{attractor}~\cite{Zielonka:1998,Aggarwal:2023}. Given a target set of vertices, the $\player$-attractor is the set of states from which $\player$ can force the play into that target set in a finite number of steps, regardless of the choices made by $\opponent$. 
+
+To embed this operational capability natively into our CP variable framework, the active strategy sub-graph must be constrained such that $\player$ maintains absolute deterministic control, while simultaneously guarding against every possible counter-move from $\opponent$. Structurally, this requires enforcing the following connectivity rules from $v_0$:
+\begin{enumerate}
+    \item \textbf{Root Activation:} The initial vertex must always be active ($\mathcal{V}_{v_0} = \top$).
+    \item \textbf{Deterministic Selection ($\player$):} For every active vertex controlled by the player of interest ($v \in V_{\player}$), the solver must select at least one outgoing transition to enforce a positional choice.
+    \item \textbf{Adversarial Closure ($\opponent$):} For every active vertex controlled by the opponent ($v \in V_{\opponent}$), the formulation must activate \textit{all} of its outgoing transitions. This models the attractor logic by guaranteeing that no matter which edge the opponent selects, the play cannot escape the verified strategy graph.
+    \item \textbf{Forward Propagation:} Any vertex reached by an active edge must itself be marked as active.
+\end{enumerate}
+
+By combining these structural layout constraints, the CP solver isolates a well-formed sub-arena where Player~$\player$ has a valid strategy from $v_0$. The remaining task for the solver is to ensure that the cycles formed within this attractor structure satisfy the designated qualitative or quantitative winning conditions.
+
+
+---
+
+% =========================================================================
+% SUBSECTION 3.2: BASELINE FORMULATION AND EXTENSION TO GENERAL CSP
+% =========================================================================
+\subsection{Baseline Formulations and the Generalized CSP Model}
+\label{subsec:sat_baseline}
+
+Historically, constraint-based game solving has relied on encoding cycle conditions statically into propositional logic. The standard reference approach by Heljanko et al.~\cite{Heljanko:2012} translates a game into Boolean Satisfiability (SAT) or Satisfiability Modulo Theories (SMT) formulas by leveraging a \textit{progress measure}~\cite{Jurdziński:2000}.
+
+In this baseline formulation, the structural graph properties are captured by the following Conjunctive Normal Form (CNF) clauses:
+\begin{itemize}
+    \item $\Phi_\exists = \bigwedge_{v \in V_{\subeven}} \left(S_v \rightarrow \bigvee_{w \in vE} T_{(v,w)}\right)$
+    \item $\Phi_\forall = \bigwedge_{v \in V_{\subodd}} \left(S_v \rightarrow \bigwedge_{w \in vE} T_{(v,w)}\right)$
+    \item $\Phi_V = \bigwedge_{w \in V, w \neq v_0} \left( \left(\bigvee_{v \in Ev} T_{(v,w)}\right) \rightarrow S_w \right)$
+\end{itemize}
+where $S_v$ and $T_{(v,w)}$ are Boolean variables tracking the winning paths for Player~$\even$. 
+%
+To enforce the parity condition along infinite paths, additional integer variables $x_p^v$ are introduced for every vertex $v$ and every odd priority $p \in \textit{Odd}(G)$. These variables track numerical progress along active transitions via difference logic constraints ($\Phi_A$):
+
+
+To enforce the parity condition along infinite paths, additional integer variables $x_p^v$ are introduced for every vertex $v \in V$ and every odd priority $p \in \textit{Odd}(G)$, where $\textit{Odd}(G) = \{ p \in \mathbb{N} \mid p \pmod 2 \neq 0 \land \exists v \in V: \Omega(v) = p \}$ represents the set of all odd priorities present in the arena. These variables track numerical progress along active transitions via difference logic constraints ($\Phi_A$):
+
+\begin{itemize}
+    \item $\Phi_A = \bigwedge_{(v,w) \in E} \left(T_{(v,w)} \rightarrow \Psi_{(v,w)}\right)$
+    \item $\Psi_{(v,w)} = \bigwedge_{p \in \textit{Odd}^{>\Omega(w)}(G)} (x_p^v \geqslant x_p^w), \quad \text{if } \Omega(w) \text{ is even}$
+    \item $\Psi_{(v,w)} = \bigwedge_{p \in \textit{Odd}^{>\Omega(w)}(G)} (x_p^v \geqslant x_p^w) \land (x_{\Omega(w)}^v > x_{\Omega(w)}^w), \quad \text{if } \Omega(w) \text{ is odd}$
+\end{itemize}
+These difference logic assertions force a strict mathematical contradiction (such as $x_p^v > x_p^v$) along any active cycle dominated by an odd priority. This renders the system of constraints logically unsatisfiable along that specific path, structurally forcing the solver's backtracking engine to reject assignments containing odd-winning loops and isolate only even-winning cycles.
+
+The fundamental principle of this constraint-based approach is to reduce game-theoretic determinacy to propositional satisfiability. Determining the satisfiability of the combined formula $(S_{v_0} \wedge \Phi_{\exists} \wedge \Phi_{\forall} \wedge \Phi_V \wedge \Phi_A)$ is equivalent to deciding the winner of the game. A satisfying assignment serves as a constructive proof that Player~\even\ has a winning strategy from $v_0$. Conversely, because the encoding completely characterizes Player~\even's winning conditions, an exhaustive proof of unsatisfiability establishes that no such strategy exists, which—by the determinacy of these games—constitutes a definitive proof of a win for Player~\odd.
+
+\subsubsection{Limitations of the Monolithic Baseline}
+While highly effective for pure parity games on small arenas, this monolithic encoding faces severe scaling and architectural bottlenecks when generalized to broader $\omega$-regular contexts:
+\begin{enumerate}
+     \item \textbf{Space and Formula Explosion:} In terms of static allocation space, the method requires instantiating $\mathcal{O}(|V| \cdot |\textit{Odd}(G)|)$ auxiliary variables and generating $\mathcal{O}(|E| \cdot |\textit{Odd}(G)|)$ difference logic constraints. For dense graphs with rich priority profiles, this upfront space requirement grows up to $\mathcal{O}(|V|^3)$. Crucially, this footprint escalates even further when the formulation is reduced to pure SAT solving. Converting the underlying integer difference logic into pure CNF requires bit-blasting or explicit circuit encodings for every inequality, multiplying the clause count and injecting hundreds of millions of literal allocations before the search even begins.
+    \item \textbf{Inflexibility to Multi-Objectives:} Adapting progress measures to quantitative metrics (like energy levels or long-run averages) requires fundamentally reconstructing the underlying arithmetic variable layers, destroying the modularity of the framework.
+\end{enumerate}
+
+To overcome these structural limitations, we replace the entire monolithic CNF formula—including both the static graph connectivity clauses and the progress measure variables—with a unified, high-level Constraint Satisfaction Problem (CSP) abstraction. Instead of flattening the game's rules into a rigid propositional grid, this CP model captures the graph's topology natively through clean domain variables, while seamlessly handling arbitrary, multi-conditioned $\omega$-regular properties by delegating all cycle validation to a dynamic global propagator.
+
+\begin{definition}[Generalized Game CSP]\label{def:csp}
+The CSP for an arena $\mathcal{A} = (V, E, \Omega, Q)$ starting at an initial vertex $v_0$ from the perspective of Player~$\player$ is defined as the triple $\mathcal{P} = (\mathcal{X}, \mathcal{D}, \mathcal{C})$, where $\mathcal{X} = \{ \mathcal{V}_v \}_{v \in V} \cup \{ \mathcal{E}_e \}_{e \in E}$ represents the set of Boolean decision variables mapped to domains $\mathcal{D} = \{\bot, \top\}$, and $\mathcal{C}$ is the set of constraints defined by:
+\begin{itemize}
+    [leftmargin=2.3cm, labelwidth=2.8cm, align=right, itemsep=1.0ex, parsep=0pt]
+    \item [$\mathcal{C}_{v_0}$ :] $\mathcal{V}_{v_0} = \top$
+    \item [$\mathcal{C}_{\player}$ :] $\bigwedge_{v \in V_{\player}} \left(\mathcal{V}_v \rightarrow \left(\sum_{w \in vE} \mathcal{E}_{(v,w)}= 1\right)\right)$
+    \item [$\mathcal{C}_{\opponent}$ :] $\bigwedge_{v \in V_{\opponent}} \left(\mathcal{V}_v \rightarrow \bigwedge_{w \in vE} \mathcal{E}_{(v,w)}\right)$
+    \item [$\mathcal{C}_{\!E}$ :] $\bigwedge_{w \in V, w \neq v_0} \left(\left(\bigvee_{v \in Ew} \mathcal{E}_{(v,w)}\right) \rightarrow \mathcal{V}_w\right)$
+    \item [$\mathcal{C}_{\!N\!O\!C}(f)$ :] $\bigwedge_{v_0, \closerdots, v_k} \left( \left(\bigwedge_{i=0}^{k-1} \mathcal{E}_{(v_i,v_{i+1})}\right) \to \bigwedge_{j=0}^{k-1} \left((v_j = v_k) \to f(v_j, \closerdots, v_k)\right) \right)$
+\end{itemize}
+where the evaluation criteria $f$ for a given cycle $v_j, \dots, v_k$ are provided by specific qualitative or quantitative verification functions, which are formally detailed in Section~\ref{sec:function_conditions}.
+\end{definition}
+
+While constraints $\mathcal{C}_{v_0}$, $\mathcal{C}_{\opponent}$, and $\mathcal{C}_{\!E}$ enforce the required sub-graph connectivity (analogous to the baseline's $\Phi_{v_0}, \Phi_\forall$, and $\Phi_V$), $\mathcal{C}_{\player}$ strictly dictates that the protagonist selects exactly one deterministic strategy choice per active vertex. 
+
+Crucially, our approach removes the expensive difference logic constraints $\Phi_A$ entirely. Instead, the global constraint $\mathcal{C}_{\!N\!O\!C}(f)$ monitors the strategy graph dynamically during the CP search loop. It intercepts any emerging path profile and applies a parameterized verification function $f$ to ensure that any reachable closed component is structurally or quantitatively winning for $\player$. The precise operational formulations for these qualitative and quantitative cycle evaluation functions are detailed thoroughly in Section~\ref{sec:function_conditions}.
+
+Our generalized CSP model inherits and extends this satisfiability approach, lifting it from a fixed perspective to a modular framework. The semantic mapping between the satisfiability of the CSP and the game-theoretic outcome remains definitive: a satisfying assignment found by the solver proves that the player of interest, $\player$, possesses a positional winning strategy from $v_0$, where the active edges ($\mathcal{E}_e = \top$) map directly to their winning choices. 
+
+A key architectural advantage of this design is that by simply swapping the roles of $\player$ and $\opponent$, the formulation allows the proposed method to search from the perspective of either player natively. While a satisfying assignment validates a win for $\player$, an exhaustive proof of unsatisfiability demonstrates the complete absence of a positional winning strategy for them, which—by the determinacy of these games—automatically hands a conclusive victory to the opponent $\opponent$.
+
+
+
+\subsection{Running Example}
+\label{subsec:running_example}
+
+\begin{figure}[htb]
+     \centering
+     % Pull the images slightly into the margins to maximize center space
+     \makebox[\textwidth][c]{
+         \begin{subfigure}[t]{0.51\textwidth}
+             \centering
+             \includegraphics[width=\textwidth, trim={0 0 0 0}, clip]{images/ex00.pdf}
+             \vspace{-5pt} % Reduces gap between image and sub-caption
+             \caption{\nocq SAT encoding.}
+             \label{fig:nocq-3}
+         \end{subfigure}
+         \hspace{1pt} % Minimal gap
+         \begin{subfigure}[t]{0.51\textwidth}
+             \centering
+             \includegraphics[width=\textwidth, trim={0 0 0 0}, clip]{images/ex00.pdf}
+             \vspace{-5pt}
+             \caption{Auxiliary algorithms in \nocq.}
+             \label{fig:nocq-4}
+         \end{subfigure}
+     }
+     \caption{Arena with 4 vertices and 6 edges.  Vertices controlled by Player \even are shown as circles, while vertices controlled by Player \odd are shown as squares.}
+     \label{fig:nocq-details}
+\end{figure}
+
+
+To demonstrate the structural and operational mechanics of our generalized CSP formulation, consider the 2-player game arena illustrated in Figure~\ref{fig:running_example}. The arena consists of four vertices $V = \{v_0, v_1, v_2, v_3\}$, which are partitioned into $V_{\subeven} = \{v_0, v_1\}$ (represented as circles) and $V_{\subodd} = \{v_2, v_3\}$ (represented as squares). The directed edge set is defined as $E = \{e_0, e_1, e_2, e_3, e_4, e_5\}$, where $e_0 = (v_0, v_1)$, $e_1 = (v_0, v_3)$, $e_2 = (v_1, v_2)$, $e_3 = (v_2, v_0)$, $e_4 = (v_2, v_1)$, and $e_5 = (v_3, v_3)$. We evaluate a Büchi objective from the perspective of Player~$\even$ ($\player = \even$), where the target accepting set is $F = \{v_1\}$, and the initial vertex is $v_0$.
+
+Under our framework, the solver instantiates the core set of Boolean decision variables:
+\[
+\mathcal{X} = \{\mathcal{V}_{v_0}, \mathcal{V}_{v_1}, \mathcal{V}_{v_2}, \mathcal{V}_{v_3}, \mathcal{E}_{e_0}, \mathcal{E}_{e_1}, \mathcal{E}_{e_2}, \mathcal{E}_{e_3}, \mathcal{E}_{e_4}, \mathcal{E}_{e_5}\}
+\]
+mapped to individual Boolean domains $\mathcal{D}$. The structural and global constraints execute through the following progression:
+
+\begin{enumerate}
+    \item \textbf{Root Activation ($\mathcal{C}_{v_0}$):} The search initializes by anchoring the root vertex: $\mathcal{V}_{v_0} = \top$.
+    \item \textbf{Deterministic Strategy Choice ($\mathcal{C}_{\player}$):} Vertex $v_0$ is controlled by Player~$\even$. The constraint forces exactly one outgoing edge to be selected. 
+    \begin{itemize}
+        \item If the solver branches and tests $\mathcal{E}_{e_1} = \top$, forward propagation ($\mathcal{C}_E$) activates vertex $v_3$ ($\mathcal{V}_{v_3} = \top$). Because vertex $v_3$ belongs to Player~$\odd$, its outgoing edge is forced active ($\mathcal{E}_{e_5} = \top$), closing a localized cycle on vertex $v_3$. The global constraint evaluates $f_B(v_3, v_3) = \{v_3\} \cap \{v_1\} \neq \emptyset$, which returns $\bot$. The propagator immediately rejects this branch, forcing the solver to backtrack.
+        \item The solver then selects the winning alternative: $\mathcal{E}_{e_0} = \top$. This choice propagates and activates vertex $v_1$ ($\mathcal{V}_{v_1} = \top$).
+    \end{itemize}
+    \item \textbf{Propagation Loop:} At vertex $v_1$, Player~$\even$ must again pick exactly one deterministic transition. The solver selects $\mathcal{E}_{e_2} = \top$, which propagates and activates the opponent's vertex $v_2$ ($\mathcal{V}_{v_2} = \top$).
+    \item \textbf{Attractor Logic Realization ($\mathcal{C}_{\opponent}$):} Because vertex $v_2$ is controlled by the opponent, constraint $\mathcal{C}_{\opponent}$ triggers. To guarantee that Player~$\even$ is safe against any adversarial counter-play, the model forces \textit{all} outgoing transitions from vertex $v_2$ to activate simultaneously:
+    \[
+    \mathcal{V}_{v_2} \rightarrow (\mathcal{E}_{e_3} \land \mathcal{E}_{e_4})
+    \]
+    Consequently, both $\mathcal{E}_{e_3}$ and $\mathcal{E}_{e_4}$ are set to $\top$.
+\end{enumerate}
+
+At this stage, the structural layout constraints have successfully isolated a candidate strategy sub-graph. The global constraint $\mathcal{C}_{\!N\!O\!C}(f_B)$ now scans this active sub-arena and extracts all reachable cycles resulting from the opponent's split at vertex $v_2$:
+\begin{itemize}
+    \item \textbf{Cycle 1 ($v_2 \rightarrow v_0 \rightarrow v_1 \rightarrow v_2$):} Traversing edges $e_3, e_0, e_2$, the solver evaluates the cycle sequence:
+    \[
+    f_B(v_2, v_0, v_1, v_2) = \{v_2, v_0, v_1\} \cap \{v_1\} \neq \emptyset \implies \top
+    \]
+    \item \textbf{Cycle 2 ($v_2 \rightarrow v_1 \rightarrow v_2$):} Traversing edges $e_4, e_2$, the solver evaluates the tighter loop:
+    \[
+    f_B(v_2, v_1, v_2) = \{v_2, v_1\} \cap \{v_1\} \neq \emptyset \implies \top
+    \]
+\end{itemize}
+
+Because every active cycle within this adversarial attractor structure satisfies the function $f_B$, the global constraint validates the assignment. The solver successfully terminates, outputting a satisfying strategy assignment proving that Player~$\even$ wins the game from $v_0$.
+
+
+
+
+\subsection{Global Opponent Cycle Elimination Propagators}\label{sec:global_propagators}
 
 \section{Functional Formulation of Winning Conditions}\label{sec:function_conditions}
+\begin{itemize}[leftmargin=3.1cm, labelwidth=2.8cm, align=right, itemsep=0.5ex, parsep=0pt, topsep=1pt]
+    \item [$f_\omega(v_j, \closerdots, v_k) =$] $\max\{\Omega(v_i) \mid i\in j\dots k\} \bmod 2 \ne \opponent$
+    \item [$f_B(v_j, \closerdots, v_k) =$] $\{v_j, \dots, v_{k-1}\} \cap F \neq \emptyset$
+    \item [$f_R(v_j, \closerdots, v_k) =$] $\exists (L_i, U_i) \in P : \left( \{v_j, \dots, v_{k-1}\} \cap L_i \neq \emptyset \land \{v_j, \dots, v_{k-1}\} \cap U_i = \emptyset \right)$
+    \item [$f_\eta(v_j, \closerdots, v_k) =$] $\sum_{i=j}^{k-1} Q(v_i, v_{i+1}) \ge \nu$
+    \item [$f_\mu(v_j, \closerdots, v_k) =$] $\frac{1}{k-j} \sum_{i=j}^{k-1} Q(v_i, v_{i+1}) \ge \nu$
+\end{itemize}
+
 \subsection{Formulating Qualitative Objectives}\label{subsec:cp_qualitative}
 \subsection{Formulating Quantitative Objectives}\label{subsec:cp_quantitative}
 \subsection{Handling Multi-Conditioned Games}\label{subsec:multi_conditioned}
+
+\section{Improving Constraint base model}\label{sec:improved_cp}
+\subsection{The Integer Formulation (\noc-Int)}\label{subsec:noc_int}
+\subsection{Search Strategies and Game-Specific Heuristics}\label{subsec:search_heuristics}
 
 \section{Experimental Evaluation}\label{sec:experiments}
 
