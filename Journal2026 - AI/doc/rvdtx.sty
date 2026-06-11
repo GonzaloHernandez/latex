@@ -4,16 +4,16 @@
 %  
 %  Auxiliary package to format *.dtx documents.
 % 
-%  Copyright (c) 2008-2024 CV Radhakrishnan <cvr@stmdocs.in>,
+%  Copyright (c) 2008-2021 CV Radhakrishnan <cvr@stmdocs.in>,
 %                     
 %  This file may be distributed and/or modified under the conditions
-%  of the LaTeX Project Public License, either version 1.3 of this
+%  of the LaTeX Project Public License, either version 1.3c of this
 %  license or (at your option) any later version.  The latest version
 %  of this license is in:
 %   
 %    http://www.latex-project.org/lppl.txt
 %   
-%  and version 1.3 or later is part of all distributions of LaTeX
+%  and version 1.3c or later is part of all distributions of LaTeX
 %  version 1999/12/01 or later.
 %
 %
@@ -262,7 +262,7 @@
 \def\keywords#1{\gdef\@keywords{#1}}
 \def\@keywords{\LaTeX, \xml}
 
-\long\def\Hrule{\\\hspace*{-3em}%
+\long\def\Hrule{\\[-4pt]\hspace*{-3em}%
      {\color{quicklinkrulecolor}\rule{\linewidth}{.1pt}}\\}
 
 \long\def\dtxmarkone[#1][#2]#3#4#5{\def\next{#1}%
@@ -271,8 +271,7 @@
 \newcounter{dtx}
 
 \long\def\dtxmarktwo[#1][#2]#3#4#5{\def\next{#1}%
-%   \stepcounter{dtx}\parbox{.45\linewidth}%
-   \stepcounter{dtx}\parbox[][11pt][b]{.45\linewidth}%
+   \stepcounter{dtx}\parbox{.45\linewidth}%
     {\ifcase\next\or\Hlink{#4}{#3}\fi}%
    \ifodd\thedtx\relax\else\Hrule\fi}
 
@@ -295,8 +294,7 @@
         \hfill
         \parbox[c][2in][c]{.35\paperwidth}%
         {\normalfont\footnotesize\sffamily\color{quicklinkcolor}%
-%          \advance\baselineskip-3pt%
-          \advance\baselineskip-5pt%
+          \advance\baselineskip-3pt%
            \vspace*{6pt} QUICK LINKS\Hrule
             \IfFileExists{tmp.out}{\input tmp.out}{}%
          }\hspace*{5mm}%
@@ -309,7 +307,7 @@
       {\normalfont\sffamily\footnotesize%
         \color{botcolor}%
         \hspace*{5mm}\parbox[c][.5in][c]{.45\paperwidth}%
-         {\raggedright \textcopyright\ \the\year, Elsevier Ltd.
+         {\raggedright \textcopyright\ 2021, Elsevier Ltd.
           Bugs, feature requests, suggestions and comments %\\
           shall be mailed to \href{mailto:elsarticle@stmdocs.in}
           {$<$elsarticle@stmdocs.in$>$}. 

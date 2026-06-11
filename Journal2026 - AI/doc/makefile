@@ -1,6 +1,6 @@
-# $Id: makefile 243 2024-04-06 10:34:40Z rishi $
+# $Id: makefile 37 2020-02-25 09:06:02Z rishi $
 
-file=elsdoc
+file=elsdoc-cas
 
 
 all: pdf out 
@@ -21,8 +21,7 @@ changes:
 	makeindex -s gglo.ist -o $(file).gls $(file).glo
 
 xview:
-#	xpdf -z 200 $(file).pdf &>/dev/null
-	open -a 'Skim.app' $(file).pdf 
+	xpdf -z 200 $(file).pdf &>/dev/null
 
 view:
 	open -a 'Adobe Reader.app' $(file).pdf
@@ -35,4 +34,3 @@ diff:
 
 copy:
 	cp $(file).sty ../
-

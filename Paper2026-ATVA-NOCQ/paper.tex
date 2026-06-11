@@ -203,9 +203,6 @@ $\opponent$ is detected.
     \IF{$v \in path_V$} \label{alg:noc-filter:pathcheck}
         \STATE $i_v \gets \textit{index}(v, path_V)$
         \IF{$\neg \gamma_{\player}$} \label{alg:noc-filter:condition}
-        % \IF{$\neg \gamma_{\even} \lor \neg \gamma_{\odd}$}
-        % \IF{($\player = \even \land \neg(\omega \land \eta \land \mu)) \lor (\player = \odd \land (\omega \land \eta \land \mu)$)}
-        % \IF{$\neg satisfyConditions(i_v, path_V, path_E)$} \label{alg:noc-eager:checkopponent}
             \STATE $\textit{reason} \gets \textit{clausify}(\neg path_E[i_v:])$ \label{alg:noc-eager:reason}
             \STATE \textbf{if }not ($\mathcal{E}[e] \gets (\bot, \textit{reason}))$ \textbf{then return $\bot$} \label{alg:noc-eager:ruleoutedge}
         \ENDIF

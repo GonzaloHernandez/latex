@@ -1,158 +1,175 @@
 %% 
-%% Copyright 2007-2024 Elsevier Ltd
+%% Copyright 2019-2024 Elsevier Ltd
 %% 
-%% This file is part of the 'Elsarticle Bundle'.
-%% ---------------------------------------------
+%% This file is part of the 'CAS Bundle'.
+%% --------------------------------------
 %% 
 %% It may be distributed under the conditions of the LaTeX Project Public
-%% License, either version 1.3 of this license or (at your option) any
+%% License, either version 1.3c of this license or (at your option) any
 %% later version.  The latest version of this license is in
 %%    http://www.latex-project.org/lppl.txt
-%% and version 1.3 or later is part of all distributions of LaTeX
+%% and version 1.3c or later is part of all distributions of LaTeX
 %% version 1999/12/01 or later.
 %% 
-%% The list of all files belonging to the 'Elsarticle Bundle' is
+%% The list of all files belonging to the 'CAS Bundle' is
 %% given in the file `manifest.txt'.
 %% 
-%% Template article for Elsevier's document class `elsarticle'
-%% with harvard style bibliographic references
+%% Template article for cas-sc documentclass for 
+%% double column output.
 
-\documentclass[preprint,12pt,authoryear]{elsarticle}
+\documentclass[a4paper,fleqn]{cas-sc}
 
-%% Use the option review to obtain double line spacing
-%% \documentclass[authoryear,preprint,review,12pt]{elsarticle}
+% If the frontmatter runs over more than one page
+% use the longmktitle option.
 
-%% Use the options 1p,twocolumn; 3p; 3p,twocolumn; 5p; or 5p,twocolumn
-%% for a journal layout:
-%% \documentclass[final,1p,times,authoryear]{elsarticle}
-%% \documentclass[final,1p,times,twocolumn,authoryear]{elsarticle}
-%% \documentclass[final,3p,times,authoryear]{elsarticle}
-%% \documentclass[final,3p,times,twocolumn,authoryear]{elsarticle}
-%% \documentclass[final,5p,times,authoryear]{elsarticle}
-%% \documentclass[final,5p,times,twocolumn,authoryear]{elsarticle}
+%\documentclass[a4paper,fleqn,longmktitle]{cas-sc}
 
-%% For including figures, graphicx.sty has been loaded in
-%% elsarticle.cls. If you prefer to use the old commands
-%% please give \usepackage{epsfig}
+%\usepackage[numbers]{natbib}
+%\usepackage[authoryear]{natbib}
+\usepackage[authoryear,longnamesfirst]{natbib}
 
-%% The amssymb package provides various useful mathematical symbols
-\usepackage{amssymb}
-%% The amsmath package provides various useful equation environments.
-\usepackage{amsmath}
-%% The amsthm package provides extended theorem environments
-%% \usepackage{amsthm}
-
-%% The lineno packages adds line numbers. Start line numbering with
-%% \begin{linenumbers}, end it with \end{linenumbers}. Or switch it on
-%% for the whole article with \linenumbers.
-%% \usepackage{lineno}
-
+\usepackage{algorithm}
+\usepackage[noend]{algorithmic}
+\usepackage{subcaption}
 \usepackage{enumitem}
-\usepackage{hyperref}
-\hypersetup{
-    colorlinks=true,
-    allcolors=black
-}
 
+%%%Author macros
 \input{macros.tex}
+\def\tsc#1{\csdef{#1}{\textsc{\lowercase{#1}}\xspace}}
+\tsc{WGM}
+\tsc{QE}
+%%%
 
-\journal{Artificial Intelligence}
+% Uncomment and use as if needed
+%\newtheorem{theorem}{Theorem}
+%\newtheorem{lemma}[theorem]{Lemma}
+%\newdefinition{rmk}{Remark}
+%\newproof{pf}{Proof}
+%\newproof{pot}{Proof of Theorem \ref{thm}}
 
 \begin{document}
+\let\WriteBookmarks\relax
+\def\floatpagepagefraction{1}
+\def\textpagefraction{.001}
 
-\begin{frontmatter}
+% Short title
+\shorttitle{}    
 
-%% Title, authors and addresses
+% Short author
+\shortauthors{}  
 
-%% use the tnoteref command within \title for footnotes;
-%% use the tnotetext command for theassociated footnote;
-%% use the fnref command within \author or \affiliation for footnotes;
-%% use the fntext command for theassociated footnote;
-%% use the corref command within \author for corresponding author footnotes;
-%% use the cortext command for theassociated footnote;
-%% use the ead command for the email address,
-%% and the form \ead[url] for the home page:
-%% \title{Title\tnoteref{label1}}
-%% \tnotetext[label1]{}
-%% \author{Name\corref{cor1}\fnref{label2}}
-%% \ead{email address}
-%% \ead[url]{home page}
-%% \fntext[label2]{}
-%% \cortext[cor1]{}
-%% \affiliation{organization={},
-%%            addressline={}, 
-%%            city={},
-%%            postcode={}, 
-%%            state={},
-%%            country={}}
-%% \fntext[label3]{}
+% Main title of the paper
+\title [mode = title]{Constraint base approach for solving deterministic \wregulargames}  
 
-\title{Constraint base approach for solving deterministic \wregulargames} %% Article title
+% Title footnote mark
+% eg: \tnotemark[1]
+\tnotemark[1] 
 
-% %% use optional labels to link authors explicitly to addresses:
-% \author[label1,label3]{}
-% \author[label1]{}
+% Title footnote 1.
+% eg: \tnotetext[1]{Title footnote text}
+\tnotetext[1]{Chalo} 
 
-% \affiliation[label1]{organization={},
-%   addressline={},
-%   city={},
-%   postcode={},
-%   state={},
-%   country={}}
+% First author
+%
+% Options: Use if required
+% eg: \author[1,3]{Author Name}[type=editor,
+%       style=chinese,
+%       auid=000,
+%       bioid=1,
+%       prefix=Sir,
+%       orcid=0000-0000-0000-0000,
+%       facebook=<facebook id>,
+%       twitter=<twitter id>,
+%       linkedin=<linkedin id>,
+%       gplus=<gplus id>]
 
-% \affiliation[label2]{organization={},
-%   addressline={},
-%   city={},
-%   postcode={},
-%   state={},
-%   country={}}
+\author[1]{}%[<options>]
 
+% Corresponding author indication
+\cormark[1]
 
-\author{} %% Author name
+% Footnote of the first author
+\fnmark[1]
 
-% %% Author affiliation
-% \affiliation{organization={},%Department and Organization
-%             addressline={}, 
-%             city={},
-%             postcode={}, 
-%             state={},
-%             country={}}
+% Email id of the first author
+\ead{}
 
-%% Abstract
+% URL of the first author
+\ead[url]{}
+
+% Credit authorship
+% eg: \credit{Conceptualization of this study, Methodology, Software}
+\credit{}
+
+% Address/affiliation
+\affiliation[1]{organization={},
+            addressline={}, 
+            city={},
+%          citysep={}, % Uncomment if no comma needed between city and postcode
+            postcode={}, 
+            state={},
+            country={}}
+
+\author[2]{}%[]
+
+% Footnote of the second author
+\fnmark[2]
+
+% Email id of the second author
+\ead{}
+
+% URL of the second author
+\ead[url]{}
+
+% Credit authorship
+\credit{}
+
+% Address/affiliation
+\affiliation[2]{organization={},
+            addressline={}, 
+            city={},
+%          citysep={}, % Uncomment if no comma needed between city and postcode
+            postcode={}, 
+            state={},
+            country={}}
+
+% Corresponding author text
+\cortext[1]{Corresponding author}
+
+% Footnote text
+\fntext[1]{}
+
+% For a title note without a number/mark
+%\nonumnote{}
+
+% Here goes the abstract
 \begin{abstract}
 Solving \wregulargames is a core problem in formal verification, particularly within model checking and synthesis methods that have several industrial-scale applications. In this paper, we propose a constraint-based approach for games on graphs, built upon a novel propagation algorithm that eliminates opponent cycles from the game graph. This approach yields an efficient method that directly exploits the duality between players in a parity game. Our implementation within a Lazy Clause Generation framework outperforms all existing constraint-based methods for parity games. Furthermore, it performs competitively against the most specialized, non-CP-based algorithms---often matching and sometimes exceeding their performance---while retaining the inherent flexibility of general constraint-based approaches. 
 
 Because new constraints can be seamlessly integrated, our method provides a highly flexible framework for refining existing problem formulations to search for preferred solutions. This extensibility allows the framework to solve multi-conditioned games, such as those combining parity conditions with cost or resource-bounded requirements. Finally, we present the theoretical foundations of our approach, a comprehensive experimental evaluation, and an analysis of different algorithmic variants.
 \end{abstract}
 
-%%Graphical abstract
-\begin{graphicalabstract}
-%\includegraphics{grabs}
-\end{graphicalabstract}
+% Use if graphical abstract is present
+%\begin{graphicalabstract}
+%\includegraphics{}
+%\end{graphicalabstract}
 
-%%Research highlights
+% Research highlights
 \begin{highlights}
-\item Research highlight 1
-\item Research highlight 2
+\item 
+\item 
+\item 
 \end{highlights}
 
-%% Keywords
-\begin{keyword}
+
+% Keywords
+% Each keyword is seperated by \sep
+\begin{keywords}
 Constraint programming  \sep Parity games \sep Verification.
-\end{keyword}
+\end{keywords}
 
-\end{frontmatter}
+\maketitle
 
-\newpage
-\tableofcontents
-
-%% Add \usepackage{lineno} before \begin{document} and uncomment 
-%% following line to enable line numbers
-%% \linenumbers
-
-%% main text
-%%
-\newpage
 \section{Introduction}
 Two-player, zero-sum, infinite-duration games played on graphs provide the foundational mathematical framework for the automated verification and synthesis of reactive systems. In this paradigm, vertices represent states of the system and its environment, edges denote possible transitions or actions, and infinite paths (plays) represent the ongoing behavior of the system. Solving these games—determining which player can force a play to satisfy a specific objective—is central to model checking, synthesis of controllers, and verifying specifications against adversarial environments.
 %
@@ -191,7 +208,6 @@ A game begins with a token placed at an initial vertex $v_0 \in V$. If $v_0 \in 
 % A profile consisting of a pair of memoryless strategies $(\sigma, \tau)$ completely determines a unique play $\pi(v_0, \sigma, \tau) = v_0 v_1 v_2 \ldots$ starting from any initial vertex $v_0$, where $v_{i+1} = \sigma(v_i)$ if $v_i \in V_{\even}$ and $v_{i+1} = \tau(v_i)$ if $v_i \in V_{\odd}$. 
 
 % An objective $\mathcal{W}$ for Player~$\even$ is a subset of all possible infinite plays, $\mathcal{W} \subseteq \text{Plays}(\mathcal{A})$. A play $\pi$ is winning for Player~$\even$ if $\pi \in \mathcal{W}$; otherwise, because the games are zero-sum, the play is winning for Player~$\odd$. A strategy $\sigma$ is a winning strategy for Player~$\even$ from a vertex $v_0$ if for all possible strategies $\tau$ of the opponent, the resulting play $\pi(v_0, \sigma, \tau)$ belongs to $\mathcal{W}$. Solving a game means partitioning the vertex set $V$ into two winning regions $W_{\even}$ and $W_{\odd}$, containing the vertices from which Player~$\even$ and Player~$\odd$ possess a winning strategy, respectively.
-
 
 
 % \subsection*{Strategies and Initial-Vertex Game Solving}
@@ -288,8 +304,8 @@ The structural conditions required to characterize a valid winning region from $
 To embed this operational capability natively into our CP variable framework, the active strategy sub-graph must be constrained such that $\player$ maintains absolute deterministic control, while simultaneously guarding against every possible counter-move from $\opponent$. Structurally, this requires enforcing the following connectivity rules from $v_0$:
 \begin{enumerate}
     \item \textbf{Root Activation:} The initial vertex must always be active ($\mathcal{V}_{v_0} = \top$).
-    \item \textbf{Deterministic Selection ($\player$):} For every active vertex controlled by the player of interest ($v \in V_{\player}$), the solver must select at least one outgoing transition to enforce a positional choice.
-    \item \textbf{Adversarial Closure ($\opponent$):} For every active vertex controlled by the opponent ($v \in V_{\opponent}$), the formulation must activate \textit{all} of its outgoing transitions. This models the attractor logic by guaranteeing that no matter which edge the opponent selects, the play cannot escape the verified strategy graph.
+    \item \textbf{Deterministic Selection:} For every active vertex controlled by the player of interest ($v \in V_{\player}$), the solver must select at least one outgoing transition to enforce a positional choice.
+    \item \textbf{Adversarial Closure:} For every active vertex controlled by the opponent ($v \in V_{\opponent}$), the formulation must activate \textit{all} of its outgoing transitions. This models the attractor logic by guaranteeing that no matter which edge the opponent selects, the play cannot escape the verified strategy graph.
     \item \textbf{Forward Propagation:} Any vertex reached by an active edge must itself be marked as active.
 \end{enumerate}
 
@@ -347,7 +363,8 @@ The CSP for an arena $\mathcal{A} = (V, E, \Omega, Q)$ starting at an initial ve
     \item [$\mathcal{C}_{\!E}$ :] $\bigwedge_{w \in V, w \neq v_0} \left(\left(\bigvee_{v \in Ew} \mathcal{E}_{(v,w)}\right) \rightarrow \mathcal{V}_w\right)$
     \item [$\mathcal{C}_{\!N\!O\!C}(f)$ :] $\bigwedge_{v_0, \closerdots, v_k} \left( \left(\bigwedge_{i=0}^{k-1} \mathcal{E}_{(v_i,v_{i+1})}\right) \to \bigwedge_{j=0}^{k-1} \left((v_j = v_k) \to f(v_j, \closerdots, v_k)\right) \right)$
 \end{itemize}
-where the evaluation criteria $f$ for a given cycle $v_j, \dots, v_k$ are provided by specific qualitative or quantitative verification functions, which are formally detailed in Section~\ref{sec:function_conditions}.
+where the evaluation criteria $f$ for a given cycle $v_j, \dots, v_k$ are provided by specific qualitative or quantitative verification functions—encompassing Büchi ($f^B$), Rabin ($f^R$), Parity ($f^\omega$), Energy ($f^\eta$), and Mean-Payoff ($f^\mu$) conditions—which are formally detailed in Section~\ref{sec:function_conditions}.
+
 \end{definition}
 
 While constraints $\mathcal{C}_{v_0}$, $\mathcal{C}_{\opponent}$, and $\mathcal{C}_{\!E}$ enforce the required sub-graph connectivity (analogous to the baseline's $\Phi_{v_0}, \Phi_\forall$, and $\Phi_V$), $\mathcal{C}_{\player}$ strictly dictates that the protagonist selects exactly one deterministic strategy choice per active vertex. 
@@ -358,85 +375,230 @@ Our generalized CSP model inherits and extends this satisfiability approach, lif
 
 A key architectural advantage of this design is that by simply swapping the roles of $\player$ and $\opponent$, the formulation allows the proposed method to search from the perspective of either player natively. While a satisfying assignment validates a win for $\player$, an exhaustive proof of unsatisfiability demonstrates the complete absence of a positional winning strategy for them, which—by the determinacy of these games—automatically hands a conclusive victory to the opponent $\opponent$.
 
-
-
 \subsection{Running Example}
 \label{subsec:running_example}
 
-\begin{figure}[htb]
+\begin{figure}
      \centering
      % Pull the images slightly into the margins to maximize center space
      \makebox[\textwidth][c]{
          \begin{subfigure}[t]{0.51\textwidth}
              \centering
-             \includegraphics[width=\textwidth, trim={0 0 0 0}, clip]{images/ex00.pdf}
+             \includegraphics[width=0.8\textwidth, trim={0 0 0 0}, clip]{images/ex01.pdf}
              \vspace{-5pt} % Reduces gap between image and sub-caption
-             \caption{\nocq SAT encoding.}
-             \label{fig:nocq-3}
+             \caption{First assignment.}
+             \label{fig:ex01}
          \end{subfigure}
          \hspace{1pt} % Minimal gap
          \begin{subfigure}[t]{0.51\textwidth}
              \centering
-             \includegraphics[width=\textwidth, trim={0 0 0 0}, clip]{images/ex00.pdf}
+             \includegraphics[width=0.8\textwidth, trim={0 0 0 0}, clip]{images/ex02.pdf}
              \vspace{-5pt}
-             \caption{Auxiliary algorithms in \nocq.}
-             \label{fig:nocq-4}
+             \caption{Second assignment}
+             \label{fig:ex02}
          \end{subfigure}
      }
      \caption{Arena with 4 vertices and 6 edges.  Vertices controlled by Player \even are shown as circles, while vertices controlled by Player \odd are shown as squares.}
-     \label{fig:nocq-details}
+     \label{fig:ex00}
 \end{figure}
 
-
-To demonstrate the structural and operational mechanics of our generalized CSP formulation, consider the 2-player game arena illustrated in Figure~\ref{fig:running_example}. The arena consists of four vertices $V = \{v_0, v_1, v_2, v_3\}$, which are partitioned into $V_{\subeven} = \{v_0, v_1\}$ (represented as circles) and $V_{\subodd} = \{v_2, v_3\}$ (represented as squares). The directed edge set is defined as $E = \{e_0, e_1, e_2, e_3, e_4, e_5\}$, where $e_0 = (v_0, v_1)$, $e_1 = (v_0, v_3)$, $e_2 = (v_1, v_2)$, $e_3 = (v_2, v_0)$, $e_4 = (v_2, v_1)$, and $e_5 = (v_3, v_3)$. We evaluate a Büchi objective from the perspective of Player~$\even$ ($\player = \even$), where the target accepting set is $F = \{v_1\}$, and the initial vertex is $v_0$.
+To demonstrate the structural and operational mechanics of our generalized CSP formulation, consider the 2-player game arena illustrated in Figure~\ref{fig:ex00}. The arena consists of four vertices $V = \{v_0, v_1, v_2, v_3\}$, which are partitioned into $V_{\subeven} = \{v_0, v_1\}$ (represented as circles) and $V_{\subodd} = \{v_2, v_3\}$ (represented as squares). The directed edge set is defined as $E = \{e_0, e_1, e_2, e_3, e_4, e_5\}$. We evaluate a Büchi objective from the perspective of Player~$\even$ ($\player = \even$), where the target accepting set is $F = \{v_1\}$, and the initial vertex is $v_0$.
 
 Under our framework, the solver instantiates the core set of Boolean decision variables:
 \[
-\mathcal{X} = \{\mathcal{V}_{v_0}, \mathcal{V}_{v_1}, \mathcal{V}_{v_2}, \mathcal{V}_{v_3}, \mathcal{E}_{e_0}, \mathcal{E}_{e_1}, \mathcal{E}_{e_2}, \mathcal{E}_{e_3}, \mathcal{E}_{e_4}, \mathcal{E}_{e_5}\}
+\mathcal{X} = \{\mathcal{V}_0, \mathcal{V}_1, \mathcal{V}_2, \mathcal{V}_3, \mathcal{E}_0, \mathcal{E}_1, \mathcal{E}_2, \mathcal{E}_3, \mathcal{E}_4, \mathcal{E}_5\}
 \]
 mapped to individual Boolean domains $\mathcal{D}$. The structural and global constraints execute through the following progression:
 
 \begin{enumerate}
-    \item \textbf{Root Activation ($\mathcal{C}_{v_0}$):} The search initializes by anchoring the root vertex: $\mathcal{V}_{v_0} = \top$.
+    \item \textbf{Root Activation ($\mathcal{C}_{v_0}$):} The search initializes by anchoring the root vertex: $\mathcal{V}_0 = \top$.
     \item \textbf{Deterministic Strategy Choice ($\mathcal{C}_{\player}$):} Vertex $v_0$ is controlled by Player~$\even$. The constraint forces exactly one outgoing edge to be selected. 
     \begin{itemize}
-        \item If the solver branches and tests $\mathcal{E}_{e_1} = \top$, forward propagation ($\mathcal{C}_E$) activates vertex $v_3$ ($\mathcal{V}_{v_3} = \top$). Because vertex $v_3$ belongs to Player~$\odd$, its outgoing edge is forced active ($\mathcal{E}_{e_5} = \top$), closing a localized cycle on vertex $v_3$. The global constraint evaluates $f_B(v_3, v_3) = \{v_3\} \cap \{v_1\} \neq \emptyset$, which returns $\bot$. The propagator immediately rejects this branch, forcing the solver to backtrack.
-        \item The solver then selects the winning alternative: $\mathcal{E}_{e_0} = \top$. This choice propagates and activates vertex $v_1$ ($\mathcal{V}_{v_1} = \top$).
+        \item If the solver branches and tests $\mathcal{E}_0 = \top$, forward propagation ($\mathcal{C}_E$) activates vertex $v_3$ ($\mathcal{V}_3 = \top$). Because vertex $v_3$ belongs to Player~$\odd$, its outgoing edge is forced active ($\mathcal{E}_5 = \top$), closing a localized cycle on vertex $v_3$ (See Figure \ref{fig:ex01}). The global constraint evaluates $f^B(v_3, v_3) = \{v_3\} \cap \{v_1\} \neq \emptyset$, which returns $\bot$. The propagator immediately rejects this branch, forcing the solver to backtrack.
+        \item The solver then selects the winning alternative: $\mathcal{E}_1 = \top$. This choice propagates and activates vertex $v_1$ ($\mathcal{V}_1 = \top$).
     \end{itemize}
-    \item \textbf{Propagation Loop:} At vertex $v_1$, Player~$\even$ must again pick exactly one deterministic transition. The solver selects $\mathcal{E}_{e_2} = \top$, which propagates and activates the opponent's vertex $v_2$ ($\mathcal{V}_{v_2} = \top$).
+    \item \textbf{Propagation Loop:} At vertex $v_1$, Player~$\even$ must again pick exactly one deterministic transition. The solver selects $\mathcal{E}_2 = \top$, which propagates and activates the opponent's vertex $v_2$ ($\mathcal{V}_2 = \top$).
     \item \textbf{Attractor Logic Realization ($\mathcal{C}_{\opponent}$):} Because vertex $v_2$ is controlled by the opponent, constraint $\mathcal{C}_{\opponent}$ triggers. To guarantee that Player~$\even$ is safe against any adversarial counter-play, the model forces \textit{all} outgoing transitions from vertex $v_2$ to activate simultaneously:
     \[
-    \mathcal{V}_{v_2} \rightarrow (\mathcal{E}_{e_3} \land \mathcal{E}_{e_4})
+    \mathcal{V}_2 \rightarrow (\mathcal{E}_3 \land \mathcal{E}_4)
     \]
-    Consequently, both $\mathcal{E}_{e_3}$ and $\mathcal{E}_{e_4}$ are set to $\top$.
+    Consequently, both $\mathcal{E}_3$ and $\mathcal{E}_4$ are set to $\top$ (See Figure \ref{fig:ex02}).
 \end{enumerate}
 
-At this stage, the structural layout constraints have successfully isolated a candidate strategy sub-graph. The global constraint $\mathcal{C}_{\!N\!O\!C}(f_B)$ now scans this active sub-arena and extracts all reachable cycles resulting from the opponent's split at vertex $v_2$:
+At this stage, the structural layout constraints have successfully isolated a candidate strategy sub-graph. The global constraint $\mathcal{C}_{\!N\!O\!C}(f^B)$ now scans this active sub-arena and extracts all reachable cycles resulting from the opponent's split at vertex $v_2$:
 \begin{itemize}
-    \item \textbf{Cycle 1 ($v_2 \rightarrow v_0 \rightarrow v_1 \rightarrow v_2$):} Traversing edges $e_3, e_0, e_2$, the solver evaluates the cycle sequence:
+    \item \textbf{Cycle 1 ($v_0 \rightarrow v_1 \rightarrow v_2 \rightarrow v_0$):} Traversing edges $e_1, e_2, e_4$, the solver evaluates the cycle sequence:
     \[
-    f_B(v_2, v_0, v_1, v_2) = \{v_2, v_0, v_1\} \cap \{v_1\} \neq \emptyset \implies \top
+    f^B(v_0, v_1, v_2, v_0) = \{v_0, v_1, v_2\} \cap \{v_1\} \neq \emptyset \implies \top
     \]
-    \item \textbf{Cycle 2 ($v_2 \rightarrow v_1 \rightarrow v_2$):} Traversing edges $e_4, e_2$, the solver evaluates the tighter loop:
+    \item \textbf{Cycle 2 ($v_1 \rightarrow v_2 \rightarrow v_1$):} Reachable via $e_0$ and traversing edges $e_2, e_3$, the solver evaluates the tighter loop:
     \[
-    f_B(v_2, v_1, v_2) = \{v_2, v_1\} \cap \{v_1\} \neq \emptyset \implies \top
+    f^B(v_1, v_2, v_1) = \{v_1, v_2\} \cap \{v_1\} \neq \emptyset \implies \top
     \]
 \end{itemize}
 
-Because every active cycle within this adversarial attractor structure satisfies the function $f_B$, the global constraint validates the assignment. The solver successfully terminates, outputting a satisfying strategy assignment proving that Player~$\even$ wins the game from $v_0$.
+Because every active cycle within this adversarial attractor structure satisfies the function $f^B$, the global constraint validates the assignment. The solver successfully terminates, outputting a satisfying strategy assignment proving that Player~$\even$ wins the game from $v_0$.
 
 
 
+\subsection{Global Opponent Cycle Elimination Propagators}
+\label{sec:global_propagators}
 
-\subsection{Global Opponent Cycle Elimination Propagators}\label{sec:global_propagators}
+Before detailing the inner workings of our cycle elimination algorithms, it is important to clarify how the different components of the generalized Game CSP (Definition~\ref{def:csp}) are implemented within the underlying solver. The localized structural constraints—namely the root activation ($\mathcal{C}_{v_0}$), the player's deterministic choice ($\mathcal{C}_{\player}$), the opponent's attractor expansion ($\mathcal{C}_{\opponent}$), and the forward edge propagation ($\mathcal{C}_E$)—consist of simple, local logical dependencies. Consequently, they are mapped directly to standard propositional clauses or native primitive constraints managed efficiently by the solver's default propagation engine. 
+
+In contrast, the cycle validation constraint $\mathcal{C}_{\!N\!O\!C}(f)$ governs non-local, dynamic graph properties that cannot be captured effectively by static clauses. This necessitates the introduction of a custom, highly specialized global propagator to monitor the emerging strategy graph and dynamically prune illegal loops during search.
+
+To dynamically enforce the global constraint $\mathcal{C}_{\!N\!O\!C}(f)$ during the search loop, we introduce three algorithmic variants designed to intercept, analyze, and eliminate illegal winning components for the opponent $\opponent$. Rather than relying on rigid, upfront propositional expansions, these propagators run natively inside the CP solver's execution engine, providing varying trade-offs between filtering strength and algorithmic complexity.
+
+
+Before detailing the inner workings of our cycle elimination algorithms, it is important to clarify how the different components of the generalized Game CSP (Definition~\ref{def:csp}) are implemented within the underlying solver. The localized structural constraints—namely the root activation ($\mathcal{C}_{v_0}$), the player's deterministic choice ($\mathcal{C}_{\player}$), the opponent's attractor expansion ($\mathcal{C}_{\opponent}$), and the forward edge propagation ($\mathcal{C}_E$)—consist of simple, local logical dependencies. Consequently, they are mapped directly to standard propositional clauses or native primitive constraints managed efficiently by the solver's default propagation engine. 
+
+In contrast, the cycle validation constraint $\mathcal{C}_{\!N\!O\!C}(f)$ governs non-local, dynamic graph properties that cannot be captured effectively by static clauses. This necessitates the introduction of a custom, highly specialized global propagator to monitor the emerging strategy graph and dynamically prune illegal loops during search.
+
+To make this global propagator fully modular across multi-conditioned arenas, we decouple the global path evaluation function $f$ into an abstract, vertex-level winning predicate. We define the global objective profile as a conjunctive operator composition over the individual game criteria:
+\[
+f = f^B \otimes f^R \otimes f^\omega \otimes f^\eta \otimes f^\mu 
+\]
+where $B, R, \omega, \eta$, and $\mu$ represent qualitative and quantitative objectives (specifically Büchi, Rabin, parity, energy boundaries, and mean-payoffs, respectively). 
+
+Correspondingly, for any individual state, the predicate $f_{\player}(v)$ evaluates whether the local property of vertex $v$ satisfies or actively contributes to the winning requirements of $\player$ under the composed objective $f_{\player}$. If $f_{\player}(v)$ holds true, vertex $v$ belongs to the safe region for the player of interest; if false ($\neg f_{\player}(v)$), the state inherently risks driving the game into a component dominated by the adversary. The algorithms in this section leverage this predicate to systematically slice away valid sub-graphs and isolate losing loops.
+
+\subsubsection{A No-Opponent-Cycle Checker (NOCChecker)} \label{sec:nocchecker}
+
+Our first baseline propagator establishes a fundamental validation check by recursively decomposing the strategy sub-graph into Strongly Connected Components (SCCs). By definition, every vertex inside an SCC of cardinality greater than one belongs to at least one localized cycle, whereas single-vertex SCCs can only close a loop via an explicit self-loop. 
+
+The checker isolates the induced active sub-graph containing only assigned variables where $\mathcal{V}_v = \top$ and $\mathcal{E}_e = \top$. It then systematically identifies and eliminates vertices that satisfy the winning condition for $\player$, checking whether any residual components form an inescapable cycle that exclusively favors $\opponent$.
+
+\begin{algorithm}[htb]
+\small
+\caption{\textbf{\textit{NOCChecker}}}
+\textbf{Input}: Induced active sub-graph $G = (V', E')$ \\
+\textbf{Output}: $\top$ if the strategy graph contains no winning opponent cycles; $\bot$ otherwise
+\begin{algorithmic}[1]
+    \FOR{$scc \in \textit{Tarjan}(G)$} \label{alg:noc-checker:breakingdown}
+        \IF{$|scc| = 1$} \label{alg:noc-checker:single}
+            \STATE $v \gets$ the unique vertex in $scc$
+            \STATE \textbf{if } $\neg f_{\player}(v) \land \mathcal{E}_{[vEv]}$ \textbf{then return $\bot$} \label{alg:noc-checker:self}  
+        \ELSE
+            \STATE $ \textit{objectiveSet} \gets \{ v \in scc \mid 
+            f_{\player}(v) \text{ holds true}
+            \}$ \label{alg:noc-checker:best}
+            \STATE \textbf{if } $ \textit{objectiveSet} = \emptyset$ \textbf{then return $\bot$} \label{alg:noc-checker:opponent}
+
+            \STATE \textit{NOCChecker}($G \setminus \textit{objectiveSet}$) \label{alg:noc-checker:recursion}
+        \ENDIF
+    \ENDFOR
+    \RETURN $\top$
+\end{algorithmic}
+\label{alg:noc-checker}
+\end{algorithm}
+
+Algorithm~\ref{alg:noc-checker} is executed when all decision variables within the current search branch become fixed. The function is invoked with the induced sub-graph containing exclusively the active components: $\textit{NOCChecker}(\{ v \in V \mid \mathcal{V}_v = \top \})$.
+
+The graph is first partitioned into independent components using Tarjan's linear-time algorithm (Line~\ref{alg:noc-checker:breakingdown}). If an SCC contains an isolated vertex (Line~\ref{alg:noc-checker:single}), the algorithm ensures it does not possess an active self-loop ($\mathcal{E}_{[vEv]} = \top$) that violates the evaluation predicate $f_{\player}(v)$ (Line~\ref{alg:noc-checker:self}). For non-trivial components, the algorithm isolates the subset of vertices that satisfy the winning criteria for the player of interest: $\textit{objectiveSet} \gets \{ v \in scc \mid f_{\player}(v) \}$ (Line~\ref{alg:noc-checker:best}). 
+
+If this filtering step yields an empty set ($\textit{objectiveSet} = \emptyset$), it mathematically demonstrates that the entire component forms a closed cycle where no state can satisfy the winning criteria for $\player$ (Line~\ref{alg:noc-checker:opponent}). Due to the structural nature of these games, this represents an inescapable loop favoring the adversary, and the assignment is rejected. Otherwise, if the set is not empty, those validated states are filtered out, and the checker is recursively called on the remaining induced sub-graph ($G \setminus \textit{objectiveSet}$) to ensure that no secondary, losing sub-cycles are nested within the component (Line~\ref{alg:noc-checker:recursion}).
+
+The worst-case computational complexity of \textit{NOCChecker} remains strictly polynomial. A single pass of Tarjan’s algorithm runs in linear time $\mathcal{O}(|V| + |E|)$. Because vertices within the valid objective sets are removed permanently at each recursive tier, the maximal depth of the recursion is bounded linearly by the total number of vertices. Consequently, the overall time complexity of the checker stands at $\mathcal{O}(|V| \cdot (|V| + |E|))$ in the absolute worst case.
+
+\subsubsection{A No-Opponent-Cycle Filter (NOCEager)} \label{sec:nocfilter}
+
+While the checker functions as a final validation step on fully assigned branches, proactive pruning requires an eager filtering mechanism. We propose a look-ahead propagator driven by a Depth-First Search (DFS) traversal. Rather than waiting for a complete assignment, this variant explores potential paths from the initial vertex $v_0$ to detect emerging cycles early. We formalize this algorithm within the context of a \textit{Lazy Clause Generation} (LCG) solver architecture, enabling the propagator to dynamically deduce and register learned propositional explanations when conflicts are reached.
+
+\begin{algorithm}[htb]
+\small
+\caption{\textbf{\textit{NOCEager}}}
+\textbf{Input}: $path_V,\ path_E,\ v,\ e,\ \mathcal{E},\ \textit{defined}$ \\
+\textbf{Output}: $\top$ if look-ahead is valid; $\bot$ if a fatal conflict occurs
+\begin{algorithmic}[1]
+    \IF{$v \in path_V$} \label{alg:noc-eager:pathcheck}
+        \STATE $i_v \gets \textit{find}(v, path_V)$ \label{alg:noc-eager:findcycle}
+        \IF{$\neg f_{\player}(path_E[i_v:])$} \label{alg:noc-eager:checkopponent}
+            \STATE $\textit{reason} \gets \textit{clausify}(\neg path_E)$ \label{alg:noc-eager:reason}
+            \STATE \textbf{if } not $(\mathcal{E}_e \gets (\bot, \textit{reason}))$ \textbf{then return $\bot$}
+        \ENDIF
+    \ELSIF{$\textit{defined}$} \label{alg:noc-eager:defcheck}
+        \FOR{$e' \in \textit{edges}(v) \textbf{ where } \mathcal{E}_{e'} \ne \bot$} \label{alg:no-opponent-cycle-f1:edgecheck}
+            \STATE $p_V \gets path_V \cup \{v\}$
+            \STATE $p_E \gets path_E \cup \{e'\}$
+            \STATE $w \gets \textit{target}(e')$
+            \STATE $\textit{def} \gets (\mathcal{E}_{e'} = \top)$
+            \STATE \textit{NOCEager}($p_V$, $p_E$, $w$, $e'$, $\mathcal{E}$, $\textit{def}$)
+        \ENDFOR
+    \ENDIF
+    \RETURN $\top$
+\end{algorithmic}
+\label{alg:noc-eager}
+\end{algorithm}
+
+The eager propagator triggers recursively, initialized as $\textit{NOCEager}(\emptyset, \emptyset, v_0, \text{null}, \mathcal{E}, \top)$. The arrays $path_V$ and $path_E$ maintain the chronological trail of the search path. A standard propagation algorithm would restrict its exploration exclusively to committed edges where $\mathcal{E}_{e'} = \top$. However, a crucial strength of our eager design is that it is permitted to explore up to at most one unassigned decision variable ($\mathcal{E}_{e'} = \text{unassigned}$). This enables the engine to intercept dangerous loops before they are locked in by the search engine.
+
+When a vertex is re-encountered along the trail (Line~\ref{alg:noc-eager:findcycle}), a closed cycle is isolated. The propagator passes this specific vertex sequence directly to our verification function $f$. If $f$ evaluates to false, the cycle represents an opponent-winning loop (Line~\ref{alg:noc-eager:checkopponent}). The back-edge closing this component is immediately forced to false. 
+
+To leverage the power of LCG clause learning, Line~\ref{alg:noc-eager:reason} generates a dynamic semantic justification clause. For example, in our running example (Section~\ref{subsec:running_example}), if the solver tentatively branches into the unassigned self-loop on vertex $v_3$, the propagator detects the cycle and generates the learned clause:
+\[
+(\neg \mathcal{E}_{e_1} \lor \neg \mathcal{E}_{e_5})
+\]
+This permanently bars the solver from picking this destructive combination in subsequent search branches, triggering immediate backjumping.
+
+Because a full path search across an unassigned graph can encounter an exponential number of simple paths, the theoretical worst-case complexity of \textit{NOCEager} is exponential. However, because the look-ahead is strictly bounded by active assignments and at most a single unassigned edge, the practical branching factor is heavily restricted, making its runtime highly efficient in practice.
+
+\subsubsection{Improved Filtering Strategy via Memoization (NOCMemo)}
+
+To circumvent the potential path explosion of the eager DFS traversal while retaining predictive pruning, we introduce a bounded variant that tracks previously analyzed cycles through an internal memoization layer.
+
+\begin{algorithm}[htb]
+\caption{\textbf{\textit{NOCMemo}}}
+\small
+\textbf{Input}: $path_V, path_E, v, e, \mathcal{X}, \textit{defined}, \textit{memo}$ \\
+\textbf{Output}: $\top$ if valid; $\bot$ otherwise
+\begin{algorithmic}[1]
+    \IF{$v \in path_V$}
+        \STATE $i_v \gets$ \textit{index}$(v,\ path_V)$
+        \STATE $m \gets \text{evaluate dominant property along } path_V[i_v:]$
+        \STATE $\textit{memo}[e] \gets (v,\ m)$ \label{alg:noc-memo:update}
+        \IF{$\neg f(path_V[i_v:])$} 
+            \STATE $\textit{reason} \gets \textit{clausify}(\bigvee_{e' \in path_E[i_v:]} \neg \mathcal{E}_{e'})$
+            \STATE \textbf{if }not ($\mathcal{E}_e \gets (\bot, \textit{reason}))$ \textbf{then return $\bot$}
+        \ENDIF
+    \ELSIF{$\textit{defined}$}
+        \FOR{$e' \in \textit{edges}(v)\ \textbf{where}\ \mathcal{E}_{e'} \ne \bot$}
+            \STATE $(v_{memo},\ m_{memo}) \gets \textit{memo}[e']$
+            \STATE $p_V \gets path_V \cup \{v\}$
+            \STATE $p_E \gets path_E \cup \{e'\}$
+            \STATE $w \gets \textit{target}(e')$
+            \STATE $\textit{def} \gets (\mathcal{E}_{e'} = \top)$
+
+            \IF{$(v_{memo}, m_{memo}) = (\text{null}, \text{null})$}
+                \STATE \textit{NOCMemo}($p_V, p_E, w, e', \mathcal{X}, \textit{def}, \textit{memo}$)\label{alg:noc-memo:check1}
+            \ELSE
+                \STATE $i_v \gets \textit{index}(v_{memo},\ path_V)$
+                \STATE $m \gets \text{evaluate property along } path_V[i_v:]$
+                \IF{$m \text{ dominates } m_{memo} \text{ under criteria } f$}
+                    \STATE \textit{NOCMemo}($p_V, p_E, w, e', \mathcal{X}, \textit{def}, \textit{memo}$)\label{alg:noc-memo:check2}
+                \ELSE
+                    \STATE $\textit{memo}[e] \gets \textit{memo}[e']$
+                \ENDIF
+            \ENDIF
+        \ENDFOR
+    \ENDIF
+    \RETURN $\top$
+\end{algorithmic}
+\label{alg:noc-memo}
+\end{algorithm}
+
+The \textit{NOCMemo} propagator (Algorithm~\ref{alg:noc-memo}) maintains a tracking array $\textit{memo}$, which maps each edge to a tuple containing the entry node of a validated cyclic component and its associated bottleneck weight or priority. When a cycle closure is encountered, this state is recorded (Line~\ref{alg:noc-memo:update}). During subsequent traversals, if an edge points toward a sub-graph whose entry signature matches an identical or strictly worse evaluation parameter stored in $\textit{memo}$, the propagator short-circuits the recursive path expansion and safely skips reprocessing that entire sub-tree.
+
+By caching path metrics, the worst-case runtime drops to a polynomial function bounded by the number of edges and the cardinality of distinct verification values. However, because memoization records paths relative to explicit entry nodes, it can occasionally bypass tracking overlapping components that originate elsewhere, making this propagator *incomplete* when running alone. To preserve full mathematical completeness while harvesting maximum execution speeds, our framework deploys \textit{NOCMemo} as an agile first-tier filter, running in tandem with the exact \textit{NOCChecker} at the end of the search branch.
+
 
 \section{Functional Formulation of Winning Conditions}\label{sec:function_conditions}
 \begin{itemize}[leftmargin=3.1cm, labelwidth=2.8cm, align=right, itemsep=0.5ex, parsep=0pt, topsep=1pt]
-    \item [$f_\omega(v_j, \closerdots, v_k) =$] $\max\{\Omega(v_i) \mid i\in j\dots k\} \bmod 2 \ne \opponent$
-    \item [$f_B(v_j, \closerdots, v_k) =$] $\{v_j, \dots, v_{k-1}\} \cap F \neq \emptyset$
-    \item [$f_R(v_j, \closerdots, v_k) =$] $\exists (L_i, U_i) \in P : \left( \{v_j, \dots, v_{k-1}\} \cap L_i \neq \emptyset \land \{v_j, \dots, v_{k-1}\} \cap U_i = \emptyset \right)$
-    \item [$f_\eta(v_j, \closerdots, v_k) =$] $\sum_{i=j}^{k-1} Q(v_i, v_{i+1}) \ge \nu$
-    \item [$f_\mu(v_j, \closerdots, v_k) =$] $\frac{1}{k-j} \sum_{i=j}^{k-1} Q(v_i, v_{i+1}) \ge \nu$
+    \item [$f^B(v_j, \closerdots, v_k) =$] $\{v_j, \dots, v_{k-1}\} \cap F \neq \emptyset$
+    \item [$f^R(v_j, \closerdots, v_k) =$] $\exists (L_i, U_i) \in P : \left( \{v_j, \dots, v_{k-1}\} \cap L_i \neq \emptyset \land \{v_j, \dots, v_{k-1}\} \cap U_i = \emptyset \right)$
+    \item [$f^\omega(v_j, \closerdots, v_k) =$] $\max\{\Omega(v_i) \mid i\in j\dots k\} \bmod 2 \ne \opponent$
+    \item [$f^\eta(v_j, \closerdots, v_k) =$] $\sum_{i=j}^{k-1} Q(v_i, v_{i+1}) \ge \nu$
+    \item [$f^\mu(v_j, \closerdots, v_k) =$] $\frac{1}{k-j} \sum_{i=j}^{k-1} Q(v_i, v_{i+1}) \ge \nu$
 \end{itemize}
 
 \subsection{Formulating Qualitative Objectives}\label{subsec:cp_qualitative}
@@ -456,11 +618,25 @@ Because every active cycle within this adversarial attractor structure satisfies
 
 \section{Conclusions and Future Work}\label{sec:conclusion}
 
-\newpage
-\bibliographystyle{elsarticle-harv} 
+
+% To print the credit authorship contribution details
+\printcredits
+
+%% Loading bibliography style file
+%\bibliographystyle{model1-num-names}
+\bibliographystyle{cas-model2-names}
+
+% Loading bibliography database
 \bibliography{paper}
 
-\end{document}
+% Biography
+%\bio{}
+% Here goes the biography details.
+%\endbio
 
-\endinput
+%\bio{pic1}
+% Here goes the biography details.
+%\endbio
+
+\end{document}
 
