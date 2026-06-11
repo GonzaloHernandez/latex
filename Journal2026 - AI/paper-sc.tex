@@ -543,7 +543,24 @@ This permanently bars the solver from picking this destructive combination in su
 
 Because a full path search across an unassigned graph can encounter an exponential number of simple paths, the theoretical worst-case complexity of \textit{NOCEager} is exponential. However, because the look-ahead is strictly bounded by active assignments and at most a single unassigned edge, the practical branching factor is heavily restricted, making its runtime highly efficient in practice.
 
-\subsubsection{Improved Filtering Strategy via Memoization (NOCMemo)}
+
+\section{Functional Formulation of Winning Conditions}\label{sec:function_conditions}
+\begin{itemize}[leftmargin=3.1cm, labelwidth=2.8cm, align=right, itemsep=0.5ex, parsep=0pt, topsep=1pt]
+    \item [$f^B(v_j, \closerdots, v_k) =$] $\{v_j, \dots, v_{k-1}\} \cap F \neq \emptyset$
+    \item [$f^R(v_j, \closerdots, v_k) =$] $\exists (L_i, U_i) \in P : \left( \{v_j, \dots, v_{k-1}\} \cap L_i \neq \emptyset \land \{v_j, \dots, v_{k-1}\} \cap U_i = \emptyset \right)$
+    \item [$f^\omega(v_j, \closerdots, v_k) =$] $\max\{\Omega(v_i) \mid i\in j\dots k\} \bmod 2 \ne \opponent$
+    \item [$f^\eta(v_j, \closerdots, v_k) =$] $\sum_{i=j}^{k-1} Q(v_i, v_{i+1}) \ge \nu$
+    \item [$f^\mu(v_j, \closerdots, v_k) =$] $\frac{1}{k-j} \sum_{i=j}^{k-1} Q(v_i, v_{i+1}) \ge \nu$
+\end{itemize}
+
+\subsection{Formulating Qualitative Objectives}\label{subsec:cp_qualitative}
+\subsection{Formulating Quantitative Objectives}\label{subsec:cp_quantitative}
+\subsection{Handling Multi-Conditioned Games}\label{subsec:multi_conditioned}
+
+\section{Improving Constraint base model}\label{sec:improved_cp}
+\subsection{The Integer Formulation (\noc-Int)}\label{subsec:noc_int}
+\subsection{Search Strategies and Game-Specific Heuristics}\label{subsec:search_heuristics}
+\subsection{Improved Filtering Strategy via Memoization (NOCMemo)}
 
 To circumvent the potential path explosion of the eager DFS traversal while retaining predictive pruning, we introduce a bounded variant that tracks previously analyzed cycles through an internal memoization layer.
 
@@ -591,24 +608,6 @@ The \textit{NOCMemo} propagator (Algorithm~\ref{alg:noc-memo}) maintains a track
 
 By caching path metrics, the worst-case runtime drops to a polynomial function bounded by the number of edges and the cardinality of distinct verification values. However, because memoization records paths relative to explicit entry nodes, it can occasionally bypass tracking overlapping components that originate elsewhere, making this propagator *incomplete* when running alone. To preserve full mathematical completeness while harvesting maximum execution speeds, our framework deploys \textit{NOCMemo} as an agile first-tier filter, running in tandem with the exact \textit{NOCChecker} at the end of the search branch.
 
-
-\section{Functional Formulation of Winning Conditions}\label{sec:function_conditions}
-\begin{itemize}[leftmargin=3.1cm, labelwidth=2.8cm, align=right, itemsep=0.5ex, parsep=0pt, topsep=1pt]
-    \item [$f^B(v_j, \closerdots, v_k) =$] $\{v_j, \dots, v_{k-1}\} \cap F \neq \emptyset$
-    \item [$f^R(v_j, \closerdots, v_k) =$] $\exists (L_i, U_i) \in P : \left( \{v_j, \dots, v_{k-1}\} \cap L_i \neq \emptyset \land \{v_j, \dots, v_{k-1}\} \cap U_i = \emptyset \right)$
-    \item [$f^\omega(v_j, \closerdots, v_k) =$] $\max\{\Omega(v_i) \mid i\in j\dots k\} \bmod 2 \ne \opponent$
-    \item [$f^\eta(v_j, \closerdots, v_k) =$] $\sum_{i=j}^{k-1} Q(v_i, v_{i+1}) \ge \nu$
-    \item [$f^\mu(v_j, \closerdots, v_k) =$] $\frac{1}{k-j} \sum_{i=j}^{k-1} Q(v_i, v_{i+1}) \ge \nu$
-\end{itemize}
-
-\subsection{Formulating Qualitative Objectives}\label{subsec:cp_qualitative}
-\subsection{Formulating Quantitative Objectives}\label{subsec:cp_quantitative}
-\subsection{Handling Multi-Conditioned Games}\label{subsec:multi_conditioned}
-
-\section{Improving Constraint base model}\label{sec:improved_cp}
-\subsection{The Integer Formulation (\noc-Int)}\label{subsec:noc_int}
-\subsection{Search Strategies and Game-Specific Heuristics}\label{subsec:search_heuristics}
-
 \section{Experimental Evaluation}\label{sec:experiments}
 
 \subsection{Experimental Setup and Benchmarks}\label{subsec:exp_setup}
@@ -618,6 +617,9 @@ By caching path metrics, the worst-case runtime drops to a polynomial function b
 
 \section{Conclusions and Future Work}\label{sec:conclusion}
 
+\newpage
+
+\tableofcontents
 
 % To print the credit authorship contribution details
 \printcredits
