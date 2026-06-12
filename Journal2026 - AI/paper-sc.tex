@@ -360,7 +360,7 @@ The CSP for an arena $\mathcal{A} = (V, E, \Omega, Q)$ starting at an initial ve
     \item [$\mathcal{C}_{\!E}$ :] $\bigwedge_{w \in V, w \neq v_0} \left(\left(\bigvee_{v \in Ew} \mathcal{E}_{(v,w)}\right) \rightarrow \mathcal{V}_w\right)$
     \item [$\mathcal{C}_{\!N\!O\!C}(f)$ :] $\bigwedge_{v_0, \closerdots, v_k} \left( \left(\bigwedge_{i=0}^{k-1} \mathcal{E}_{(v_i,v_{i+1})}\right) \to \bigwedge_{j=0}^{k-1} \left((v_j = v_k) \to f(v_j, \closerdots, v_k)\right) \right)$
 \end{itemize}
-where the evaluation criteria $f$ for a given cycle $v_j, \dots, v_k$ are provided by specific qualitative or quantitative verification functions—encompassing Büchi ($f^B$), Rabin ($f^R$), Parity ($f^\omega$), Energy ($f^\eta$), and Mean-Payoff ($f^\mu$) conditions—which are formally detailed in Section~\ref{sec:function_conditions}.
+where the evaluation criteria $f$ for a given cycle $v_j, \dots, v_k$ are provided by specific qualitative or quantitative verification functions—encompassing Büchi ($f^\mathcal{B}$), Rabin ($f^\mathcal{R}$), Parity ($f^\omega$), Energy ($f^\eta$), and Mean-Payoff ($f^\mu$) conditions—which are formally detailed in Section~\ref{sec:function_conditions}.
 
 \end{definition}
 
@@ -411,7 +411,7 @@ mapped to individual Boolean domains $\mathcal{D}$. The structural and global co
     \item \textbf{Root Activation ($\mathcal{C}_{v_0}$):} The search initializes by anchoring the root vertex: $\mathcal{V}_0 = \top$.
     \item \textbf{Deterministic Strategy Choice ($\mathcal{C}_{\player}$):} Vertex $v_0$ is controlled by Player~$\even$. The constraint forces exactly one outgoing edge to be selected. 
     \begin{itemize}
-        \item If the solver branches and tests $\mathcal{E}_0 = \top$, forward propagation ($\mathcal{C}_E$) activates vertex $v_1$ ($\mathcal{V}_1 = \top$). Because vertex $v_1$ belongs to Player~$\odd$, its outgoing edge is forced active ($\mathcal{E}_2 = \top$), closing a localized cycle on vertex $v_1$ (See Figure \ref{fig:ex01}). The global constraint evaluates $f^B(v_1, v_1) = \{v_1\} \cap \{v_3\} \neq \emptyset$, which returns $\bot$. The propagator immediately rejects this branch, forcing the solver to backtrack.
+        \item If the solver branches and tests $\mathcal{E}_0 = \top$, forward propagation ($\mathcal{C}_E$) activates vertex $v_1$ ($\mathcal{V}_1 = \top$). Because vertex $v_1$ belongs to Player~$\odd$, its outgoing edge is forced active ($\mathcal{E}_2 = \top$), closing a localized cycle on vertex $v_1$ (See Figure \ref{fig:ex01}). The global constraint evaluates $f^\mathcal{B}(v_1, v_1) = \{v_1\} \cap \{v_3\} \neq \emptyset$, which returns $\bot$. The propagator immediately rejects this branch, forcing the solver to backtrack.
         \item The solver then selects the winning alternative: $\mathcal{E}_1 = \top$. This choice propagates and activates vertex $v_2$ ($\mathcal{V}_2 = \top$).
     \end{itemize}
     \item \textbf{Propagation Loop:} At vertex $v_2$, Player~$\even$ must again pick exactly one deterministic transition. The solver selects $\mathcal{E}_3 = \top$, which propagates and activates the opponent's vertex $v_3$ ($\mathcal{V}_3 = \top$).
@@ -422,19 +422,19 @@ mapped to individual Boolean domains $\mathcal{D}$. The structural and global co
     Consequently, both $\mathcal{E}_5$ and $\mathcal{E}_6$ are set to $\top$ (See Figure \ref{fig:ex02}).
 \end{enumerate}
 
-At this stage, the structural layout constraints have successfully isolated a candidate strategy sub-graph. The global constraint $\mathcal{C}_{\!N\!O\!C}(f^B)$ now scans this active sub-arena and extracts all reachable cycles:
+At this stage, the structural layout constraints have successfully isolated a candidate strategy sub-graph. The global constraint $\mathcal{C}_{\!N\!O\!C}(f^\mathcal{B})$ now scans this active sub-arena and extracts all reachable cycles:
 \begin{itemize}
     \item \textbf{Cycle 1 ($v_0 \rightarrow v_2 \rightarrow v_3 \rightarrow v_0$):} Traversing edges $e_1, e_3, e_5$, the solver evaluates the cycle sequence:
     \[
-    f^B(v_0, v_2, v_3, v_0) = \{v_0, v_2, v_3\} \cap \{v_3\} \neq \emptyset \implies \top
+    f^\mathcal{B}(v_0, v_2, v_3, v_0) = \{v_0, v_2, v_3\} \cap \{v_3\} \neq \emptyset \implies \top
     \]
     \item \textbf{Cycle 2 ($v_2 \rightarrow v_3 \rightarrow v_2$):} Reachable via $e_1$ and traversing edges $e_3, e_6$, the solver evaluates the tighter loop:
     \[
-    f^B(v_2, v_3, v_2) = \{v_2, v_3\} \cap \{v_3\} \neq \emptyset \implies \top
+    f^\mathcal{B}(v_2, v_3, v_2) = \{v_2, v_3\} \cap \{v_3\} \neq \emptyset \implies \top
     \]
 \end{itemize}
 
-Because every active cycle within this adversarial attractor structure satisfies the function $f^B$, the global constraint validates the assignment. The solver successfully terminates, outputting a satisfying strategy assignment proving that Player~$\even$ wins the game from $v_0$.
+Because every active cycle within this adversarial attractor structure satisfies the function $f^\mathcal{B}$, the global constraint validates the assignment. The solver successfully terminates, outputting a satisfying strategy assignment proving that Player~$\even$ wins the game from $v_0$.
 
 
 \subsection{Global Opponent Cycle Elimination Propagators}
@@ -453,7 +453,7 @@ In contrast, the cycle validation constraint $\mathcal{C}_{\!N\!O\!C}(f)$ govern
 
 To make this global propagator fully modular across multi-conditioned arenas, we decouple the global path evaluation function $f$ into an abstract, vertex-level winning predicate. We define the global objective profile as a conjunctive operator composition over the individual game criteria:
 \[
-f = f^B \otimes f^R \otimes f^\omega \otimes f^\eta \otimes f^\mu 
+f = f^\mathcal{B} \otimes f^\mathcal{R} \otimes f^\omega \otimes f^\eta \otimes f^\mu 
 \]
 where $B, R, \omega, \eta$, and $\mu$ represent qualitative and quantitative objectives (specifically Büchi, Rabin, parity, energy boundaries, and mean-payoffs, respectively). 
 
@@ -540,24 +540,43 @@ Because a full path search across an unassigned graph can encounter an exponenti
 To optimize traversal efficiency and avoid redundant path analysis, an advanced variant incorporating structural cycle memoization is introduced and explained in Section~\ref{subsec:nocmemo}.
 
 \section{Functional Formulation of Winning Conditions}\label{sec:function_conditions}
-\begin{itemize}[leftmargin=3.1cm, labelwidth=2.8cm, align=right, itemsep=0.5ex, parsep=0pt, topsep=1pt]
-    \item [$f^B(v_j, \closerdots, v_k) =$] $\{v_j, \dots, v_{k-1}\} \cap F \neq \emptyset$
-    \item [$f^R(v_j, \closerdots, v_k) =$] $\exists (L_i, U_i) \in P : \left( \{v_j, \dots, v_{k-1}\} \cap L_i \neq \emptyset \land \{v_j, \dots, v_{k-1}\} \cap U_i = \emptyset \right)$
-    \item [$f^\omega(v_j, \closerdots, v_k) =$] $\max\{\Omega(v_i) \mid i\in j\dots k\} \bmod 2 \ne \opponent$
-    \item [$f^\eta(v_j, \closerdots, v_k) =$] $\sum_{i=j}^{k-1} Q(v_i, v_{i+1}) \ge \nu$
-    \item [$f^\mu(v_j, \closerdots, v_k) =$] $\frac{1}{k-j} \sum_{i=j}^{k-1} Q(v_i, v_{i+1}) \ge \nu$
+
+The true expressive power of our generalized Game CSP framework lies in its absolute mathematical modularity. As established in Section~\ref{sec:global_propagators}, the custom propagation loop remains structurally invariant regardless of the underlying game mechanics. The global constraint $\mathcal{C}_{\!N\!O\!C}(f)$ treats the winning criteria as an isolated, functional plug-in. Consequently, porting the engine across diverse qualitative automata-theoretic objectives or quantitative resource-bounded paradigms is achieved exclusively by specifying the concrete operational behavior of the evaluation function $f$ over an extracted cycle sequence.
+
+Let a detected cycle path be chronologically defined by its sequence of visited vertices $C = (v_j, \dots, v_k)$, where $v_j = v_k$ indicates the closure point of the loop. To ground these calculations across qualitative automata-theoretic lenses and quantitative resource-bounded formulations, we define the underlying arena parameters. Let $F \subseteq V$ denote a designated target accepting set; let $P = \{ (L_1, U_1), \dots, (L_m, U_m) \}$ represent a finite set of Rabin tracking pairs where $L_i, U_i \subseteq V$; let $\Omega: V \rightarrow \mathbb{N}$ map each state to a discrete priority; and let $Q: E \rightarrow \mathbb{Z}$ assign an integer weight or resource payoff to each directed transition. 
+
+From the perspective of the protagonist ($\player$), the functional validation criteria $f$ for a given cycle path are explicitly defined under five classic winning objectives as follows:
+
+\begin{itemize}[leftmargin=3.1cm, labelwidth=2.8cm, align=right, itemsep=0.8ex, parsep=0pt, topsep=4pt]
+    \item [$f^{\mathcal{B}}(v_j, \dots, v_k) =$] $\{v_j, \dots, v_{k-1}\} \cap F \neq \emptyset$
+    \item [$f^{\mathcal{R}}(v_j, \dots, v_k) =$] $\exists (L_i, U_i) \in P : \left( \{v_j, \dots, v_{k-1}\} \cap L_i \neq \emptyset \;\land\; \{v_j, \dots, v_{k-1}\} \cap U_i = \emptyset \right)$
+    \item [$f^{\omega}(v_j, \dots, v_k) =$] $\max\{\Omega(v) \mid v \in \{v_j, \dots, v_{k-1}\}\} \bmod 2 \neq \opponent$
+    \item [$f^{\eta}(v_j, \dots, v_k) =$] $\sum_{i=j}^{k-1} Q(v_i, v_{i+1}) \geq \nu$
+    \item [$f^{\mu}(v_j, \dots, v_k) =$] $\frac{1}{k-j} \sum_{i=j}^{k-1} Q(v_i, v_{i+1}) \geq \nu$
 \end{itemize}
 
-\subsection{Formulating Qualitative Objectives}\label{subsec:cp_qualitative}
-\subsection{Formulating Quantitative Objectives}\label{subsec:cp_quantitative}
-\subsection{Handling Multi-Conditioned Games}\label{subsec:multi_conditioned}
+\noindent where $\nu \in \mathbb{Z}$ acts as a predefined quantitative threshold constraint for energy bounds or minimum sustainable payoffs. 
+
+By exposing this functional interface directly to the solver, our global propagators \noc   can evaluate arbitrary path slices natively. If any cycle closure evaluates to false ($\bot$), the LCG infrastructure traces the precise participating variable configurations to generate explanatory clauses, preventing the search engine from getting trapped in adversarial components across any of these five paradigms.
+
+\subsection{Handling Multi-Conditioned Games and Quantitative Verification}\label{subsec:multi_conditioned}
+
+A defining architectural capability of our generalized Game CSP framework is its native capacity to evaluate multi-conditioned arenas—combining both qualitative automata-theoretic tracking and quantitative resource constraints within a single, unified search loop. Under this multi-objective paradigm, we define the global objective profile as a conjunctive operator composition over the individual game criteria:
+\[
+f = f^{\mathcal{B}} \otimes f^{\mathcal{R}} \otimes f^{\omega} \otimes f^{\eta} \otimes f^{\mu} 
+\]
+where $\otimes$ denotes the product composition operator. The global propagator validates a candidate strategy sub-graph if and only if every reachable cycle simultaneously satisfies the criteria dictated by the composed objective profile $f$.
+
+From a theoretical perspective, it is well-established that while pure qualitative games (such as parity or Büchi) and pure quantitative games (such as energy bounds or mean-payoffs) admit optimal memoryless (positional) strategies, combining these heterogeneous objectives generally forces the players to rely on infinite or finite-memory counter-strategies to win~\cite{ChatterjeeHJ05,Chatterjee:2010}. Because our CP-based architecture maps decision variables ($\mathcal{E}$) directly to fixed, deterministic choices at each vertex, the solutions computed by our framework are strictly defined over the class of positional strategy profiles. Restricting the search space to positional configurations allows the solver to harvest the strong pruning capabilities of our global propagators while remaining highly effective for a vast array of practical synthesis and controller verification problems where memoryless implementations are preferred due to hardware constraints.
 
 \section{Improving Constraint base model}\label{sec:improved_cp}
 \subsection{The Integer Formulation (\noc-Int)}\label{subsec:noc_int}
 \subsection{Search Strategies and Game-Specific Heuristics}\label{subsec:search_heuristics}
 \subsection{Improved Filtering Strategy via Memoization (NOCMemo)}\label{subsec:nocmemo}
 
-To circumvent the potential path explosion of the eager DFS traversal while retaining predictive pruning, we introduce a bounded variant that tracks previously analyzed cycles through an internal memoization layer.
+To avoid the potential path explosion of the eager DFS traversal while retaining predictive pruning, we introduce a bounded variant that tracks previously analyzed cycles through an internal memoization layer.
+
+\textcolor{red}{... still in progress ...}
 
 \begin{algorithm}[htb]
 \caption{\textbf{\textit{NOCMemo}}}
@@ -598,10 +617,6 @@ To circumvent the potential path explosion of the eager DFS traversal while reta
 \end{algorithmic}
 \label{alg:noc-memo}
 \end{algorithm}
-
-The \textit{NOCMemo} propagator (Algorithm~\ref{alg:noc-memo}) maintains a tracking array $\textit{memo}$, which maps each edge to a tuple containing the entry node of a validated cyclic component and its associated bottleneck weight or priority. When a cycle closure is encountered, this state is recorded (Line~\ref{alg:noc-memo:update}). During subsequent traversals, if an edge points toward a sub-graph whose entry signature matches an identical or strictly worse evaluation parameter stored in $\textit{memo}$, the propagator short-circuits the recursive path expansion and safely skips reprocessing that entire sub-tree.
-
-By caching path metrics, the worst-case runtime drops to a polynomial function bounded by the number of edges and the cardinality of distinct verification values. However, because memoization records paths relative to explicit entry nodes, it can occasionally bypass tracking overlapping components that originate elsewhere, making this propagator *incomplete* when running alone. To preserve full mathematical completeness while harvesting maximum execution speeds, our framework deploys \textit{NOCMemo} as an agile first-tier filter, running in tandem with the exact \textit{NOCChecker} at the end of the search branch.
 
 \section{Experimental Evaluation}\label{sec:experiments}
 
