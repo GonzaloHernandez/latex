@@ -170,6 +170,10 @@ Constraint programming  \sep Parity games \sep Verification.
 
 \maketitle
 
+\newpage
+\tableofcontents
+\newpage
+
 \section{Introduction}
 Two-player, zero-sum, infinite-duration games played on graphs provide the foundational mathematical framework for the automated verification and synthesis of reactive systems. In this paradigm, vertices represent states of the system and its environment, edges denote possible transitions or actions, and infinite paths (plays) represent the ongoing behavior of the system. Solving these games—determining which player can force a play to satisfy a specific objective—is central to model checking, synthesis of controllers, and verifying specifications against adversarial environments.
 %
@@ -285,9 +289,7 @@ Given a target performance threshold $\nu \in \mathbb{R}$, Player~$\even$ satisf
 
 This section describes our constraint programming (CP) framework for solving deterministic \wregulargames\ from an initial-vertex perspective. We first formalize how local memoryless strategies are characterized via Boolean decision variables. We then outline the traditional monolithic SAT/SMT baseline formulation to highlight the structural and scalability challenges that motivate our unified global propagator approach.
 
-% =========================================================================
-% SUBSECTION 3.1: DECISION VARIABLES AND LOCAL STRATEGY CHARACTERIZATION
-% =========================================================================
+
 \subsection{Decision Variables and Local Strategy Characterization}
 \label{subsec:variables_local}
 
@@ -312,11 +314,6 @@ To embed this operational capability natively into our CP variable framework, th
 By combining these structural layout constraints, the CP solver isolates a well-formed sub-arena where Player~$\player$ has a valid strategy from $v_0$. The remaining task for the solver is to ensure that the cycles formed within this attractor structure satisfy the designated qualitative or quantitative winning conditions.
 
 
----
-
-% =========================================================================
-% SUBSECTION 3.2: BASELINE FORMULATION AND EXTENSION TO GENERAL CSP
-% =========================================================================
 \subsection{Baseline Formulations and the Generalized CSP Model}
 \label{subsec:sat_baseline}
 
@@ -398,15 +395,15 @@ A key architectural advantage of this design is that by simply swapping the role
              \label{fig:ex02}
          \end{subfigure}
      }
-     \caption{Arena with 4 vertices and 6 edges.  Vertices controlled by Player \even are shown as circles, while vertices controlled by Player \odd are shown as squares.}
+     \caption{Arena with 4 vertices and 7 edges.  Vertices controlled by Player \even are shown as circles, while vertices controlled by Player \odd are shown as squares.}
      \label{fig:ex00}
 \end{figure}
 
-To demonstrate the structural and operational mechanics of our generalized CSP formulation, consider the 2-player game arena illustrated in Figure~\ref{fig:ex00}. The arena consists of four vertices $V = \{v_0, v_1, v_2, v_3\}$, which are partitioned into $V_{\subeven} = \{v_0, v_1\}$ (represented as circles) and $V_{\subodd} = \{v_2, v_3\}$ (represented as squares). The directed edge set is defined as $E = \{e_0, e_1, e_2, e_3, e_4, e_5\}$. We evaluate a Büchi objective from the perspective of Player~$\even$ ($\player = \even$), where the target accepting set is $F = \{v_1\}$, and the initial vertex is $v_0$.
+To demonstrate the structural and operational mechanics of our generalized CSP formulation, consider the 2-player game arena illustrated in Figure~\ref{fig:ex00}. The arena consists of four vertices $V = \{v_0, v_1, v_2, v_3\}$, which are partitioned into $V_{\subeven} = \{v_0, v_2\}$ (represented as circles) and $V_{\subodd} = \{v_1, v_3\}$ (represented as squares). The directed edge set is defined as $E = \{e_0, e_1, e_2, e_3, e_4, e_5, e_6 \}$. We evaluate a Büchi objective from the perspective of Player~$\even$ ($\player = \even$), where the target accepting set is $F = \{v_3\}$, and the initial vertex is $v_0$.
 
 Under our framework, the solver instantiates the core set of Boolean decision variables:
 \[
-\mathcal{X} = \{\mathcal{V}_0, \mathcal{V}_1, \mathcal{V}_2, \mathcal{V}_3, \mathcal{E}_0, \mathcal{E}_1, \mathcal{E}_2, \mathcal{E}_3, \mathcal{E}_4, \mathcal{E}_5\}
+\mathcal{X} = \{\mathcal{V}_0, \mathcal{V}_1, \mathcal{V}_2, \mathcal{V}_3, \mathcal{E}_0, \mathcal{E}_1, \mathcal{E}_2, \mathcal{E}_3, \mathcal{E}_4, \mathcal{E}_5, \mathcal{E}_6 \}
 \]
 mapped to individual Boolean domains $\mathcal{D}$. The structural and global constraints execute through the following progression:
 
@@ -414,31 +411,30 @@ mapped to individual Boolean domains $\mathcal{D}$. The structural and global co
     \item \textbf{Root Activation ($\mathcal{C}_{v_0}$):} The search initializes by anchoring the root vertex: $\mathcal{V}_0 = \top$.
     \item \textbf{Deterministic Strategy Choice ($\mathcal{C}_{\player}$):} Vertex $v_0$ is controlled by Player~$\even$. The constraint forces exactly one outgoing edge to be selected. 
     \begin{itemize}
-        \item If the solver branches and tests $\mathcal{E}_0 = \top$, forward propagation ($\mathcal{C}_E$) activates vertex $v_3$ ($\mathcal{V}_3 = \top$). Because vertex $v_3$ belongs to Player~$\odd$, its outgoing edge is forced active ($\mathcal{E}_5 = \top$), closing a localized cycle on vertex $v_3$ (See Figure \ref{fig:ex01}). The global constraint evaluates $f^B(v_3, v_3) = \{v_3\} \cap \{v_1\} \neq \emptyset$, which returns $\bot$. The propagator immediately rejects this branch, forcing the solver to backtrack.
-        \item The solver then selects the winning alternative: $\mathcal{E}_1 = \top$. This choice propagates and activates vertex $v_1$ ($\mathcal{V}_1 = \top$).
+        \item If the solver branches and tests $\mathcal{E}_0 = \top$, forward propagation ($\mathcal{C}_E$) activates vertex $v_1$ ($\mathcal{V}_1 = \top$). Because vertex $v_1$ belongs to Player~$\odd$, its outgoing edge is forced active ($\mathcal{E}_2 = \top$), closing a localized cycle on vertex $v_1$ (See Figure \ref{fig:ex01}). The global constraint evaluates $f^B(v_1, v_1) = \{v_1\} \cap \{v_3\} \neq \emptyset$, which returns $\bot$. The propagator immediately rejects this branch, forcing the solver to backtrack.
+        \item The solver then selects the winning alternative: $\mathcal{E}_1 = \top$. This choice propagates and activates vertex $v_2$ ($\mathcal{V}_2 = \top$).
     \end{itemize}
-    \item \textbf{Propagation Loop:} At vertex $v_1$, Player~$\even$ must again pick exactly one deterministic transition. The solver selects $\mathcal{E}_2 = \top$, which propagates and activates the opponent's vertex $v_2$ ($\mathcal{V}_2 = \top$).
-    \item \textbf{Attractor Logic Realization ($\mathcal{C}_{\opponent}$):} Because vertex $v_2$ is controlled by the opponent, constraint $\mathcal{C}_{\opponent}$ triggers. To guarantee that Player~$\even$ is safe against any adversarial counter-play, the model forces \textit{all} outgoing transitions from vertex $v_2$ to activate simultaneously:
+    \item \textbf{Propagation Loop:} At vertex $v_2$, Player~$\even$ must again pick exactly one deterministic transition. The solver selects $\mathcal{E}_3 = \top$, which propagates and activates the opponent's vertex $v_3$ ($\mathcal{V}_3 = \top$).
+    \item \textbf{Attractor Logic Realization ($\mathcal{C}_{\opponent}$):} Because vertex $v_3$ is controlled by the opponent, constraint $\mathcal{C}_{\opponent}$ triggers. To guarantee that Player~$\even$ is safe against any adversarial counter-play, the model forces \textit{all} outgoing transitions from vertex $v_3$ to activate simultaneously:
     \[
-    \mathcal{V}_2 \rightarrow (\mathcal{E}_3 \land \mathcal{E}_4)
+    \mathcal{V}_3 \rightarrow (\mathcal{E}_5 \land \mathcal{E}_6)
     \]
-    Consequently, both $\mathcal{E}_3$ and $\mathcal{E}_4$ are set to $\top$ (See Figure \ref{fig:ex02}).
+    Consequently, both $\mathcal{E}_5$ and $\mathcal{E}_6$ are set to $\top$ (See Figure \ref{fig:ex02}).
 \end{enumerate}
 
-At this stage, the structural layout constraints have successfully isolated a candidate strategy sub-graph. The global constraint $\mathcal{C}_{\!N\!O\!C}(f^B)$ now scans this active sub-arena and extracts all reachable cycles resulting from the opponent's split at vertex $v_2$:
+At this stage, the structural layout constraints have successfully isolated a candidate strategy sub-graph. The global constraint $\mathcal{C}_{\!N\!O\!C}(f^B)$ now scans this active sub-arena and extracts all reachable cycles:
 \begin{itemize}
-    \item \textbf{Cycle 1 ($v_0 \rightarrow v_1 \rightarrow v_2 \rightarrow v_0$):} Traversing edges $e_1, e_2, e_4$, the solver evaluates the cycle sequence:
+    \item \textbf{Cycle 1 ($v_0 \rightarrow v_2 \rightarrow v_3 \rightarrow v_0$):} Traversing edges $e_1, e_3, e_5$, the solver evaluates the cycle sequence:
     \[
-    f^B(v_0, v_1, v_2, v_0) = \{v_0, v_1, v_2\} \cap \{v_1\} \neq \emptyset \implies \top
+    f^B(v_0, v_2, v_3, v_0) = \{v_0, v_2, v_3\} \cap \{v_3\} \neq \emptyset \implies \top
     \]
-    \item \textbf{Cycle 2 ($v_1 \rightarrow v_2 \rightarrow v_1$):} Reachable via $e_0$ and traversing edges $e_2, e_3$, the solver evaluates the tighter loop:
+    \item \textbf{Cycle 2 ($v_2 \rightarrow v_3 \rightarrow v_2$):} Reachable via $e_1$ and traversing edges $e_3, e_6$, the solver evaluates the tighter loop:
     \[
-    f^B(v_1, v_2, v_1) = \{v_1, v_2\} \cap \{v_1\} \neq \emptyset \implies \top
+    f^B(v_2, v_3, v_2) = \{v_2, v_3\} \cap \{v_3\} \neq \emptyset \implies \top
     \]
 \end{itemize}
 
 Because every active cycle within this adversarial attractor structure satisfies the function $f^B$, the global constraint validates the assignment. The solver successfully terminates, outputting a satisfying strategy assignment proving that Player~$\even$ wins the game from $v_0$.
-
 
 
 \subsection{Global Opponent Cycle Elimination Propagators}
@@ -451,7 +447,7 @@ In contrast, the cycle validation constraint $\mathcal{C}_{\!N\!O\!C}(f)$ govern
 To dynamically enforce the global constraint $\mathcal{C}_{\!N\!O\!C}(f)$ during the search loop, we introduce three algorithmic variants designed to intercept, analyze, and eliminate illegal winning components for the opponent $\opponent$. Rather than relying on rigid, upfront propositional expansions, these propagators run natively inside the CP solver's execution engine, providing varying trade-offs between filtering strength and algorithmic complexity.
 
 
-Before detailing the inner workings of our cycle elimination algorithms, it is important to clarify how the different components of the generalized Game CSP (Definition~\ref{def:csp}) are implemented within the underlying solver. The localized structural constraints—namely the root activation ($\mathcal{C}_{v_0}$), the player's deterministic choice ($\mathcal{C}_{\player}$), the opponent's attractor expansion ($\mathcal{C}_{\opponent}$), and the forward edge propagation ($\mathcal{C}_E$)—consist of simple, local logical dependencies. Consequently, they are mapped directly to standard propositional clauses or native primitive constraints managed efficiently by the solver's default propagation engine. 
+Before detailing the inner workings of our cycle elimination algorithms, it is important to clarify how the different components of the generalized Game CSP (Definition~\ref{def:csp}) are implemented within the underlying solver. The localized structural constraints—namely the root activation ($\mathcal{C}_{v_0}$), the player's deterministic choice ($\mathcal{C}_{\player}$), the opponent's attractor expansion ($\mathcal{C}_{\opponent}$), and the forward edge propagation ($\mathcal{C}_E$)—consist of simple, local logical dependencies. Consequently, they are mapped directly to standard propositional clauses or native primitive constraints managed efficiently by the solver's default propagation engine. In our 
 
 In contrast, the cycle validation constraint $\mathcal{C}_{\!N\!O\!C}(f)$ governs non-local, dynamic graph properties that cannot be captured effectively by static clauses. This necessitates the introduction of a custom, highly specialized global propagator to monitor the emerging strategy graph and dynamically prune illegal loops during search.
 
@@ -531,9 +527,11 @@ While the checker functions as a final validation step on fully assigned branche
 \label{alg:noc-eager}
 \end{algorithm}
 
-The eager propagator triggers recursively, initialized as $\textit{NOCEager}(\emptyset, \emptyset, v_0, \text{null}, \mathcal{E}, \top)$. The arrays $path_V$ and $path_E$ maintain the chronological trail of the search path. A standard propagation algorithm would restrict its exploration exclusively to committed edges where $\mathcal{E}_{e'} = \top$. However, a crucial strength of our eager design is that it is permitted to explore up to at most one unassigned decision variable ($\mathcal{E}_{e'} = \text{unassigned}$). This enables the engine to intercept dangerous loops before they are locked in by the search engine.
-
+The eager propagator triggers recursively, initialized as $\textit{NOCEager}(\emptyset, \emptyset, v_0, \text{null}, \mathcal{E}, \top)$. The arrays $path_V$ and $path_E$ maintain the chronological trail of the search path. 
+%
 When a vertex is re-encountered along the trail (Line~\ref{alg:noc-eager:findcycle}), a closed cycle is isolated. The propagator passes this specific vertex sequence directly to our verification function $f$. If $f$ evaluates to false, the cycle represents an opponent-winning loop (Line~\ref{alg:noc-eager:checkopponent}). The back-edge closing this component is immediately forced to false. 
+
+A standard propagation algorithm would restrict its exploration exclusively to committed edges where $\mathcal{E}_{e'} = \top$. However a crucial strength of our eager design is that it is permitted to explore up to at most one unassigned decision variable ($\mathcal{E}_{e'} = \text{unassigned}$). This look-ahead capability enables the engine to intercept dangerous loops and prune them before they are formally committed by the search engine. For instance, in our running example (Figure~\ref{fig:ex02}), when the search reaches vertex $v_2$, the propagator proactively evaluates the unassigned self-loop $e_4$. Because $f^{\mathcal{B}}(v_2, v_2) = \bot$, the propagator immediately rules out $e_4$ in advance, preventing a useless search branch.
 
 To leverage the power of LCG clause learning, Line~\ref{alg:noc-eager:reason} generates a dynamic semantic justification clause. For example, in our running example (Section~\ref{subsec:running_example}), if the solver tentatively branches into the unassigned self-loop on vertex $v_3$, the propagator detects the cycle and generates the learned clause:
 \[
@@ -616,10 +614,6 @@ By caching path metrics, the worst-case runtime drops to a polynomial function b
 \subsection{Variant Analysis and Heuristic Impact}\label{subsec:ablation_study}
 
 \section{Conclusions and Future Work}\label{sec:conclusion}
-
-\newpage
-
-\tableofcontents
 
 % To print the credit authorship contribution details
 \printcredits
