@@ -533,11 +533,7 @@ When a vertex is re-encountered along the trail (Line~\ref{alg:noc-eager:findcyc
 
 A standard propagation algorithm would restrict its exploration exclusively to committed edges where $\mathcal{E}_{e'} = \top$. However a crucial strength of our eager design is that it is permitted to explore up to at most one unassigned decision variable ($\mathcal{E}_{e'} = \text{unassigned}$). This look-ahead capability enables the engine to intercept dangerous loops and prune them before they are formally committed by the search engine. For instance, in our running example (Figure~\ref{fig:ex02}), when the search reaches vertex $v_2$, the propagator proactively evaluates the unassigned self-loop $e_4$. Because $f^{\mathcal{B}}(v_2, v_2) = \bot$, the propagator immediately rules out $e_4$ in advance, preventing a useless search branch.
 
-To leverage the power of LCG clause learning, Line~\ref{alg:noc-eager:reason} generates a dynamic semantic justification clause. For example, in our running example (Section~\ref{subsec:running_example}), if the solver tentatively branches into the unassigned self-loop on vertex $v_3$, the propagator detects the cycle and generates the learned clause:
-\[
-(\neg \mathcal{E}_{e_1} \lor \neg \mathcal{E}_{e_5})
-\]
-This permanently bars the solver from picking this destructive combination in subsequent search branches, triggering immediate backjumping.
+To leverage the power of LCG clause learning, Line~\ref{alg:noc-eager:reason} generates a dynamic semantic justification clause. For example, in our running example (Section~\ref{subsec:running_example}), when the solver ruled out the first assignment (See Figure \ref{fig:ex01}), LCG generates the clause $(\neg \mathcal{E}_0 \lor \neg \mathcal{E}_2)$ and when the solver tentatively branched into the unassigned self-loop on vertex $v_3$, the propagator detects the cycle and generates the learned clause $(\neg \mathcal{E}_1 \lor \neg \mathcal{E}_4)$. This permanently bars the solver from picking this destructive combination in subsequent search branches, triggering immediate backjumping.
 
 Because a full path search across an unassigned graph can encounter an exponential number of simple paths, the theoretical worst-case complexity of \textit{NOCEager} is exponential. However, because the look-ahead is strictly bounded by active assignments and at most a single unassigned edge, the practical branching factor is heavily restricted, making its runtime highly efficient in practice.
 
