@@ -59,7 +59,8 @@
 \shortauthors{}  
 
 % Main title of the paper
-\title [mode = title]{Constraint base approach for solving deterministic \wregulargames}  
+\title [mode = title]{A Constraint-base approach for solving\\
+deterministic \wregulargames}  
 
 % Title footnote mark
 % eg: \tnotemark[1]
@@ -67,7 +68,7 @@
 
 % Title footnote 1.
 % eg: \tnotetext[1]{Title footnote text}
-\tnotetext[1]{Chalo} 
+\tnotetext[1]{} 
 
 % First author
 %
@@ -189,8 +190,10 @@ The remainder of this paper is organized as follows. Section...
 
 \section{Preliminaries}\label{sec:prelims}
 
+%------------------------------------------------------------------------------
+
 \subsection{Turn-Based Games on Graphs}
-\label{subsec:turn_based_games}
+\label{sec:turn_based_games}
 
 An \wregulargame is a two-player, zero-sum game of infinite duration played on a directed graph called an \textit{arena}. Two players, \textit{Even} (denoted as $\even$ or $0$) and \textit{Odd} (denoted as $\odd$ or $1$), move a token along adjacent vertices. The vertex where the token currently resides determines which player chooses the next transition. This ongoing process generates an infinite sequence of states. The ultimate winner of the game depends on whether this sequence satisfies a specific objective, defined by the game's winning condition.
 
@@ -206,7 +209,9 @@ A turn-based game \textit{arena} $\mathcal{A}$ is a tuple $\mathcal{A} = (V, E, 
 
 A game begins with a token placed at an initial vertex $v_0 \in V$. If $v_0 \in V_{\even}$, Player~$\even$ selects a successor $v_1 \in v_0E$; if $v_0 \in V_{\odd}$, Player~$\odd$ makes the selection. The token is then moved to $v_1$, and the process repeats indefinitely. This sequence of choices produces an infinite path $\pi = v_0 v_1 v_2 \ldots$ such that $(v_i, v_{i+1}) \in E$ for all $i \geq 0$, which is formally termed a \textit{play}. We denote the set of all infinite plays in $\mathcal{A}$ as $\text{Plays}(\mathcal{A})$. Given a play $\pi$, we define $\text{Inf}(\pi) \subseteq V$ as the set of vertices that appear infinitely often in $\pi$.
 
-\subsection*{Strategies and Determinism}
+%------------------------------------------------------------------------------
+
+\subsection{Strategies and Determinism}
 % A \textit{strategy} for a player is a recipe specifying which successor to choose based on the history of the play up to the current vertex. In this work, we focus on \textit{memoryless} (or positional) strategies, which are sufficient for solving the standard classes of deterministic $\omega$-regular games considered here. A memoryless strategy for Player~$\even$ is a function $\sigma: V_{\even} \to V$ such that $\sigma(v) \in vE$ for all $v \in V_{\even}$. Symmetrically, a memoryless strategy for Player~$\odd$ is a function $\tau: V_{\odd} \to V$ such that $\tau(v) \in vE$ for all $v \in V_{\odd}$. 
 
 % A profile consisting of a pair of memoryless strategies $(\sigma, \tau)$ completely determines a unique play $\pi(v_0, \sigma, \tau) = v_0 v_1 v_2 \ldots$ starting from any initial vertex $v_0$, where $v_{i+1} = \sigma(v_i)$ if $v_i \in V_{\even}$ and $v_{i+1} = \tau(v_i)$ if $v_i \in V_{\odd}$. 
@@ -221,15 +226,17 @@ An objective $\mathcal{W}$ for Player~$\even$ is a subset of all possible infini
 
 In this work, we focus on the \textit{initial-vertex game solving problem}. Given a game arena $\mathcal{A}$ and a specific starting vertex $v_0 \in V$, the goal is to determine which of the two players has a winning strategy starting from $v_0$, and to construct that specific winning strategy.
 
+%------------------------------------------------------------------------------
+
 \subsection{Winning Conditions for \wregulargames}
-\label{subsec:winning_conditions}
+\label{sec:winning_conditions}
 
 The classification of an infinite play as winning or losing is governed by the game's \textit{winning condition}, which dictates how the path's structural or numerical properties are evaluated. From a player's perspective, this condition defines their \textit{objective} $\mathcal{W} \subseteq \text{Plays}(\mathcal{A})$, representing the specific set of plays they aim to enforce. For consistency across all discussed variants, we focus on the objective $\mathcal{W}$ from the perspective of Player~$\even$. Because these games are zero-sum, a play $\pi$ is winning for Player~$\even$ if $\pi \in \mathcal{W}$, and winning for Player~$\odd$ if $\pi \notin \mathcal{W}$. 
 
 We partition these objectives into two major paradigms: \textit{qualitative conditions}, which evaluate the structural topology of the vertices visited infinitely often, and \textit{quantitative conditions}, which evaluate the numerical accumulation of resource weights along the traversed edges.
 
 \subsubsection{Qualitative Conditions}
-\label{subsubsec:qualitative}
+\label{subsec:qualitative}
 
 Qualitative conditions depend strictly on the set of vertices that appear infinitely often in a play $\pi$, denoted as $\text{Inf}(\pi) \subseteq V$.
 
@@ -259,7 +266,7 @@ If the maximum infinite priority is odd, the play is won by Player~$\odd$.
 
 
 \subsubsection{Quantitative Conditions}
-\label{subsubsec:quantitative}
+\label{subsec:quantitative}
 
 Quantitative conditions shift the evaluation to the infinite sequence of transitions $e_0 e_1 e_2 \ldots$ generated during a play $\pi = v_0 v_1 v_2 \ldots$, tracking numerical behaviors via the arena's edge weight function $Q: E \to \mathbb{Z}$.
 
@@ -281,17 +288,20 @@ Given a target performance threshold $\nu \in \mathbb{R}$, Player~$\even$ satisf
 
 
 % \section{Constraint Programming Framework for Game Solving}\label{sec:cp_framework}
-% \subsection{Decision Variables and Local Strategy Characterization}\label{subsec:variables_local}
-% \subsection{Baseline Formulation: Monolithic SAT Encoding}\label{subsec:sat_baseline}
+% \subsection{Decision Variables and Local Strategy Characterization}\label{sec:variables_local}
+% \subsection{Baseline Formulation: Monolithic SAT Encoding}\label{sec:sat_baseline}
+
+%==============================================================================
 
 \section{Constraint Programming Framework for Game Solving}
 \label{sec:cp_framework}
 
 This section describes our constraint programming (CP) framework for solving deterministic \wregulargames\ from an initial-vertex perspective. We first formalize how local memoryless strategies are characterized via Boolean decision variables. We then outline the traditional monolithic SAT/SMT baseline formulation to highlight the structural and scalability challenges that motivate our unified global propagator approach.
 
+%------------------------------------------------------------------------------
 
 \subsection{Decision Variables and Local Strategy Characterization}
-\label{subsec:variables_local}
+\label{sec:variables_local}
 
 To solve an initial-vertex game using a constraint-based approach, the search space for a winning memoryless strategy must be mapped into finite-domain decision variables. Let $\player \in \{\even, \odd\}$ denote the \textit{player of interest}, and let $\opponent = 1 - \player$ represent their designated opponent. We partition the finite set of vertices $V$ of the arena $\mathcal{A}$ into $V_{\player}$ (vertices controlled by the player of interest) and $V_{\opponent}$ (vertices controlled by the opponent). 
 
@@ -313,9 +323,10 @@ To embed this operational capability natively into our CP variable framework, th
 
 By combining these structural layout constraints, the CP solver isolates a well-formed sub-arena where Player~$\player$ has a valid strategy from $v_0$. The remaining task for the solver is to ensure that the cycles formed within this attractor structure satisfy the designated qualitative or quantitative winning conditions.
 
+%------------------------------------------------------------------------------
 
 \subsection{Baseline Formulations and the Generalized CSP Model}
-\label{subsec:sat_baseline}
+\label{sec:sat_baseline}
 
 Historically, constraint-based game solving has relied on encoding cycle conditions statically into propositional logic. The standard reference approach by Heljanko et al.~\cite{Heljanko:2012} translates a game into Boolean Satisfiability (SAT) or Satisfiability Modulo Theories (SMT) formulas by leveraging a \textit{progress measure}~\cite{Jurdziński:2000}.
 
@@ -358,7 +369,7 @@ The CSP for an arena $\mathcal{A} = (V, E, \Omega, Q)$ starting at an initial ve
     \item [$\mathcal{C}_{\player}$ :] $\bigwedge_{v \in V_{\player}} \left(\mathcal{V}_v \rightarrow \left(\sum_{w \in vE} \mathcal{E}_{(v,w)}= 1\right)\right)$
     \item [$\mathcal{C}_{\opponent}$ :] $\bigwedge_{v \in V_{\opponent}} \left(\mathcal{V}_v \rightarrow \bigwedge_{w \in vE} \mathcal{E}_{(v,w)}\right)$
     \item [$\mathcal{C}_{\!E}$ :] $\bigwedge_{w \in V, w \neq v_0} \left(\left(\bigvee_{v \in Ew} \mathcal{E}_{(v,w)}\right) \rightarrow \mathcal{V}_w\right)$
-    \item [$\mathcal{C}_{\!N\!O\!C}(f)$ :] $\bigwedge_{v_0, \closerdots, v_k} \left( \left(\bigwedge_{i=0}^{k-1} \mathcal{E}_{(v_i,v_{i+1})}\right) \to \bigwedge_{j=0}^{k-1} \left((v_j = v_k) \to f(v_j, \closerdots, v_k)\right) \right)$
+    \item [$\mathcal{C}_{\noc}(f)$ :] $\bigwedge_{v_0, \closerdots, v_k} \left( \left(\bigwedge_{i=0}^{k-1} \mathcal{E}_{(v_i,v_{i+1})}\right) \to \bigwedge_{j=0}^{k-1} \left((v_j = v_k) \to f(v_j, \closerdots, v_k)\right) \right)$
 \end{itemize}
 where the evaluation criteria $f$ for a given cycle $v_j, \dots, v_k$ are provided by specific qualitative or quantitative verification functions—encompassing Büchi ($f^\mathcal{B}$), Rabin ($f^\mathcal{R}$), Parity ($f^\omega$), Energy ($f^\eta$), and Mean-Payoff ($f^\mu$) conditions—which are formally detailed in Section~\ref{sec:function_conditions}.
 
@@ -366,14 +377,16 @@ where the evaluation criteria $f$ for a given cycle $v_j, \dots, v_k$ are provid
 
 While constraints $\mathcal{C}_{v_0}$, $\mathcal{C}_{\opponent}$, and $\mathcal{C}_{\!E}$ enforce the required sub-graph connectivity (analogous to the baseline's $\Phi_{v_0}, \Phi_\forall$, and $\Phi_V$), $\mathcal{C}_{\player}$ strictly dictates that the protagonist selects exactly one deterministic strategy choice per active vertex. 
 
-Crucially, our approach removes the expensive difference logic constraints $\Phi_A$ entirely. Instead, the global constraint $\mathcal{C}_{\!N\!O\!C}(f)$ monitors the strategy graph dynamically during the CP search loop. It intercepts any emerging path profile and applies a parameterized verification function $f$ to ensure that any reachable closed component is structurally or quantitatively winning for $\player$. The precise operational formulations for these qualitative and quantitative cycle evaluation functions are detailed thoroughly in Section~\ref{sec:function_conditions}.
+Crucially, our approach removes the expensive difference logic constraints $\Phi_A$ entirely. Instead, the global constraint $\mathcal{C}_{\noc}(f)$ monitors the strategy graph dynamically during the CP search loop. It intercepts any emerging path profile and applies a parameterized verification function $f$ to ensure that no reachable closed component is structurally and strategically winning for $\opponent$. Accordingly, we name our method \noc, which stands for \nooppc. The precise operational formulations for these qualitative and quantitative cycle evaluation functions are detailed thoroughly in Section~\ref{sec:function_conditions}.
 
 Our generalized CSP model inherits and extends this satisfiability approach, lifting it from a fixed perspective to a modular framework. The semantic mapping between the satisfiability of the CSP and the game-theoretic outcome remains definitive: a satisfying assignment found by the solver proves that the player of interest, $\player$, possesses a positional winning strategy from $v_0$, where the active edges ($\mathcal{E}_e = \top$) map directly to their winning choices. 
 
 A key architectural advantage of this design is that by simply swapping the roles of $\player$ and $\opponent$, the formulation allows the proposed method to search from the perspective of either player natively. While a satisfying assignment validates a win for $\player$, an exhaustive proof of unsatisfiability demonstrates the complete absence of a positional winning strategy for them, which—by the determinacy of these games—automatically hands a conclusive victory to the opponent $\opponent$.
 
+%------------------------------------------------------------------------------
+
 \subsection{Running Example}
-\label{subsec:running_example}
+\label{sec:running_example}
 
 \begin{figure}
      \centering
@@ -422,7 +435,7 @@ mapped to individual Boolean domains $\mathcal{D}$. The structural and global co
     Consequently, both $\mathcal{E}_5$ and $\mathcal{E}_6$ are set to $\top$ (See Figure \ref{fig:ex02}).
 \end{enumerate}
 
-At this stage, the structural layout constraints have successfully isolated a candidate strategy sub-graph. The global constraint $\mathcal{C}_{\!N\!O\!C}(f^\mathcal{B})$ now scans this active sub-arena and extracts all reachable cycles:
+At this stage, the structural layout constraints have successfully isolated a candidate strategy sub-graph. The global constraint $\mathcal{C}_{\noc}(f^\mathcal{B})$ now scans this active sub-arena and extracts all reachable cycles:
 \begin{itemize}
     \item \textbf{Cycle 1 ($v_0 \rightarrow v_2 \rightarrow v_3 \rightarrow v_0$):} Traversing edges $e_1, e_3, e_5$, the solver evaluates the cycle sequence:
     \[
@@ -436,20 +449,21 @@ At this stage, the structural layout constraints have successfully isolated a ca
 
 Because every active cycle within this adversarial attractor structure satisfies the function $f^\mathcal{B}$, the global constraint validates the assignment. The solver successfully terminates, outputting a satisfying strategy assignment proving that Player~$\even$ wins the game from $v_0$.
 
+%------------------------------------------------------------------------------
 
 \subsection{Global Opponent Cycle Elimination Propagators}
 \label{sec:global_propagators}
 
 Before detailing the inner workings of our cycle elimination algorithms, it is important to clarify how the different components of the generalized Game CSP (Definition~\ref{def:csp}) are implemented within the underlying solver. The localized structural constraints—namely the root activation ($\mathcal{C}_{v_0}$), the player's deterministic choice ($\mathcal{C}_{\player}$), the opponent's attractor expansion ($\mathcal{C}_{\opponent}$), and the forward edge propagation ($\mathcal{C}_E$)—consist of simple, local logical dependencies. Consequently, they are mapped directly to standard propositional clauses or native primitive constraints managed efficiently by the solver's default propagation engine. 
 
-In contrast, the cycle validation constraint $\mathcal{C}_{\!N\!O\!C}(f)$ governs non-local, dynamic graph properties that cannot be captured effectively by static clauses. This necessitates the introduction of a custom, highly specialized global propagator to monitor the emerging strategy graph and dynamically prune illegal loops during search.
+In contrast, the cycle validation constraint $\mathcal{C}_{\noc}(f)$ governs non-local, dynamic graph properties that cannot be captured effectively by static clauses. This necessitates the introduction of a custom, highly specialized global propagator to monitor the emerging strategy graph and dynamically prune illegal loops during search.
 
-To dynamically enforce the global constraint $\mathcal{C}_{\!N\!O\!C}(f)$ during the search loop, we introduce three algorithmic variants designed to intercept, analyze, and eliminate illegal winning components for the opponent $\opponent$. Rather than relying on rigid, upfront propositional expansions, these propagators run natively inside the CP solver's execution engine, providing varying trade-offs between filtering strength and algorithmic complexity.
+To dynamically enforce the global constraint $\mathcal{C}_{\noc}(f)$ during the search loop, we introduce three algorithmic variants designed to intercept, analyze, and eliminate illegal winning components for the opponent $\opponent$. Rather than relying on rigid, upfront propositional expansions, these propagators run natively inside the CP solver's execution engine, providing varying trade-offs between filtering strength and algorithmic complexity.
 
 
 Before detailing the inner workings of our cycle elimination algorithms, it is important to clarify how the different components of the generalized Game CSP (Definition~\ref{def:csp}) are implemented within the underlying solver. The localized structural constraints—namely the root activation ($\mathcal{C}_{v_0}$), the player's deterministic choice ($\mathcal{C}_{\player}$), the opponent's attractor expansion ($\mathcal{C}_{\opponent}$), and the forward edge propagation ($\mathcal{C}_E$)—consist of simple, local logical dependencies. Consequently, they are mapped directly to standard propositional clauses or native primitive constraints managed efficiently by the solver's default propagation engine. In our 
 
-In contrast, the cycle validation constraint $\mathcal{C}_{\!N\!O\!C}(f)$ governs non-local, dynamic graph properties that cannot be captured effectively by static clauses. This necessitates the introduction of a custom, highly specialized global propagator to monitor the emerging strategy graph and dynamically prune illegal loops during search.
+In contrast, the cycle validation constraint $\mathcal{C}_{\noc}(f)$ governs non-local, dynamic graph properties that cannot be captured effectively by static clauses. This necessitates the introduction of a custom, highly specialized global propagator to monitor the emerging strategy graph and dynamically prune illegal loops during search.
 
 To make this global propagator fully modular across multi-conditioned arenas, we decouple the global path evaluation function $f$ into an abstract, vertex-level winning predicate. We define the global objective profile as a conjunctive operator composition over the individual game criteria:
 \[
@@ -459,7 +473,7 @@ where $B, R, \omega, \eta$, and $\mu$ represent qualitative and quantitative obj
 
 Correspondingly, for any individual state, the predicate $f_{\player}(v)$ evaluates whether the local property of vertex $v$ satisfies or actively contributes to the winning requirements of $\player$ under the composed objective $f_{\player}$. If $f_{\player}(v)$ holds true, vertex $v$ belongs to the safe region for the player of interest; if false ($\neg f_{\player}(v)$), the state inherently risks driving the game into a component dominated by the adversary. The algorithms in this section leverage this predicate to systematically slice away valid sub-graphs and isolate losing loops.
 
-\subsubsection{A No-Opponent-Cycle Checker (NOCChecker)} \label{sec:nocchecker}
+\subsubsection{A No-Opponent-Cycle Checker  (\nocchecker)} \label{sec:nocchecker}
 
 Our first baseline propagator establishes a fundamental validation check by recursively decomposing the strategy sub-graph into Strongly Connected Components (SCCs). By definition, every vertex inside an SCC of cardinality greater than one belongs to at least one localized cycle, whereas single-vertex SCCs can only close a loop via an explicit self-loop. 
 
@@ -467,77 +481,79 @@ The checker isolates the induced active sub-graph containing only assigned varia
 
 \begin{algorithm}[htb]
 \small
-\caption{\textbf{\textit{NOCChecker}}}
+\caption{\textbf{\nocchecker}}
 \textbf{Input}: Induced active sub-graph $G = (V', E')$ \\
 \textbf{Output}: $\top$ if the strategy graph contains no winning opponent cycles; $\bot$ otherwise
 \begin{algorithmic}[1]
-    \FOR{$scc \in \textit{Tarjan}(G)$} \label{alg:noc-checker:breakingdown}
-        \IF{$|scc| = 1$} \label{alg:noc-checker:single}
+    \FOR{$scc \in \textit{Tarjan}(G)$} \label{alg:nocchecker:breakingdown}
+        \IF{$|scc| = 1$} \label{alg:nocchecker:single}
             \STATE $v \gets$ the unique vertex in $scc$
-            \STATE \textbf{if } $\neg f_{\player}(v) \land \mathcal{E}_{[vEv]}$ \textbf{then return $\bot$} \label{alg:noc-checker:self}  
+            \STATE \textbf{if } $\neg f_{\player}(v) \land \mathcal{E}_{[vEv]}$ \textbf{then return $\bot$} \label{alg:nocchecker:self}  
         \ELSE
             \STATE $ \textit{objectiveSet} \gets \{ v \in scc \mid 
             f_{\player}(v) \text{ holds true}
-            \}$ \label{alg:noc-checker:best}
-            \STATE \textbf{if } $ \textit{objectiveSet} = \emptyset$ \textbf{then return $\bot$} \label{alg:noc-checker:opponent}
+            \}$ \label{alg:nocchecker:best}
+            \STATE \textbf{if } $ \textit{objectiveSet} = \emptyset$ \textbf{then return $\bot$} \label{alg:nocchecker:opponent}
 
-            \STATE \textit{NOCChecker}($G \setminus \textit{objectiveSet}$) \label{alg:noc-checker:recursion}
+            \STATE \nocchecker($G \setminus \textit{objectiveSet}$) \label{alg:nocchecker:recursion}
         \ENDIF
     \ENDFOR
     \RETURN $\top$
 \end{algorithmic}
-\label{alg:noc-checker}
+\label{alg:nocchecker}
 \end{algorithm}
 
-Algorithm~\ref{alg:noc-checker} is executed when all decision variables within the current search branch become fixed. The function is invoked with the induced sub-graph containing exclusively the active components: $\textit{NOCChecker}(\{ v \in V \mid \mathcal{V}_v = \top \})$.
+Algorithm~\ref{alg:nocchecker} is executed when all decision variables within the current search branch become fixed. The function is invoked with the induced sub-graph containing exclusively the active components: \nocchecker$(\{ v \in V \mid \mathcal{V}_v = \top \})$.
 
-The graph is first partitioned into independent components using Tarjan's linear-time algorithm (Line~\ref{alg:noc-checker:breakingdown}). If an SCC contains an isolated vertex (Line~\ref{alg:noc-checker:single}), the algorithm ensures it does not possess an active self-loop ($\mathcal{E}_{[vEv]} = \top$) that violates the evaluation predicate $f_{\player}(v)$ (Line~\ref{alg:noc-checker:self}). For non-trivial components, the algorithm isolates the subset of vertices that satisfy the winning criteria for the player of interest: $\textit{objectiveSet} \gets \{ v \in scc \mid f_{\player}(v) \}$ (Line~\ref{alg:noc-checker:best}). 
+The graph is first partitioned into independent components using Tarjan's linear-time algorithm (Line~\ref{alg:nocchecker:breakingdown}). If an SCC contains an isolated vertex (Line~\ref{alg:nocchecker:single}), the algorithm ensures it does not possess an active self-loop ($\mathcal{E}_{[vEv]} = \top$) that violates the evaluation predicate $f_{\player}(v)$ (Line~\ref{alg:nocchecker:self}). For non-trivial components, the algorithm isolates the subset of vertices that satisfy the winning criteria for the player of interest: $\textit{objectiveSet} \gets \{ v \in scc \mid f_{\player}(v) \}$ (Line~\ref{alg:nocchecker:best}). 
 
-If this filtering step yields an empty set ($\textit{objectiveSet} = \emptyset$), it mathematically demonstrates that the entire component forms a closed cycle where no state can satisfy the winning criteria for $\player$ (Line~\ref{alg:noc-checker:opponent}). Due to the structural nature of these games, this represents an inescapable loop favoring the adversary, and the assignment is rejected. Otherwise, if the set is not empty, those validated states are filtered out, and the checker is recursively called on the remaining induced sub-graph ($G \setminus \textit{objectiveSet}$) to ensure that no secondary, losing sub-cycles are nested within the component (Line~\ref{alg:noc-checker:recursion}).
+If this filtering step yields an empty set ($\textit{objectiveSet} = \emptyset$), it mathematically demonstrates that the entire component forms a closed cycle where no state can satisfy the winning criteria for $\player$ (Line~\ref{alg:nocchecker:opponent}). Due to the structural nature of these games, this represents an inescapable loop favoring the adversary, and the assignment is rejected. Otherwise, if the set is not empty, those validated states are filtered out, and the checker is recursively called on the remaining induced sub-graph ($G \setminus \textit{objectiveSet}$) to ensure that no secondary, losing sub-cycles are nested within the component (Line~\ref{alg:nocchecker:recursion}).
 
-The worst-case computational complexity of \textit{NOCChecker} remains strictly polynomial. A single pass of Tarjan’s algorithm runs in linear time $\mathcal{O}(|V| + |E|)$. Because vertices within the valid objective sets are removed permanently at each recursive tier, the maximal depth of the recursion is bounded linearly by the total number of vertices. Consequently, the overall time complexity of the checker stands at $\mathcal{O}(|V| \cdot (|V| + |E|))$ in the absolute worst case.
+The worst-case computational complexity of \nocchecker remains strictly polynomial. A single pass of Tarjan’s algorithm runs in linear time $\mathcal{O}(|V| + |E|)$. Because vertices within the valid objective sets are removed permanently at each recursive tier, the maximal depth of the recursion is bounded linearly by the total number of vertices. Consequently, the overall time complexity of the checker stands at $\mathcal{O}(|V| \cdot (|V| + |E|))$ in the absolute worst case.
 
-\subsubsection{A No-Opponent-Cycle Filter (NOCEager)} \label{sec:nocfilter}
+\subsubsection{A No-Opponent-Cycle Filter (\noceager)} \label{sec:nocfilter}
 
 While the checker functions as a final validation step on fully assigned branches, proactive pruning requires an eager filtering mechanism. We propose a look-ahead propagator driven by a Depth-First Search (DFS) traversal. Rather than waiting for a complete assignment, this variant explores potential paths from the initial vertex $v_0$ to detect emerging cycles early. We formalize this algorithm within the context of a \textit{Lazy Clause Generation} (LCG) solver architecture, enabling the propagator to dynamically deduce and register learned propositional explanations when conflicts are reached.
 
 \begin{algorithm}[htb]
 \small
-\caption{\textbf{\textit{NOCEager}}}
+\caption{\textbf{\noceager}}
 \textbf{Input}: $path_V,\ path_E,\ v,\ e,\ \mathcal{E},\ \textit{defined}$ \\
 \textbf{Output}: $\top$ if look-ahead is valid; $\bot$ if a fatal conflict occurs
 \begin{algorithmic}[1]
-    \IF{$v \in path_V$} \label{alg:noc-eager:pathcheck}
-        \STATE $i_v \gets \textit{find}(v, path_V)$ \label{alg:noc-eager:findcycle}
-        \IF{$\neg f_{\player}(path_E[i_v:])$} \label{alg:noc-eager:checkopponent}
-            \STATE $\textit{reason} \gets \textit{clausify}(\neg path_E)$ \label{alg:noc-eager:reason}
+    \IF{$v \in path_V$} \label{alg:noceager:pathcheck}
+        \STATE $i_v \gets \textit{find}(v, path_V)$ \label{alg:noceager:findcycle}
+        \IF{$\neg f_{\player}(path_E[i_v:])$} \label{alg:noceager:checkopponent}
+            \STATE $\textit{reason} \gets \textit{clausify}(\neg path_E)$ \label{alg:noceager:reason}
             \STATE \textbf{if } not $(\mathcal{E}_e \gets (\bot, \textit{reason}))$ \textbf{then return $\bot$}
         \ENDIF
-    \ELSIF{$\textit{defined}$} \label{alg:noc-eager:defcheck}
+    \ELSIF{$\textit{defined}$} \label{alg:noceager:defcheck}
         \FOR{$e' \in \textit{edges}(v) \textbf{ where } \mathcal{E}_{e'} \ne \bot$} \label{alg:no-opponent-cycle-f1:edgecheck}
             \STATE $p_V \gets path_V \cup \{v\}$
             \STATE $p_E \gets path_E \cup \{e'\}$
             \STATE $w \gets \textit{target}(e')$
             \STATE $\textit{def} \gets (\mathcal{E}_{e'} = \top)$
-            \STATE \textit{NOCEager}($p_V$, $p_E$, $w$, $e'$, $\mathcal{E}$, $\textit{def}$)
+            \STATE \noceager($p_V$, $p_E$, $w$, $e'$, $\mathcal{E}$, $\textit{def}$)
         \ENDFOR
     \ENDIF
     \RETURN $\top$
 \end{algorithmic}
-\label{alg:noc-eager}
+\label{alg:noceager}
 \end{algorithm}
 
-The eager propagator triggers recursively, initialized as $\textit{NOCEager}(\emptyset, \emptyset, v_0, \text{null}, \mathcal{E}, \top)$. The arrays $path_V$ and $path_E$ maintain the chronological trail of the search path. 
+The eager propagator triggers recursively, initialized as \noceager$(\emptyset, \emptyset, v_0, \text{null}, \mathcal{E}, \top)$. The arrays $path_V$ and $path_E$ maintain the chronological trail of the search path. 
 %
-When a vertex is re-encountered along the trail (Line~\ref{alg:noc-eager:pathcheck}), a closed cycle is isolated. The propagator locates the cycle's starting index (Line~\ref{alg:noc-eager:findcycle}) and passes this specific vertex sequence directly to our verification function $f_{\player}$ (Line~\ref{alg:noc-eager:checkopponent}). If $f_{\player}$ evaluates to false, the cycle represents an unvalidated opponent loop. The cycle-closing edge responsible for completing this component is immediately forced to false.
+When a vertex is re-encountered along the trail (Line~\ref{alg:noceager:pathcheck}), a closed cycle is isolated. The propagator locates the cycle's starting index (Line~\ref{alg:noceager:findcycle}) and passes this specific vertex sequence directly to our verification function $f_{\player}$ (Line~\ref{alg:noceager:checkopponent}). If $f_{\player}$ evaluates to false, the cycle represents an unvalidated opponent loop. The cycle-closing edge responsible for completing this component is immediately forced to false.
 
 A standard propagation algorithm would restrict its exploration exclusively to committed edges where $\mathcal{E}_{e'} = \top$. However, a crucial strength of our eager design is that it is permitted to explore up to at most one unassigned decision variable ($\mathcal{E}_{e'} = \text{unassigned}$). This look-ahead capability enables the engine to intercept dangerous loops and prune them before they are formally committed by the search engine. For instance, in our running example (Figure~\ref{fig:ex02}), when the search reaches vertex $v_2$, the propagator proactively evaluates the unassigned self-loop $e_4$. Because $f^{\mathcal{B}}(v_2, v_2) = \bot$, the propagator immediately rules out $e_4$ in advance, preventing a fruitless search branch.
 
-To leverage the power of LCG clause learning, Line~\ref{alg:noc-eager:reason} generates a dynamic semantic justification clause explaining the pruning step. For example, in our running example, when the solver rules out the first invalid branch (see Figure~\ref{fig:ex01}), the LCG engine generates the structural clause $(\neg \mathcal{E}_0 \lor \neg \mathcal{E}_2)$. Similarly, when the solver tentatively extends its path into the unassigned self-loop on vertex $v_2$, the propagator intercepts the cycle and records the learned clause $(\neg \mathcal{E}_1 \lor \neg \mathcal{E}_4)$. This permanently bars the solver from picking this destructive combination in subsequent search branches, triggering an immediate backjump.
+To leverage the power of LCG clause learning, Line~\ref{alg:noceager:reason} generates a dynamic semantic justification clause explaining the pruning step. For example, in our running example, when the solver rules out the first invalid branch (see Figure~\ref{fig:ex01}), the LCG engine generates the structural clause $(\neg \mathcal{E}_0 \lor \neg \mathcal{E}_2)$. Similarly, when the solver tentatively extends its path into the unassigned self-loop on vertex $v_2$, the propagator intercepts the cycle and records the learned clause $(\neg \mathcal{E}_1 \lor \neg \mathcal{E}_4)$. This permanently bars the solver from picking this destructive combination in subsequent search branches, triggering an immediate backjump.
 
-Because a full path search across an unassigned graph can encounter an exponential number of simple paths, the theoretical worst-case complexity of \textit{NOCEager} is exponential. However, because the look-ahead is strictly bounded by active assignments and at most a single unassigned edge, the practical branching factor is heavily restricted, making its execution highly efficient in practice.
+Because a full path search across an unassigned graph can encounter an exponential number of simple paths, the theoretical worst-case complexity of \noceager is exponential. However, because the look-ahead is strictly bounded by active assignments and at most a single unassigned edge, the practical branching factor is heavily restricted, making its execution highly efficient in practice.
 
-To optimize traversal efficiency and avoid redundant path analysis, an advanced variant incorporating structural cycle memoization is introduced and explained in Section~\ref{subsec:nocmemo}.
+To optimize traversal efficiency and avoid redundant path analysis, an advanced variant incorporating structural cycle memoization is introduced and explained in Section~\ref{sec:nocmemo}.
+
+%==============================================================================
 
 \section{Functional Formulation of Winning Conditions}\label{sec:function_conditions}
 
@@ -557,9 +573,11 @@ From the perspective of the protagonist ($\player$), the functional validation c
 
 \noindent where $\nu \in \mathbb{Z}$ acts as a predefined quantitative threshold constraint for energy bounds or minimum sustainable payoffs. 
 
-By exposing this functional interface directly to the solver, our global propagators \noc   can evaluate arbitrary path slices natively. If any cycle closure evaluates to false ($\bot$), the LCG infrastructure traces the precise participating variable configurations to generate explanatory clauses, preventing the search engine from getting trapped in adversarial components across any of these five paradigms.
+By exposing this functional interface directly to the solver, our global propagators \nooppc   can evaluate arbitrary path slices natively. If any cycle closure evaluates to false ($\bot$), the LCG infrastructure traces the precise participating variable configurations to generate explanatory clauses, preventing the search engine from getting trapped in adversarial components across any of these five paradigms.
 
-\subsection{Handling Multi-Conditioned Games and Quantitative Verification}\label{subsec:multi_conditioned}
+%------------------------------------------------------------------------------
+
+\subsection{Handling Multi-Conditioned Games and Quantitative Verification}\label{sec:multi_conditioned}
 
 A defining architectural capability of our generalized Game CSP framework is its native capacity to evaluate multi-conditioned arenas—combining both qualitative automata-theoretic tracking and quantitative resource constraints within a single, unified search loop. Under this multi-objective paradigm, we define the global objective profile as a conjunctive operator composition over the individual game criteria:
 \[
@@ -569,17 +587,28 @@ where $\otimes$ denotes the product composition operator. The global propagator 
 
 From a theoretical perspective, it is well-established that while pure qualitative games (such as parity or Büchi) and pure quantitative games (such as energy bounds or mean-payoffs) admit optimal memoryless (positional) strategies, combining these heterogeneous objectives generally forces the players to rely on infinite or finite-memory counter-strategies to win~\cite{ChatterjeeHJ05,Chatterjee:2010}. Because our CP-based architecture maps decision variables ($\mathcal{E}$) directly to fixed, deterministic choices at each vertex, the solutions computed by our framework are strictly defined over the class of positional strategy profiles. Restricting the search space to positional configurations allows the solver to harvest the strong pruning capabilities of our global propagators while remaining highly effective for a vast array of practical synthesis and controller verification problems where memoryless implementations are preferred due to hardware constraints.
 
+%==============================================================================
+
 \section{Improving Constraint base model}\label{sec:improved_cp}
-\subsection{The Integer Formulation (\noc-Int)}\label{subsec:noc_int}
-\subsection{Search Strategies and Game-Specific Heuristics}\label{subsec:search_heuristics}
-\subsection{Improved Filtering Strategy via Memoization (NOCMemo)}\label{subsec:nocmemo}
+
+%------------------------------------------------------------------------------
+
+\subsection{The Integer Formulation (\nooppc-Int)}\label{sec:noc_int}
+
+%------------------------------------------------------------------------------
+
+\subsection{Search Strategies and Game-Specific Heuristics}\label{sec:search_heuristics}
+
+%------------------------------------------------------------------------------
+
+\subsection{Improved Filtering Strategy via Memoization (\nocmemo)}\label{sec:nocmemo}
 
 To avoid the potential path explosion of the eager DFS traversal while retaining predictive pruning, we introduce a bounded variant that tracks previously analyzed cycles through an internal memoization layer.
 
 \textcolor{red}{... still in progress ...}
 
 \begin{algorithm}[htb]
-\caption{\textbf{\textit{NOCMemo}}}
+\caption{\textbf{\nocmemo}}
 \small
 \textbf{Input}: $path_V, path_E, v, e, \mathcal{X}, \textit{defined}, \textit{memo}$ \\
 \textbf{Output}: $\top$ if valid; $\bot$ otherwise
@@ -587,7 +616,7 @@ To avoid the potential path explosion of the eager DFS traversal while retaining
     \IF{$v \in path_V$}
         \STATE $i_v \gets$ \textit{index}$(v,\ path_V)$
         \STATE $m \gets \text{evaluate dominant property along } path_V[i_v:]$
-        \STATE $\textit{memo}[e] \gets (v,\ m)$ \label{alg:noc-memo:update}
+        \STATE $\textit{memo}[e] \gets (v,\ m)$ \label{alg:nocmemo:update}
         \IF{$\neg f(path_V[i_v:])$} 
             \STATE $\textit{reason} \gets \textit{clausify}(\bigvee_{e' \in path_E[i_v:]} \neg \mathcal{E}_{e'})$
             \STATE \textbf{if }not ($\mathcal{E}_e \gets (\bot, \textit{reason}))$ \textbf{then return $\bot$}
@@ -601,12 +630,12 @@ To avoid the potential path explosion of the eager DFS traversal while retaining
             \STATE $\textit{def} \gets (\mathcal{E}_{e'} = \top)$
 
             \IF{$(v_{memo}, m_{memo}) = (\text{null}, \text{null})$}
-                \STATE \textit{NOCMemo}($p_V, p_E, w, e', \mathcal{X}, \textit{def}, \textit{memo}$)\label{alg:noc-memo:check1}
+                \STATE \nocmemo($p_V, p_E, w, e', \mathcal{X}, \textit{def}, \textit{memo}$)\label{alg:nocmemo:check1}
             \ELSE
                 \STATE $i_v \gets \textit{index}(v_{memo},\ path_V)$
                 \STATE $m \gets \text{evaluate property along } path_V[i_v:]$
                 \IF{$m \text{ dominates } m_{memo} \text{ under criteria } f$}
-                    \STATE \textit{NOCMemo}($p_V, p_E, w, e', \mathcal{X}, \textit{def}, \textit{memo}$)\label{alg:noc-memo:check2}
+                    \STATE \nocmemo($p_V, p_E, w, e', \mathcal{X}, \textit{def}, \textit{memo}$)\label{alg:nocmemo:check2}
                 \ELSE
                     \STATE $\textit{memo}[e] \gets \textit{memo}[e']$
                 \ENDIF
@@ -615,15 +644,183 @@ To avoid the potential path explosion of the eager DFS traversal while retaining
     \ENDIF
     \RETURN $\top$
 \end{algorithmic}
-\label{alg:noc-memo}
+\label{alg:nocmemo}
 \end{algorithm}
+
+%==============================================================================
 
 \section{Experimental Evaluation}\label{sec:experiments}
 
-\subsection{Experimental Setup and Benchmarks}\label{subsec:exp_setup}
-\subsection{Qualitative Objectives: Parity Games}\label{subsec:exp_parity}
-\subsection{Quantitative Goals and Formal Verification}\label{subsec:exp_quantitative}
-\subsection{Variant Analysis and Heuristic Impact}\label{subsec:ablation_study}
+%------------------------------------------------------------------------------
+
+\subsection{Experimental Setup and Benchmarks}\label{sec:exp_setup}
+
+%------------------------------------------------------------------------------
+
+\subsection{Parity Games}\label{sec:exp_parity}
+
+In this section, we evaluate the performance of \nooppc on parity games, as they represent the primary and most computationally challenging class of games for our approach. Using standard benchmarks, we assess the efficiency of \nooppc directly against state-of-the-art algorithms.
+
+\textcolor{red}{Pending to update}
+
+For the SAT backends, we employ several high-performance solvers: \textbf{CaDiCaL} (v2.1.3) \cite{Biere:Cadical:2024}, \textbf{MiniSat} (v2.2.0) \cite{Een:MiniSat:2003}, \textbf{Kissat} (v4.0.2) \cite{Biere:Kissat:2024}, and \textbf{zChaff} (v2007.3.12) \cite{Moskewicz:zChaff:2001}. To establish a robust baseline, we compare our results with \textbf{Oink} \cite{vanDijk:2018}, which implements state-of-the-art algorithms such as Priority Promotion ($\text{PP}$ and $\text{PP+}$) and Parys' improvements ($\text{PAR}$). Additionally, we include Zielonka's Recursive Algorithm ($\text{ZRA}$) featuring the optimized attractor strategy presented in \cite{Aggarwal:2023}, which has not yet been integrated into the official Oink distribution.
+
+The benchmarks used were taken from the PGSolver Library \cite{Friedmann:2017} and Keiren's benchmarks for parity games \cite{Keiren:2015}. The games were classified into 4 categories:
+
+\begin{itemize}
+\item \textbf{Equivalence Checking (EqC):} 69 instances from formal verification tasks ({\em e.g.}, strong and weak bisimulation), featuring complex structural connectivity typical of system architectures.
+\item \textbf{Model Checking (MoC):} 90 organic benchmarks derived from $\mu$-calculus model checking, representing practical real-world verification challenges.
+\item \textbf{PGSolver Collection (PGS):} 78 games taken from difficult families ({\em e.g.}, Jurdziński, ladder, and clique games~\cite{Benerecetti:2016}) used to evaluate performance against theoretical worst-case bounds of several decision procedures.
+\item \textbf{Random Games (RaG):} 75 game instances with varied priority distributions, serving as a baseline for general robustness and average-case efficiency.
+\end{itemize}
+
+Furthermore, these benchmarks were partitioned into small-scale and large-scale categories based on the size of the input graphs. This distinction allows us to evaluate the feasibility of SAT-based methods on smaller instances while testing the scalability of \nooppc against dedicated solvers on larger game graphs. 
+
+All experiments were conducted on an Intel Xeon 8260 CPU with 24 cores (non-hyperthreaded) and 268.55 GB of RAM running Linux.
+
+\begin{table}[ht]
+\centering
+% \caption{Performance (in time) of Algorithms on small-scale instances  (Max vertices: EqC/MoC $\approx 10^6$, PGS/RaG $\approx 10^3$). Average time measured in seconds using PAR2 Scoring, with a max time of 60sg}
+
+\caption{Performance of algorithms on small-scale instances (Max vertices: EqC/MoC $\approx 10^6$, PGS/RaG $\approx 10^3$). Average time is reported in seconds using PAR2 scoring with a 60s timeout.}
+
+\setlength{\tabcolsep}{1.2mm}
+{\small 
+\begin{tabular}{l|rr|rr|rr|rr}
+\toprule
+\textbf{Algorithm} & \multicolumn{2}{c|}{\textbf{EquivalenceCh}} & \multicolumn{2}{c|}{\textbf{ModelCh}} & \multicolumn{2}{c|}{\textbf{PGSolver}} & \multicolumn{2}{c}{\textbf{RandomG}} \\
+ & Time & Solved & Time & Solved & Time & Solved & Time & Solved \\
+\midrule
+Oink(PP)        & 0.645         & 33/33 & 0.305         & 57/57 & 0.007         & 23/23 &  0.001         & 25/25 \\
+Oink(PP+)       & 0.644         & 33/33 & 0.305         & 57/57 & \textbf{0.007}& 23/23 &  0.001         & 25/25 \\
+Oink(PAR)       & 0.541         & 33/33 & 0.277         & 57/57 & 0.036         & 23/23 &  0.001         & 25/25 \\
+ZRA(ImpAttr)    & 0.539         & 33/33 & 0.266         & 57/57 & 0.154         & 23/23 & \textbf{0.001} & 25/25 \\
+\noc(Ours)     & \textbf{0.398}& 33/33 & \textbf{0.201}& 57/57 & 0.016         & 23/23 &  0.003         & 25/25 \\
+SAT(CaDiCaL)    & 60.732        & 19/33 & 75.560        & 23/57 & 6.815         & 22/23 &  2.086         & 25/25 \\
+SAT(Kissat)     & 113.050       &  2/33 & 79.001        & 21/57 & 6.064         & 22/23 &  2.628         & 25/25 \\
+SAT(MiniSat)    & 79.766        & 17/33 & 79.639        & 22/57 & 6.491         & 22/23 &  2.806         & 25/25 \\
+\bottomrule
+\end{tabular}
+}
+\label{tab:paritygames-small}
+\end{table}
+
+
+\begin{table}[ht]
+\centering
+\caption{Performance of algorithms on large-scale instances (Max vertices: EqC/MoC $\approx$ 35 million, PGS/RaG $\approx 10^5$). Average time is reported in seconds using PAR2 scoring with a 60s timeout.}
+
+\setlength{\tabcolsep}{1.2mm}
+{\small 
+\begin{tabular}{l|rr|rr|rr|rr}
+\toprule
+\textbf{Algorithm} & \multicolumn{2}{c|}{\textbf{EquivalenceCh}} & \multicolumn{2}{c|}{\textbf{ModelCh}} & \multicolumn{2}{c|}{\textbf{PGSolver}} & \multicolumn{2}{c}{\textbf{RandomG}} \\
+ & Time & Solved & Time & Solved & Time & Solved & Time & Solved \\
+\midrule
+Oink(PP)        & 29.375         & 30/36 & 9.003         & 33/33 & 8.369         & 50/55 & 0.039         & 50/50 \\
+Oink(PP+)       & 29.392         & 30/36 & 8.986         & 33/33 & 8.371         & 50/55 & \textbf{0.039}& 50/50 \\
+Oink(PAR)       & 28.525         & 30/36 & 8.345         & 33/33 & 16.798        & 43/55 & 0.043        & 50/50 \\
+ZRA(ImpAttr)    & 21.249         & 35/36 & 8.606         & 33/33 & 16.632        & 43/55 & 0.042         & 50/50 \\
+\noc(Ours)     & \textbf{13.502}& 36/36 & \textbf{3.838}& 33/33 & \textbf{5.659}& 54/55 & 0.081         & 50/50 \\
+\bottomrule
+\end{tabular}
+}
+\label{tab:paritygames-large}
+\end{table}
+
+Table~\ref{tab:paritygames-small} presents a consolidated performance comparison on small-scale instances. In this setting, \noc outperforms traditional SAT-based approaches by up to three orders of magnitude in execution time while achieving 100\% coverage (compared to the low timeout-heavy completion rates of SAT solvers). Furthermore, \noc outperforms specialized parity game solvers on the \texttt{EquivalenceCh} and \texttt{ModelCh} benchmarks by 25\% to 35\%, while remaining highly competitive on the remaining families—differing only by a marginal fraction of a second.
+
+For large-scale instances, as shown in Table~\ref{tab:paritygames-large}, standard SAT-based approaches are omitted due to their inability to scale within reasonable resource limits. In this challenging context, \noc demonstrates superior robustness and scalability, consistently outperforming specialized solvers in both execution time and instance coverage. On \texttt{EquivalenceCh} and \texttt{ModelCh}, \noc achieves the fastest runtimes, delivering speedups of up to $2\times$ over the next best algorithms while maintaining 100\% coverage. Crucially, on the structured \texttt{PGSolver} collection, \noc solves the highest number of instances (54/55)—significantly outperforming ZRA (43/55) and the Oink variants (50/55) while cutting execution times by up to 66\%. While the Oink variants remain nominally faster on \texttt{RandomG}, the absolute difference is a marginal fraction of a second, highlighting \noc's effectiveness as a highly robust, general-purpose solver for large-scale parity games.
+
+%------------------------------------------------------------------------------
+
+\subsection{Qualitative and Quantitative Goals and Formal Verification}\label{sec:exp_quantitative}
+
+\textcolor{red}{Pending to update}
+
+One of \noc's main features is the ability to handle quantitative goals within the same CP-based framework. 
+%
+\noc implements a core algorithm designed to compute positional strategies, which are optimal in case only qualitative (parity) or only quantitative goals are given. However, when combined, positional strategies may no longer be optimal~\cite{ChatterjeeHJ05,Chatterjee:2010}. As such, the solutions that \noc computes are for games where only positional strategies are allowed. 
+%
+In this context, the next set of benchmarks demonstrates \noc's performance when solving such kinds of games when enriched with additional quantitative (energy and/or mean-payoff) requirements.  
+%
+To this end, first, we used the same games of Section \ref{sec:exp_parity} but now added with random weights over the edges using a fair distribution between -1,000 and 1,000. These benchmarks utilize random positional vertex assignments and randomly generated thresholds. We assess the tool's efficiency across various multi-objective configurations defined by the winning condition $\gamma_{p} = \omega \otimes \eta \otimes \mu$, where $\otimes$ denotes the product composition of parity ($\omega$), energy ($\eta$), and mean-payoff ($\mu$) objectives.
+
+\begin{table}[ht]
+\centering
+\caption{Performance of \noc with different winning conditions on small and large-scale instances on specialized families of Games. Same configuration as Table \ref{tab:paritygames-large}.}
+\setlength{\tabcolsep}{1.2mm}
+{\small 
+\begin{tabular}{l|rr|rr|rr|rr}
+\toprule
+\textbf{Algorithm} & \multicolumn{2}{c|}{\textbf{EquivalenceCh}} & \multicolumn{2}{c|}{\textbf{ModelCh}} & \multicolumn{2}{c|}{\textbf{PGSolver}} & \multicolumn{2}{c}{\textbf{RandomG}} \\
+ & Time & Solved & Time & Solved & Time & Solved & Time & Solved \\
+\midrule
+\textbf{$\omega$}
+    & 6.950  & 69/69 & 2.019 & 90/90 & 2.838  & 78/78 & 0.042  & 75/75 \\
+\textbf{$\eta$}
+    & 21.272 & 57/69 & 2.019 & 90/90 & 6.371  & 74/78 & 1.671  & 74/75 \\
+\textbf{$\mu$}
+    & 21.271 & 57/69 & 2.019 & 90/90 & 13.568 & 70/78 & 30.990 & 56/75 \\
+\textbf{$\omega \otimes \eta$}
+    & 21.272 & 57/69 & 2.021 & 90/90 & 6.391  & 74/78 & 1.669  & 74/75 \\
+\textbf{$\omega \otimes \mu$}
+    & 21.274 & 57/69 & 2.019 & 90/90 & 11.126 & 71/78 & 21.066 & 62/75 \\
+\textbf{$\eta \otimes \mu$}
+    & 21.271 & 57/69 & 2.021 & 90/90 & 8.044  & 73/78 & 16.079 & 65/75 \\
+\textbf{$\omega \otimes \eta \otimes \mu$}
+    & 23.010 & 56/69 & 2.019 & 90/90 & 10.685 & 72/78 & 22.457 & 61/75 \\
+\bottomrule
+\end{tabular}
+}
+\label{tab:quantitative-benchmarks}
+\end{table}
+
+Table~\ref{tab:quantitative-benchmarks} shows that while the baseline condition~$\omega$ consistently achieves a 100\% solving rate and minimal execution times across all datasets, the introduction of~$\eta$ and~$\mu$ imposes distinct computational overheads, with~$\mu$ acting as the primary bottleneck for performance degradation and timeouts. This complexity is highly dependent on graph structure: while the large-scale \texttt{Model Checking} instances remain entirely unaffected by condition complexity due to structural properties that neutralize evaluation overhead, chaotic environments like \texttt{Random Games} show extreme sensitivity, causing pure~$\mu$ to drop to 56/75 solved instances. Interestingly, the data reveals a beneficial constraint interaction where combining~$\mu$ with~$\omega$ or~$\eta$ (such as in~$\eta \otimes \mu$) frequently mitigates this overhead, improving runtimes and solving more instances than~$\mu$ alone by effectively pruning the search space.
+
+Second, we evaluated a selection of random benchmarks as proposed by~\cite{Chaloupka:2011}, which follow the design of the \texttt{SPRAND} generator~\cite{CherkasskyBoris:1996} for energy and mean-payoff games. These benchmarks are categorized by their structural properties using the naming convention \texttt{R\_<d><s\_key>} introduced in~\cite{Chaloupka:2011}, where \texttt{<d>} represents the vertex out-degree (density) and \texttt{<s\_key>} denotes the state-space size. For this benchmarking suite, we consider a high density of $10$ outgoing edges per vertex. The vertex counts scale according to the criteria and labeling defined in~\cite{Chaloupka:2011}: $b = 2^{17}$ and $h = 2^{18}$. Furthermore, we extended the evaluation to larger games by introducing two additional scales: $xb = 2^{19}$ and $xh = 2^{20}$, while broadening the edge weight range to approximately $\pm 10^4$ (from $-10,000$ to $10,000$).
+
+\begin{table}[ht]
+\centering
+\caption{Performance of \noc with different winning conditions on random instances with SPRAND structure \cite{Chaloupka:2011}. Same configuration as Table \ref{tab:quantitative-benchmarks}.}
+\setlength{\tabcolsep}{1.2mm}
+{\small 
+\begin{tabular}{l|rr|rr|rr|rr}
+\toprule
+\textbf{Conditions} & \multicolumn{2}{c|}{\textbf{R\_10b}} & \multicolumn{2}{c|}{\textbf{R\_10h}} & \multicolumn{2}{c|}{\textbf{R\_10xb}} & \multicolumn{2}{c}{\textbf{R\_10xh}} \\
+& Time & Solved & Time & Solved & Time & Solved & Time & Solved \\
+\midrule
+\textbf{$\omega$}
+    &  0.201 & 30/30 &  0.456 & 30/30 &  1.046 & 30/30 &  2.137 & 30/30 \\
+\textbf{$\eta$}
+    & 30.721 & 23/30 & 37.617 & 21/30 & 26.367 & 24/30 & 38.197 & 21/30 \\
+\textbf{$\mu$}
+    & 40.134 & 20/30 & 52.263 & 17/30 & 52.568 & 17/30 & 37.439 & 21/30 \\
+\textbf{$\omega \otimes \eta$}
+    & 31.389 & 23/30 & 23.013 & 25/30 &  6.674 & 29/30 & 10.722 & 28/30 \\
+\textbf{$\omega \otimes \mu$}
+    & 36.139 & 21/30 & 52.254 & 17/30 & 56.530 & 16/30 & 37.405 & 21/30 \\
+\textbf{$\eta \otimes \mu$}
+    & 40.130 & 20/30 & 52.258 & 17/30 & 56.528 & 16/30 & 37.383 & 21/30 \\
+\textbf{$\omega \otimes \eta \otimes \mu$}
+    & 40.129 & 20/30 & 52.258 & 17/30 & 56.515 & 16/30 & 37.375 & 21/30 \\
+\bottomrule
+\end{tabular}
+}
+\label{tab:quantitative-chpk}
+\end{table}
+
+The results in Table~\ref{tab:quantitative-chpk} are highly consistent with the trends observed in Table~\ref{tab:quantitative-benchmarks}, confirming that the composition of winning conditions does not inherently compound computational difficulty. The baseline condition~$\omega$ scale exceptionally well across the high-density random benchmarks, maintaining a 100\% solving rate (30/30) and completing in under 2.2 seconds even on the largest $R\_10xh$ instances.
+
+A key strength of the \noc toolchain is highlighted in the multi-objective configurations. When combining parity with an energy objective (e.g., $\omega \otimes \eta$), the solver frequently demonstrates a pruning effect, where the parity condition helps narrow the search space, leading to more robust solving times compared to other combinations. However, for the most complex triple-objective configurations ($\omega \otimes \eta \otimes \mu$), the performance tends to be bottlenecked by the mean-payoff component.
+
+Since the benchmarking software in \cite{Chaloupka:2011} has not been released, we could not perform a side-by-side comparison. Nevertheless, our results for energy games show a reasonable solving time compared with their reported results.  Furthermore, obtaining standardized benchmarks for this class of games remains a challenge, as few publicly available datasets or implementations exist.
+
+%------------------------------------------------------------------------------
+
+\subsection{Variant Analysis and Heuristic Impact}\label{sec:ablation_study}
+
+%==============================================================================
 
 \section{Conclusions and Future Work}\label{sec:conclusion}
 
