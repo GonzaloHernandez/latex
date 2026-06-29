@@ -30,7 +30,7 @@
 
 \usepackage{algorithm}
 \usepackage[noend]{algorithmic}
-\usepackage{subcaption}
+\usepackage{subcaption} 
 \usepackage{enumitem}
 
 %%%Author macros
@@ -195,7 +195,7 @@ The remainder of this paper is organized as follows. Section...
 \subsection{Turn-Based Games on Graphs}
 \label{sec:turn_based_games}
 
-An \wregulargame is a two-player, zero-sum game of infinite duration played on a directed graph called an \textit{arena}. Two players, \textit{Even} (denoted as $\even$ or $0$) and \textit{Odd} (denoted as $\odd$ or $1$), move a token along adjacent vertices. The vertex where the token currently resides determines which player chooses the next transition. This ongoing process generates an infinite sequence of states. The ultimate winner of the game depends on whether this sequence satisfies a specific objective, defined by the game's winning condition.
+An \wregulargame is a two-player, zero-sum game of infinite duration played on a directed graph called an \textit{arena}. Two players, \textit{Even} (denoted as $\even$) and \textit{Odd} (denoted as $\odd$), move a token along adjacent vertices. The vertex where the token currently resides determines which player chooses the next transition. This ongoing process generates an infinite sequence of states. The ultimate winner of the game depends on whether this sequence satisfies a specific objective, defined by the game's winning condition.
 
 \begin{definition}[Arena]\label{def:arena}
 A turn-based game \textit{arena} $\mathcal{A}$ is a tuple $\mathcal{A} = (V, E, \Omega, Q)$, where:
@@ -528,7 +528,7 @@ While the checker functions as a final validation step on fully assigned branche
             \STATE \textbf{if } not $(\mathcal{E}_e \gets (\bot, \textit{reason}))$ \textbf{then return $\bot$}
         \ENDIF
     \ELSIF{$\textit{defined}$} \label{alg:noceager:defcheck}
-        \FOR{$e' \in \textit{edges}(v) \textbf{ where } \mathcal{E}_{e'} \ne \bot$} \label{alg:no-opponent-cycle-f1:edgecheck}
+        \FOR{$e' \in \textit{edges}(v) \textbf{ where } \mathcal{E}_{e'} \ne \bot$} \label{alg:noceager:edgecheck}
             \STATE $p_V \gets path_V \cup \{v\}$
             \STATE $p_E \gets path_E \cup \{e'\}$
             \STATE $w \gets \textit{target}(e')$
@@ -589,66 +589,6 @@ From a theoretical perspective, it is well-established that while pure qualitati
 
 %==============================================================================
 
-\section{Improving Constraint base model}\label{sec:improved_cp}
-
-%------------------------------------------------------------------------------
-
-\subsection{The Integer Formulation (\nooppc-Int)}\label{sec:noc_int}
-
-%------------------------------------------------------------------------------
-
-\subsection{Search Strategies and Game-Specific Heuristics}\label{sec:search_heuristics}
-
-%------------------------------------------------------------------------------
-
-\subsection{Improved Filtering Strategy via Memoization (\nocmemo)}\label{sec:nocmemo}
-
-To avoid the potential path explosion of the eager DFS traversal while retaining predictive pruning, we introduce a bounded variant that tracks previously analyzed cycles through an internal memoization layer.
-
-\textcolor{red}{... still in progress ...}
-
-\begin{algorithm}[htb]
-\caption{\textbf{\nocmemo}}
-\small
-\textbf{Input}: $path_V, path_E, v, e, \mathcal{X}, \textit{defined}, \textit{memo}$ \\
-\textbf{Output}: $\top$ if valid; $\bot$ otherwise
-\begin{algorithmic}[1]
-    \IF{$v \in path_V$}
-        \STATE $i_v \gets$ \textit{index}$(v,\ path_V)$
-        \STATE $m \gets \text{evaluate dominant property along } path_V[i_v:]$
-        \STATE $\textit{memo}[e] \gets (v,\ m)$ \label{alg:nocmemo:update}
-        \IF{$\neg f(path_V[i_v:])$} 
-            \STATE $\textit{reason} \gets \textit{clausify}(\bigvee_{e' \in path_E[i_v:]} \neg \mathcal{E}_{e'})$
-            \STATE \textbf{if }not ($\mathcal{E}_e \gets (\bot, \textit{reason}))$ \textbf{then return $\bot$}
-        \ENDIF
-    \ELSIF{$\textit{defined}$}
-        \FOR{$e' \in \textit{edges}(v)\ \textbf{where}\ \mathcal{E}_{e'} \ne \bot$}
-            \STATE $(v_{memo},\ m_{memo}) \gets \textit{memo}[e']$
-            \STATE $p_V \gets path_V \cup \{v\}$
-            \STATE $p_E \gets path_E \cup \{e'\}$
-            \STATE $w \gets \textit{target}(e')$
-            \STATE $\textit{def} \gets (\mathcal{E}_{e'} = \top)$
-
-            \IF{$(v_{memo}, m_{memo}) = (\text{null}, \text{null})$}
-                \STATE \nocmemo($p_V, p_E, w, e', \mathcal{X}, \textit{def}, \textit{memo}$)\label{alg:nocmemo:check1}
-            \ELSE
-                \STATE $i_v \gets \textit{index}(v_{memo},\ path_V)$
-                \STATE $m \gets \text{evaluate property along } path_V[i_v:]$
-                \IF{$m \text{ dominates } m_{memo} \text{ under criteria } f$}
-                    \STATE \nocmemo($p_V, p_E, w, e', \mathcal{X}, \textit{def}, \textit{memo}$)\label{alg:nocmemo:check2}
-                \ELSE
-                    \STATE $\textit{memo}[e] \gets \textit{memo}[e']$
-                \ENDIF
-            \ENDIF
-        \ENDFOR
-    \ENDIF
-    \RETURN $\top$
-\end{algorithmic}
-\label{alg:nocmemo}
-\end{algorithm}
-
-%==============================================================================
-
 \section{Experimental Evaluation}\label{sec:experiments}
 
 %------------------------------------------------------------------------------
@@ -657,7 +597,7 @@ To avoid the potential path explosion of the eager DFS traversal while retaining
 
 %------------------------------------------------------------------------------
 
-\subsection{Parity Games}\label{sec:exp_parity}
+\subsection{Games with Parity Games}\label{sec:exp_parity}
 
 In this section, we evaluate the performance of \nooppc on parity games, as they represent the primary and most computationally challenging class of games for our approach. Using standard benchmarks, we assess the efficiency of \nooppc directly against state-of-the-art algorithms.
 
@@ -816,9 +756,75 @@ A key strength of the \noc toolchain is highlighted in the multi-objective confi
 
 Since the benchmarking software in \cite{Chaloupka:2011} has not been released, we could not perform a side-by-side comparison. Nevertheless, our results for energy games show a reasonable solving time compared with their reported results.  Furthermore, obtaining standardized benchmarks for this class of games remains a challenge, as few publicly available datasets or implementations exist.
 
+%==============================================================================
+
+\section{Improving Constraint base model}\label{sec:improved_cp}
+
 %------------------------------------------------------------------------------
 
-\subsection{Variant Analysis and Heuristic Impact}\label{sec:ablation_study}
+\subsection{Improved Filtering Strategy via Memoization (\nocmemo)}\label{sec:nocmemo}
+
+To avoid the potential path explosion of the \noceager while retaining predictive pruning, we introduce a bounded variant that tracks previously analyzed cycles through an internal memoization layer.
+%
+To do so, one can use Algorithm \ref{alg:nocmemo}, which incorporates a parameter $\textit{mem}$ that stores, for each edge: the starting node of an infinite path and the associated $f$ outcome. This information is updated whenever a cycle is found (line~\ref{alg:nocmemo:findcycle1}). If $\textit{mem}$ does not contain information about the next edge $e'$, or a new better $f$ outcome was found, then the propagator proceeds recursively as before (lines~\ref{alg:nocmemo:check1} and \ref{alg:nocmemo:check2}). Otherwise, it uses the stored information for the new edge (line~\ref{alg:nocmemo:update2}).
+
+This generalization results in a bounded worst-case runtime, as the recursion is strictly limited by the number of graph edges and the capacity of the domain governing the winning condition. An edge triggers a recursive look-ahead re-evaluation only when a strictly more dominant property is encountered, meaning the maximum number of updates per edge is directly bounded by the number of distinct values the dominant property can assume.
+
+While this mechanism enforces a strict bound on execution relative to the size of the property's domain, the underlying complexity classification varies by winning condition. For standard qualitative conditions like Büchi and Parity, the domain scales polynomially with the graph size and priorities. For Rabin conditions, the domain depends exponentially on the number of pairs. For quantitative, weight-based conditions such as Energy and Mean-Payoff, the domain size depends on the maximum absolute edge weight, resulting in a pseudo-polynomial worst-case bound rather than a purely polynomial one.
+
+Furthermore, because the memoization only captures cycles sharing the exact same starting node, the propagator remains incomplete and may miss cycles that cross paths globally. To preserve full completeness across all supported winning conditions, \nocmemo should be used in conjunction with the global \nocchecker.
+
+\begin{algorithm}[htb]
+\caption{\textbf{\nocmemo}}
+\small
+\textbf{Input}: $path_V, path_E, v, e, \mathcal{X}, \textit{defined}, \textit{mem}$ \\
+\textbf{Output}: $\top$ if look-ahead is valid; $\bot$ if a fatal conflict occurs
+\begin{algorithmic}[1]
+    \IF{$v \in path_V$} \label{alg:nocmemo:pathcheck}
+        \STATE $i_v \gets$ \textit{find}$(v,\ path_V)$ \label{alg:nocmemo:findcycle1}
+        \STATE $d \gets \text{evaluate dominant property along } path_V[i_v:]$
+        \STATE $\textit{mem}[e] \gets (v,\ d)$ \label{alg:nocmemo:update1}
+        \IF{$\neg f(path_V[i_v:])$} \label{alg:nocmemo:checkopponent}
+            \STATE $\textit{reason} \gets \textit{clausify}(\neg path_E)$ \label{alg:nocmemo:reason}
+            \STATE \textbf{if }not ($\mathcal{E}_e \gets (\bot, \textit{reason}))$ \textbf{then return $\bot$}
+        \ENDIF
+    \ELSIF{$\textit{defined}$} \label{alg:nocmemo:defcheck}
+        \FOR{$e' \in \textit{edges}(v)\ \textbf{where}\ \mathcal{E}_{e'} \ne \bot$}
+            \STATE $(v_{mem},\ d_{mem}) \gets \textit{mem}[e']$
+            \STATE $p_V \gets path_V \cup \{v\}$
+            \STATE $p_E \gets path_E \cup \{e'\}$
+            \STATE $w \gets \textit{target}(e')$
+            \STATE $\textit{def} \gets (\mathcal{E}_{e'} = \top)$
+ 
+            \IF{$(v_{mem}, d_{mem}) = (\text{null}, \text{null})$}
+                \STATE \nocmemo($p_V, p_E, w, e', \mathcal{X}, \textit{def}, \textit{mem}$)\label{alg:nocmemo:check1}
+            \ELSE
+                \STATE $i_v \gets \textit{find}(v_{mem},\ path_V)$ \label{alg:nocmemo:findcycle2}
+                \STATE $d \gets \text{evaluate property along } path_V[i_v:]$
+                \IF{$v_{mem} \in path_V \land d \text{ dominates } d_{mem} \text{ under criteria } f$}
+                    \STATE \nocmemo($p_V, p_E, w, e', \mathcal{X}, \textit{def}, \textit{mem}$)\label{alg:nocmemo:check2}
+                \ELSE
+                    \STATE $\textit{mem}[e] \gets \textit{mem}[e']$ \label{alg:nocmemo:update2}
+                \ENDIF
+            \ENDIF
+        \ENDFOR
+    \ENDIF
+    \RETURN $\top$
+\end{algorithmic}
+\label{alg:nocmemo}
+\end{algorithm}
+
+%------------------------------------------------------------------------------
+
+\subsection{The Integer Formulation (\nooppc-Int)}\label{sec:noc_int}
+
+%------------------------------------------------------------------------------
+
+\subsection{Search Strategies and Game-Specific Heuristics}\label{sec:search_heuristics}
+
+%------------------------------------------------------------------------------
+
+\subsection{Experimental Analysis of Improvements}\label{sec:improve_experiments}
 
 %==============================================================================
 
