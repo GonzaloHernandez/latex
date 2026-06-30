@@ -178,7 +178,7 @@ Constraint programming  \sep Parity games \sep Verification.
 \section{Introduction}
 Two-player, zero-sum, infinite-duration games played on graphs provide the foundational mathematical framework for the automated verification and synthesis of reactive systems. In this paradigm, vertices represent states of the system and its environment, edges denote possible transitions or actions, and infinite paths (plays) represent the ongoing behavior of the system. Solving these games—determining which player can force a play to satisfy a specific objective—is central to model checking, synthesis of controllers, and verifying specifications against adversarial environments.
 %
-Depending on the system requirements, these objectives are specified using different winning conditions on infinite paths. These are broadly categorized into qualitative and quantitative conditions. Qualitative conditions focus on the structural or topological properties of infinite paths; classic examples include Büchi conditions (visiting designated states infinitely often), Rabin conditions, and parity conditions (evaluating the parity of the maximum priority seen infinitely often). Quantitative conditions, on the other hand, incorporate resource constraints or performance metrics, such as energy conditions (keeping a running resource counter above zero) and mean-payoff conditions (optimizing the long-run average reward).
+Depending on the system requirements, these objectives are specified using different winning conditions on infinite paths. These are broadly categorized into qualitative and quantitative conditions. Qualitative conditions focus on the structural or topological properties of infinite paths; classic examples include Büchi conditions (visiting designated states infinitely often), Rabin conditions, and parity conditions (evaluating the parity of the maximum priority seen infinitely often) \cite{Chatterjee:2012,Erich:2008}. Quantitative conditions, on the other hand, incorporate resource constraints or performance metrics, such as energy conditions (keeping a running resource counter above zero) and mean-payoff conditions (optimizing the long-run average reward)\cite{ChatterjeeHJ05,Chaloupka:2011}.
 %
 While specialized, highly tuned algorithms exist for isolated game types—most notably for parity games, which belong to $\mathsf{NP} \cap \mathsf{co\textit{-}NP}$~\cite{Jurdziński:1998}  —handling multi-conditioned objectives or transitioning between qualitative and quantitative variants often requires abandoning the underlying algorithmic machinery entirely. Because these state-of-the-art approaches rely on dedicated engines hardcoded to exploit the distinct mathematical structure of a single winning condition, they lack architectural modularity. Consequently, extending them to multi-conditioned settings typically requires complex reductions that fundamentally alter the game graph, leading to severe state-space explosion.
 %
@@ -198,12 +198,12 @@ The remainder of this paper is organized as follows. Section...
 An \wregulargame is a two-player, zero-sum game of infinite duration played on a directed graph called an \textit{arena}. Two players, \textit{Even} (denoted as $\even$) and \textit{Odd} (denoted as $\odd$), move a token along adjacent vertices. The vertex where the token currently resides determines which player chooses the next transition. This ongoing process generates an infinite sequence of states. The ultimate winner of the game depends on whether this sequence satisfies a specific objective, defined by the game's winning condition.
 
 \begin{definition}[Arena]\label{def:arena}
-A turn-based game \textit{arena} $\mathcal{A}$ is a tuple $\mathcal{A} = (V, E, \Omega, Q)$, where:
+A turn-based game \textit{arena} $\mathcal{A}$ is a tuple $\mathcal{A} = (V, E, \Omega, \Xi)$, where:
 \begin{itemize}
     \item $V$ is a finite set of vertices partitioned into two disjoint sets: $V_{\even}$ (vertices controlled by Player~$\even$) and $V_{\odd}$ (vertices controlled by Player~$\odd$).
     \item $E \subseteq V \times V$ is a set of directed transitions such that every vertex has at least one outgoing edge, i.e., $\forall v \in V, |vE| \geq 1$, where $vE = \{ w \in V \mid (v, w) \in E \}$ denotes the set of successors of $v$. We denote $Ev = \{ u \in V \mid (u, v) \in E \}$ as the set of predecessors of $v$.
     \item $\Omega: V \to \mathbb{N}$ is a priority coloring function that assigns to each vertex a non-negative integer priority (primarily utilized in qualitative and parity contexts).
-    \item $Q: E \to \mathbb{Z}$ is a weight function that assigns an integer weight to each transition, representing resource costs or rewards (primarily utilized in quantitative contexts).
+    \item $\Xi: E \to \mathbb{Z}$ is a weight function that assigns an integer weight to each transition, representing resource costs or rewards (primarily utilized in quantitative contexts).
 \end{itemize}
 \end{definition}
 
@@ -248,13 +248,13 @@ A Büchi condition is defined relative to a designated set of target vertices $F
 Conversely, the dual co-Büchi objective requires that the play eventually settles outside the complement of $F$, meaning that vertices outside of $F$ are visited only finitely many times. A play $\pi$ satisfies the co-Büchi objective if $\text{Inf}(\pi) \subseteq F$.
 
 \paragraph{Rabin and Streett Objectives:}
-A Rabin condition is parameterized by a finite collection of pairs $R = \{(E_1, F_1), (E_2, F_2), \ldots, (E_k, F_k)\}$, where $E_j, F_j \subseteq V$ for each $j \in \{1, \ldots, k\}$. Player~$\even$ wins the Rabin objective if there exists at least one index $j$ where the play visits $E_j$ infinitely often but $F_j$ only finitely often:
+A Rabin condition is parameterized by a set of pairs $P = \{(L_1, U_1), \dots, (L_m, U_m)\}$, where $L_i, U_i \subseteq V$ for $i \in \{1, \dots, m\}$. Player~$\even$ wins the Rabin objective if there exists at least one index $i$ where the play visits $L_i$ infinitely often but $U_i$ only finitely often:
 \[
-\exists j \in \{1, \ldots, k\} \text{ such that } \text{Inf}(\pi) \cap E_j \neq \emptyset \text{ and } \text{Inf}(\pi) \cap F_j = \emptyset
+\exists i \in \{1, \dots, m\} \text{ such that } \text{Inf}(\pi) \cap L_i \neq \emptyset \text{ and } \text{Inf}(\pi) \cap U_i = \emptyset
 \]
-The Streett condition is the deterministic complement of the Rabin condition. It requires that for every index $j$, if the set $E_j$ is visited infinitely often, then the set $F_j$ must also be visited infinitely often:
+The Streett condition is the deterministic complement of the Rabin condition. It requires that for every index $i$, if the set $L_i$ is visited infinitely often, then the set $U_i$ must also be visited infinitely often:
 \[
-\forall j \in \{1, \ldots, k\}, \quad \text{Inf}(\pi) \cap E_j \neq \emptyset \implies \text{Inf}(\pi) \cap F_j \neq \emptyset
+\forall i \in \{1, \dots, m\}, \quad \text{Inf}(\pi) \cap L_i \neq \emptyset \implies \text{Inf}(\pi) \cap U_i \neq \emptyset
 \]
 
 \paragraph{Parity Objectives:}
@@ -268,10 +268,10 @@ If the maximum infinite priority is odd, the play is won by Player~$\odd$.
 \subsubsection{Quantitative Conditions}
 \label{subsec:quantitative}
 
-Quantitative conditions shift the evaluation to the infinite sequence of transitions $e_0 e_1 e_2 \ldots$ generated during a play $\pi = v_0 v_1 v_2 \ldots$, tracking numerical behaviors via the arena's edge weight function $Q: E \to \mathbb{Z}$.
+Quantitative conditions shift the evaluation to the infinite sequence of transitions $e_0 e_1 e_2 \ldots$ generated during a play $\pi = v_0 v_1 v_2 \ldots$, tracking numerical behaviors via the arena's edge weight function $\Xi: E \to \mathbb{Z}$.
 
 \paragraph{Energy Objectives:}
-Energy conditions model games with physical resource constraints (such as fuel, electricity, or memory). Given an initial resource capacity $c_{\text{init}} \in \mathbb{N}$ and an upper storage boundary $W \in \mathbb{N} \cup \{\infty\}$, the energy level $c_k$ after $k$ transitions is tracked dynamically via the recurrence relation $c_{k+1} = \min(W, c_k + Q(e_k))$, where $c_0 = c_{\text{init}}$. Player~$\even$ wins the energy objective if the running resource total remains non-negative at every step along the infinite play:
+Energy conditions model games with physical resource constraints (such as fuel, electricity, or memory). Given an initial resource capacity $c_{\text{init}} \in \mathbb{N}$ and an upper storage boundary $W \in \mathbb{N} \cup \{\infty\}$, the energy level $c_k$ after $k$ transitions is tracked dynamically via the recurrence relation $c_{k+1} = \min(W, c_k + \Xi(e_k))$, where $c_0 = c_{\text{init}}$. Player~$\even$ wins the energy objective if the running resource total remains non-negative at every step along the infinite play:
 \[
 \forall k \geq 0, \quad c_k \geq 0
 \]
@@ -279,7 +279,7 @@ Energy conditions model games with physical resource constraints (such as fuel, 
 \paragraph{Mean-Payoff Objectives:}
 The mean-payoff condition evaluates the long-term average reward or cost accumulated per transition. The numerical value assigned to a play $\pi$ is defined as the limit inferior of the average edge weights over time:
 \[
-\mu(\pi) = \liminf_{n \to \infty} \frac{1}{n} \sum_{i=0}^{n-1} Q(e_i)
+\mu(\pi) = \liminf_{n \to \infty} \frac{1}{n} \sum_{i=0}^{n-1} \Xi(e_i)
 \]
 Given a target performance threshold $\nu \in \mathbb{R}$, Player~$\even$ satisfies the mean-payoff objective if the long-run average meet or exceeds this bound:
 \[
@@ -362,7 +362,7 @@ While highly effective for pure parity games on small arenas, this monolithic en
 To overcome these structural limitations, we replace the entire monolithic CNF formula—including both the static graph connectivity clauses and the progress measure variables—with a unified, high-level Constraint Satisfaction Problem (CSP) abstraction. Instead of flattening the game's rules into a rigid propositional grid, this CP model captures the graph's topology natively through clean domain variables, while seamlessly handling arbitrary, multi-conditioned $\omega$-regular properties by delegating all cycle validation to a dynamic global propagator.
 
 \begin{definition}[Generalized Game CSP]\label{def:csp}
-The CSP for an arena $\mathcal{A} = (V, E, \Omega, Q)$ starting at an initial vertex $v_0$ from the perspective of Player~$\player$ is defined as the triple $\mathcal{P} = (\mathcal{X}, \mathcal{D}, \mathcal{C})$, where $\mathcal{X} = \{ \mathcal{V}_v \}_{v \in V} \cup \{ \mathcal{E}_e \}_{e \in E}$ represents the set of Boolean decision variables mapped to domains $\mathcal{D} = \{\bot, \top\}$, and $\mathcal{C}$ is the set of constraints defined by:
+The CSP for an arena $\mathcal{A} = (V, E, \Omega, \Xi)$ starting at an initial vertex $v_0$ from the perspective of Player~$\player$ is defined as the triple $\mathcal{P} = (\mathcal{X}, \mathcal{D}, \mathcal{C})$, where $\mathcal{X} = \{ \mathcal{V}_v \}_{v \in V} \cup \{ \mathcal{E}_e \}_{e \in E}$ represents the set of Boolean decision variables mapped to domains $\mathcal{D} = \{\bot, \top\}$, and $\mathcal{C}$ is the set of constraints defined by:
 \begin{itemize}
     [leftmargin=2.3cm, labelwidth=2.8cm, align=right, itemsep=1.0ex, parsep=0pt]
     \item [$\mathcal{C}_{v_0}$ :] $\mathcal{V}_{v_0} = \top$
@@ -377,7 +377,7 @@ where the evaluation criteria $f$ for a given cycle $v_j, \dots, v_k$ are provid
 
 While constraints $\mathcal{C}_{v_0}$, $\mathcal{C}_{\opponent}$, and $\mathcal{C}_{\!E}$ enforce the required sub-graph connectivity (analogous to the baseline's $\Phi_{v_0}, \Phi_\forall$, and $\Phi_V$), $\mathcal{C}_{\player}$ strictly dictates that the protagonist selects exactly one deterministic strategy choice per active vertex. 
 
-Crucially, our approach removes the expensive difference logic constraints $\Phi_A$ entirely. Instead, the global constraint $\mathcal{C}_{\noc}(f)$ monitors the strategy graph dynamically during the CP search loop. It intercepts any emerging path profile and applies a parameterized verification function $f$ to ensure that no reachable closed component is structurally and strategically winning for $\opponent$. Accordingly, we name our method \noc, which stands for \nooppc. The precise operational formulations for these qualitative and quantitative cycle evaluation functions are detailed thoroughly in Section~\ref{sec:function_conditions}.
+Crucially, our approach removes the expensive difference logic constraints $\Phi_A$ entirely. Instead, the global constraint $\mathcal{C}_{\noc}(f)$ monitors the strategy graph dynamically during the CP search loop. It intercepts any emerging path profile and applies a parameterized verification function $f$ to ensure that no reachable closed component is structurally and strategically winning for $\opponent$. Accordingly, we name our method \nocq, which stands for \nooppc with Qualitative and Quantitative conditions. The precise operational formulations for these qualitative and quantitative cycle evaluation functions are detailed thoroughly in Section~\ref{sec:function_conditions}.
 
 Our generalized CSP model inherits and extends this satisfiability approach, lifting it from a fixed perspective to a modular framework. The semantic mapping between the satisfiability of the CSP and the game-theoretic outcome remains definitive: a satisfying assignment found by the solver proves that the player of interest, $\player$, possesses a positional winning strategy from $v_0$, where the active edges ($\mathcal{E}_e = \top$) map directly to their winning choices. 
 
@@ -385,8 +385,8 @@ A key architectural advantage of this design is that by simply swapping the role
 
 %------------------------------------------------------------------------------
 
-\subsection{Running Example}
-\label{sec:running_example}
+\subsection*{Example 1}
+\label{sec:example1}
 
 \begin{figure}
      \centering
@@ -394,25 +394,25 @@ A key architectural advantage of this design is that by simply swapping the role
      \makebox[\textwidth][c]{
          \begin{subfigure}[t]{0.51\textwidth}
              \centering
-             \includegraphics[width=0.8\textwidth, trim={0 0 0 0}, clip]{images/ex01.pdf}
+             \includegraphics[width=0.8\textwidth, trim={0 0 0 0}, clip]{images/ex11.pdf}
              \vspace{-5pt} % Reduces gap between image and sub-caption
              \caption{First assignment.}
-             \label{fig:ex01}
+             \label{fig:ex11}
          \end{subfigure}
          \hspace{1pt} % Minimal gap
          \begin{subfigure}[t]{0.51\textwidth}
              \centering
-             \includegraphics[width=0.8\textwidth, trim={0 0 0 0}, clip]{images/ex02.pdf}
+             \includegraphics[width=0.8\textwidth, trim={0 0 0 0}, clip]{images/ex12.pdf}
              \vspace{-5pt}
              \caption{Second assignment}
-             \label{fig:ex02}
+             \label{fig:ex12}
          \end{subfigure}
      }
      \caption{Arena with 4 vertices and 7 edges.  Vertices controlled by Player \even are shown as circles, while vertices controlled by Player \odd are shown as squares.}
-     \label{fig:ex00}
+     \label{fig:ex10}
 \end{figure}
 
-To demonstrate the structural and operational mechanics of our generalized CSP formulation, consider the 2-player game arena illustrated in Figure~\ref{fig:ex00}. The arena consists of four vertices $V = \{v_0, v_1, v_2, v_3\}$, which are partitioned into $V_{\subeven} = \{v_0, v_2\}$ (represented as circles) and $V_{\subodd} = \{v_1, v_3\}$ (represented as squares). The directed edge set is defined as $E = \{e_0, e_1, e_2, e_3, e_4, e_5, e_6 \}$. We evaluate a Büchi objective from the perspective of Player~$\even$ ($\player = \even$), where the target accepting set is $F = \{v_3\}$, and the initial vertex is $v_0$.
+To demonstrate the structural and operational mechanics of our generalized CSP formulation, consider the 2-player game arena illustrated in Figure~\ref{fig:ex10}. The arena consists of four vertices $V = \{v_0, v_1, v_2, v_3\}$, which are partitioned into $V_{\subeven} = \{v_0, v_2\}$ (represented as circles) and $V_{\subodd} = \{v_1, v_3\}$ (represented as squares). The directed edge set is defined as $E = \{e_0, e_1, e_2, e_3, e_4, e_5, e_6 \}$. We evaluate a Büchi objective from the perspective of Player~$\even$ ($\player = \even$), where the target accepting set is $F = \{v_3\}$, and the initial vertex is $v_0$.
 
 Under our framework, the solver instantiates the core set of Boolean decision variables:
 \[
@@ -424,7 +424,7 @@ mapped to individual Boolean domains $\mathcal{D}$. The structural and global co
     \item \textbf{Root Activation ($\mathcal{C}_{v_0}$):} The search initializes by anchoring the root vertex: $\mathcal{V}_0 = \top$.
     \item \textbf{Deterministic Strategy Choice ($\mathcal{C}_{\player}$):} Vertex $v_0$ is controlled by Player~$\even$. The constraint forces exactly one outgoing edge to be selected. 
     \begin{itemize}
-        \item If the solver branches and tests $\mathcal{E}_0 = \top$, forward propagation ($\mathcal{C}_E$) activates vertex $v_1$ ($\mathcal{V}_1 = \top$). Because vertex $v_1$ belongs to Player~$\odd$, its outgoing edge is forced active ($\mathcal{E}_2 = \top$), closing a localized cycle on vertex $v_1$ (See Figure \ref{fig:ex01}). The global constraint evaluates $f^\mathcal{B}(v_1, v_1) = \{v_1\} \cap \{v_3\} \neq \emptyset$, which returns $\bot$. The propagator immediately rejects this branch, forcing the solver to backtrack.
+        \item If the solver branches and tests $\mathcal{E}_0 = \top$, forward propagation ($\mathcal{C}_E$) activates vertex $v_1$ ($\mathcal{V}_1 = \top$). Because vertex $v_1$ belongs to Player~$\odd$, its outgoing edge is forced active ($\mathcal{E}_2 = \top$), closing a localized cycle on vertex $v_1$ (See Figure \ref{fig:ex11}). The global constraint evaluates $f^\mathcal{B}(v_1, v_1) = \{v_1\} \cap \{v_3\} \neq \emptyset$, which returns $\bot$. The propagator immediately rejects this branch, forcing the solver to backtrack.
         \item The solver then selects the winning alternative: $\mathcal{E}_1 = \top$. This choice propagates and activates vertex $v_2$ ($\mathcal{V}_2 = \top$).
     \end{itemize}
     \item \textbf{Propagation Loop:} At vertex $v_2$, Player~$\even$ must again pick exactly one deterministic transition. The solver selects $\mathcal{E}_3 = \top$, which propagates and activates the opponent's vertex $v_3$ ($\mathcal{V}_3 = \top$).
@@ -432,7 +432,7 @@ mapped to individual Boolean domains $\mathcal{D}$. The structural and global co
     \[
     \mathcal{V}_3 \rightarrow (\mathcal{E}_5 \land \mathcal{E}_6)
     \]
-    Consequently, both $\mathcal{E}_5$ and $\mathcal{E}_6$ are set to $\top$ (See Figure \ref{fig:ex02}).
+    Consequently, both $\mathcal{E}_5$ and $\mathcal{E}_6$ are set to $\top$ (See Figure \ref{fig:ex12}).
 \end{enumerate}
 
 At this stage, the structural layout constraints have successfully isolated a candidate strategy sub-graph. The global constraint $\mathcal{C}_{\noc}(f^\mathcal{B})$ now scans this active sub-arena and extracts all reachable cycles:
@@ -545,9 +545,9 @@ The eager propagator triggers recursively, initialized as \noceager$(\emptyset, 
 %
 When a vertex is re-encountered along the trail (Line~\ref{alg:noceager:pathcheck}), a closed cycle is isolated. The propagator locates the cycle's starting index (Line~\ref{alg:noceager:findcycle}) and passes this specific vertex sequence directly to our verification function $f_{\player}$ (Line~\ref{alg:noceager:checkopponent}). If $f_{\player}$ evaluates to false, the cycle represents an unvalidated opponent loop. The cycle-closing edge responsible for completing this component is immediately forced to false.
 
-A standard propagation algorithm would restrict its exploration exclusively to committed edges where $\mathcal{E}_{e'} = \top$. However, a crucial strength of our eager design is that it is permitted to explore up to at most one unassigned decision variable ($\mathcal{E}_{e'} = \text{unassigned}$). This look-ahead capability enables the engine to intercept dangerous loops and prune them before they are formally committed by the search engine. For instance, in our running example (Figure~\ref{fig:ex02}), when the search reaches vertex $v_2$, the propagator proactively evaluates the unassigned self-loop $e_4$. Because $f^{\mathcal{B}}(v_2, v_2) = \bot$, the propagator immediately rules out $e_4$ in advance, preventing a fruitless search branch.
+A standard propagation algorithm would restrict its exploration exclusively to committed edges where $\mathcal{E}_{e'} = \top$. However, a crucial strength of our eager design is that it is permitted to explore up to at most one unassigned decision variable ($\mathcal{E}_{e'} = \text{unassigned}$). This look-ahead capability enables the engine to intercept dangerous loops and prune them before they are formally committed by the search engine. For instance, in our running example (Figure~\ref{fig:ex12}), when the search reaches vertex $v_2$, the propagator proactively evaluates the unassigned self-loop $e_4$. Because $f^{\mathcal{B}}(v_2, v_2) = \bot$, the propagator immediately rules out $e_4$ in advance, preventing a fruitless search branch.
 
-To leverage the power of LCG clause learning, Line~\ref{alg:noceager:reason} generates a dynamic semantic justification clause explaining the pruning step. For example, in our running example, when the solver rules out the first invalid branch (see Figure~\ref{fig:ex01}), the LCG engine generates the structural clause $(\neg \mathcal{E}_0 \lor \neg \mathcal{E}_2)$. Similarly, when the solver tentatively extends its path into the unassigned self-loop on vertex $v_2$, the propagator intercepts the cycle and records the learned clause $(\neg \mathcal{E}_1 \lor \neg \mathcal{E}_4)$. This permanently bars the solver from picking this destructive combination in subsequent search branches, triggering an immediate backjump.
+To leverage the power of LCG clause learning, Line~\ref{alg:noceager:reason} generates a dynamic semantic justification clause explaining the pruning step. For example, in our running example, when the solver rules out the first invalid branch (see Figure~\ref{fig:ex11}), the LCG engine generates the structural clause $(\neg \mathcal{E}_0 \lor \neg \mathcal{E}_2)$. Similarly, when the solver tentatively extends its path into the unassigned self-loop on vertex $v_2$, the propagator intercepts the cycle and records the learned clause $(\neg \mathcal{E}_1 \lor \neg \mathcal{E}_4)$. This permanently bars the solver from picking this destructive combination in subsequent search branches, triggering an immediate backjump.
 
 Because a full path search across an unassigned graph can encounter an exponential number of simple paths, the theoretical worst-case complexity of \noceager is exponential. However, because the look-ahead is strictly bounded by active assignments and at most a single unassigned edge, the practical branching factor is heavily restricted, making its execution highly efficient in practice.
 
@@ -559,7 +559,7 @@ To optimize traversal efficiency and avoid redundant path analysis, an advanced 
 
 The true expressive power of our generalized Game CSP framework lies in its absolute mathematical modularity. As established in Section~\ref{sec:global_propagators}, the custom propagation loop remains structurally invariant regardless of the underlying game mechanics. The global constraint $\mathcal{C}_{\!N\!O\!C}(f)$ treats the winning criteria as an isolated, functional plug-in. Consequently, porting the engine across diverse qualitative automata-theoretic objectives or quantitative resource-bounded paradigms is achieved exclusively by specifying the concrete operational behavior of the evaluation function $f$ over an extracted cycle sequence.
 
-Let a detected cycle path be chronologically defined by its sequence of visited vertices $C = (v_j, \dots, v_k)$, where $v_j = v_k$ indicates the closure point of the loop. To ground these calculations across qualitative automata-theoretic lenses and quantitative resource-bounded formulations, we define the underlying arena parameters. Let $F \subseteq V$ denote a designated target accepting set; let $P = \{ (L_1, U_1), \dots, (L_m, U_m) \}$ represent a finite set of Rabin tracking pairs where $L_i, U_i \subseteq V$; let $\Omega: V \rightarrow \mathbb{N}$ map each state to a discrete priority; and let $Q: E \rightarrow \mathbb{Z}$ assign an integer weight or resource payoff to each directed transition. 
+Let a detected cycle path be chronologically defined by its sequence of visited vertices $C = (v_j, \dots, v_k)$, where $v_j = v_k$ indicates the closure point of the loop. To ground these calculations across qualitative automata-theoretic lenses and quantitative resource-bounded formulations, we define the underlying arena parameters. Let $F \subseteq V$ denote a designated target accepting set; let $P = \{ (L_1, U_1), \dots, (L_m, U_m) \}$ represent a finite set of Rabin tracking pairs where $L_i, U_i \subseteq V$; let $\Omega: V \rightarrow \mathbb{N}$ map each state to a discrete priority; and let $\Xi: E \rightarrow \mathbb{Z}$ assign an integer weight or resource payoff to each directed transition. 
 
 From the perspective of the protagonist ($\player$), the functional validation criteria $f$ for a given cycle path are explicitly defined under five classic winning objectives as follows:
 
@@ -567,8 +567,8 @@ From the perspective of the protagonist ($\player$), the functional validation c
     \item [$f^{\mathcal{B}}(v_j, \dots, v_k) =$] $\{v_j, \dots, v_{k-1}\} \cap F \neq \emptyset$
     \item [$f^{\mathcal{R}}(v_j, \dots, v_k) =$] $\exists (L_i, U_i) \in P : \left( \{v_j, \dots, v_{k-1}\} \cap L_i \neq \emptyset \;\land\; \{v_j, \dots, v_{k-1}\} \cap U_i = \emptyset \right)$
     \item [$f^{\omega}(v_j, \dots, v_k) =$] $\max\{\Omega(v) \mid v \in \{v_j, \dots, v_{k-1}\}\} \bmod 2 \neq \opponent$
-    \item [$f^{\eta}(v_j, \dots, v_k) =$] $\sum_{i=j}^{k-1} Q(v_i, v_{i+1}) \geq \nu$
-    \item [$f^{\mu}(v_j, \dots, v_k) =$] $\frac{1}{k-j} \sum_{i=j}^{k-1} Q(v_i, v_{i+1}) \geq \nu$
+    \item [$f^{\eta}(v_j, \dots, v_k) =$] $\sum_{i=j}^{k-1} \Xi(v_i, v_{i+1}) \geq \nu$
+    \item [$f^{\mu}(v_j, \dots, v_k) =$] $\frac{1}{k-j} \sum_{i=j}^{k-1} \Xi(v_i, v_{i+1}) \geq \nu$
 \end{itemize}
 
 \noindent where $\nu \in \mathbb{Z}$ acts as a predefined quantitative threshold constraint for energy bounds or minimum sustainable payoffs. 
@@ -585,7 +585,39 @@ f = f^{\mathcal{B}} \otimes f^{\mathcal{R}} \otimes f^{\omega} \otimes f^{\eta} 
 \]
 where $\otimes$ denotes the product composition operator. The global propagator validates a candidate strategy sub-graph if and only if every reachable cycle simultaneously satisfies the criteria dictated by the composed objective profile $f$.
 
+\subsection*{Example 2}
+\label{sec:example2}
+
+\begin{figure}
+     \centering
+     % Pull the images slightly into the margins to maximize center space
+     \makebox[\textwidth][c]{
+         \begin{subfigure}[t]{0.51\textwidth}
+             \centering
+             \includegraphics[width=0.8\textwidth, trim={0 0 0 0}, clip]{images/ex21.pdf}
+             \vspace{-5pt} % Reduces gap between image and sub-caption
+             \caption{First assignment.}
+             \label{fig:ex21}
+         \end{subfigure}
+         \hspace{1pt} % Minimal gap
+         \begin{subfigure}[t]{0.51\textwidth}
+             \centering
+             \includegraphics[width=0.8\textwidth, trim={0 0 0 0}, clip]{images/ex22.pdf}
+             \vspace{-5pt}
+             \caption{Second assignment}
+             \label{fig:ex22}
+         \end{subfigure}
+     }
+     \caption{The same arena as Figure~\ref{fig:ex10}, showing vertex priorities $\{0, 1, 1, 2\}$ and edge weights $\{1, 1, 1, 1, -1, -3, -2\}$.}
+     \label{fig:ex20}
+\end{figure}
+
+In the example shown in Figure~\ref{fig:ex20}, the goal is to find a winning strategy for the Player \even to hold parity condition and a positive energy condition simultaneously ($f = f^{\omega} \otimes f^{\eta}$) starting at $v_0$.
+
+\todo{explain example}
+
 From a theoretical perspective, it is well-established that while pure qualitative games (such as parity or Büchi) and pure quantitative games (such as energy bounds or mean-payoffs) admit optimal memoryless (positional) strategies, combining these heterogeneous objectives generally forces the players to rely on infinite or finite-memory counter-strategies to win~\cite{ChatterjeeHJ05,Chatterjee:2010}. Because our CP-based architecture maps decision variables ($\mathcal{E}$) directly to fixed, deterministic choices at each vertex, the solutions computed by our framework are strictly defined over the class of positional strategy profiles. Restricting the search space to positional configurations allows the solver to harvest the strong pruning capabilities of our global propagators while remaining highly effective for a vast array of practical synthesis and controller verification problems where memoryless implementations are preferred due to hardware constraints.
+
 
 %==============================================================================
 
@@ -601,7 +633,7 @@ From a theoretical perspective, it is well-established that while pure qualitati
 
 In this section, we evaluate the performance of \nooppc on parity games, as they represent the primary and most computationally challenging class of games for our approach. Using standard benchmarks, we assess the efficiency of \nooppc directly against state-of-the-art algorithms.
 
-\textcolor{red}{Pending to update}
+\todo{update}
 
 For the SAT backends, we employ several high-performance solvers: \textbf{CaDiCaL} (v2.1.3) \cite{Biere:Cadical:2024}, \textbf{MiniSat} (v2.2.0) \cite{Een:MiniSat:2003}, \textbf{Kissat} (v4.0.2) \cite{Biere:Kissat:2024}, and \textbf{zChaff} (v2007.3.12) \cite{Moskewicz:zChaff:2001}. To establish a robust baseline, we compare our results with \textbf{Oink} \cite{vanDijk:2018}, which implements state-of-the-art algorithms such as Priority Promotion ($\text{PP}$ and $\text{PP+}$) and Parys' improvements ($\text{PAR}$). Additionally, we include Zielonka's Recursive Algorithm ($\text{ZRA}$) featuring the optimized attractor strategy presented in \cite{Aggarwal:2023}, which has not yet been integrated into the official Oink distribution.
 
@@ -635,7 +667,7 @@ Oink(PP)        & 0.645         & 33/33 & 0.305         & 57/57 & 0.007         
 Oink(PP+)       & 0.644         & 33/33 & 0.305         & 57/57 & \textbf{0.007}& 23/23 &  0.001         & 25/25 \\
 Oink(PAR)       & 0.541         & 33/33 & 0.277         & 57/57 & 0.036         & 23/23 &  0.001         & 25/25 \\
 ZRA(ImpAttr)    & 0.539         & 33/33 & 0.266         & 57/57 & 0.154         & 23/23 & \textbf{0.001} & 25/25 \\
-\noc(Ours)     & \textbf{0.398}& 33/33 & \textbf{0.201}& 57/57 & 0.016         & 23/23 &  0.003         & 25/25 \\
+\nocq(Ours)     & \textbf{0.398}& 33/33 & \textbf{0.201}& 57/57 & 0.016         & 23/23 &  0.003         & 25/25 \\
 SAT(CaDiCaL)    & 60.732        & 19/33 & 75.560        & 23/57 & 6.815         & 22/23 &  2.086         & 25/25 \\
 SAT(Kissat)     & 113.050       &  2/33 & 79.001        & 21/57 & 6.064         & 22/23 &  2.628         & 25/25 \\
 SAT(MiniSat)    & 79.766        & 17/33 & 79.639        & 22/57 & 6.491         & 22/23 &  2.806         & 25/25 \\
@@ -661,34 +693,34 @@ Oink(PP)        & 29.375         & 30/36 & 9.003         & 33/33 & 8.369        
 Oink(PP+)       & 29.392         & 30/36 & 8.986         & 33/33 & 8.371         & 50/55 & \textbf{0.039}& 50/50 \\
 Oink(PAR)       & 28.525         & 30/36 & 8.345         & 33/33 & 16.798        & 43/55 & 0.043        & 50/50 \\
 ZRA(ImpAttr)    & 21.249         & 35/36 & 8.606         & 33/33 & 16.632        & 43/55 & 0.042         & 50/50 \\
-\noc(Ours)     & \textbf{13.502}& 36/36 & \textbf{3.838}& 33/33 & \textbf{5.659}& 54/55 & 0.081         & 50/50 \\
+\nocq(Ours)     & \textbf{13.502}& 36/36 & \textbf{3.838}& 33/33 & \textbf{5.659}& 54/55 & 0.081         & 50/50 \\
 \bottomrule
 \end{tabular}
 }
 \label{tab:paritygames-large}
 \end{table}
 
-Table~\ref{tab:paritygames-small} presents a consolidated performance comparison on small-scale instances. In this setting, \noc outperforms traditional SAT-based approaches by up to three orders of magnitude in execution time while achieving 100\% coverage (compared to the low timeout-heavy completion rates of SAT solvers). Furthermore, \noc outperforms specialized parity game solvers on the \texttt{EquivalenceCh} and \texttt{ModelCh} benchmarks by 25\% to 35\%, while remaining highly competitive on the remaining families—differing only by a marginal fraction of a second.
+Table~\ref{tab:paritygames-small} presents a consolidated performance comparison on small-scale instances. In this setting, \nocq outperforms traditional SAT-based approaches by up to three orders of magnitude in execution time while achieving 100\% coverage (compared to the low timeout-heavy completion rates of SAT solvers). Furthermore, \nocq outperforms specialized parity game solvers on the \texttt{EquivalenceCh} and \texttt{ModelCh} benchmarks by 25\% to 35\%, while remaining highly competitive on the remaining families—differing only by a marginal fraction of a second.
 
-For large-scale instances, as shown in Table~\ref{tab:paritygames-large}, standard SAT-based approaches are omitted due to their inability to scale within reasonable resource limits. In this challenging context, \noc demonstrates superior robustness and scalability, consistently outperforming specialized solvers in both execution time and instance coverage. On \texttt{EquivalenceCh} and \texttt{ModelCh}, \noc achieves the fastest runtimes, delivering speedups of up to $2\times$ over the next best algorithms while maintaining 100\% coverage. Crucially, on the structured \texttt{PGSolver} collection, \noc solves the highest number of instances (54/55)—significantly outperforming ZRA (43/55) and the Oink variants (50/55) while cutting execution times by up to 66\%. While the Oink variants remain nominally faster on \texttt{RandomG}, the absolute difference is a marginal fraction of a second, highlighting \noc's effectiveness as a highly robust, general-purpose solver for large-scale parity games.
+For large-scale instances, as shown in Table~\ref{tab:paritygames-large}, standard SAT-based approaches are omitted due to their inability to scale within reasonable resource limits. In this challenging context, \nocq demonstrates superior robustness and scalability, consistently outperforming specialized solvers in both execution time and instance coverage. On \texttt{EquivalenceCh} and \texttt{ModelCh}, \nocq achieves the fastest runtimes, delivering speedups of up to $2\times$ over the next best algorithms while maintaining 100\% coverage. Crucially, on the structured \texttt{PGSolver} collection, \nocq solves the highest number of instances (54/55)—significantly outperforming ZRA (43/55) and the Oink variants (50/55) while cutting execution times by up to 66\%. While the Oink variants remain nominally faster on \texttt{RandomG}, the absolute difference is a marginal fraction of a second, highlighting \nocq's effectiveness as a highly robust, general-purpose solver for large-scale parity games.
 
 %------------------------------------------------------------------------------
 
 \subsection{Qualitative and Quantitative Goals and Formal Verification}\label{sec:exp_quantitative}
 
-\textcolor{red}{Pending to update}
+\todo{update}
 
-One of \noc's main features is the ability to handle quantitative goals within the same CP-based framework. 
+One of \nocq's main features is the ability to handle quantitative goals within the same CP-based framework. 
 %
-\noc implements a core algorithm designed to compute positional strategies, which are optimal in case only qualitative (parity) or only quantitative goals are given. However, when combined, positional strategies may no longer be optimal~\cite{ChatterjeeHJ05,Chatterjee:2010}. As such, the solutions that \noc computes are for games where only positional strategies are allowed. 
+\nocq implements a core algorithm designed to compute positional strategies, which are optimal in case only qualitative (parity) or only quantitative goals are given. However, when combined, positional strategies may no longer be optimal~\cite{ChatterjeeHJ05,Chatterjee:2010}. As such, the solutions that \nocq computes are for games where only positional strategies are allowed. 
 %
-In this context, the next set of benchmarks demonstrates \noc's performance when solving such kinds of games when enriched with additional quantitative (energy and/or mean-payoff) requirements.  
+In this context, the next set of benchmarks demonstrates \nocq's performance when solving such kinds of games when enriched with additional quantitative (energy and/or mean-payoff) requirements.  
 %
 To this end, first, we used the same games of Section \ref{sec:exp_parity} but now added with random weights over the edges using a fair distribution between -1,000 and 1,000. These benchmarks utilize random positional vertex assignments and randomly generated thresholds. We assess the tool's efficiency across various multi-objective configurations defined by the winning condition $\gamma_{p} = \omega \otimes \eta \otimes \mu$, where $\otimes$ denotes the product composition of parity ($\omega$), energy ($\eta$), and mean-payoff ($\mu$) objectives.
 
 \begin{table}[ht]
 \centering
-\caption{Performance of \noc with different winning conditions on small and large-scale instances on specialized families of Games. Same configuration as Table \ref{tab:paritygames-large}.}
+\caption{Performance of \nocq with different winning conditions on small and large-scale instances on specialized families of Games. Same configuration as Table \ref{tab:paritygames-large}.}
 \setlength{\tabcolsep}{1.2mm}
 {\small 
 \begin{tabular}{l|rr|rr|rr|rr}
@@ -722,7 +754,7 @@ Second, we evaluated a selection of random benchmarks as proposed by~\cite{Chalo
 
 \begin{table}[ht]
 \centering
-\caption{Performance of \noc with different winning conditions on random instances with SPRAND structure \cite{Chaloupka:2011}. Same configuration as Table \ref{tab:quantitative-benchmarks}.}
+\caption{Performance of \nocq with different winning conditions on random instances with SPRAND structure \cite{Chaloupka:2011}. Same configuration as Table \ref{tab:quantitative-benchmarks}.}
 \setlength{\tabcolsep}{1.2mm}
 {\small 
 \begin{tabular}{l|rr|rr|rr|rr}
@@ -752,7 +784,7 @@ Second, we evaluated a selection of random benchmarks as proposed by~\cite{Chalo
 
 The results in Table~\ref{tab:quantitative-chpk} are highly consistent with the trends observed in Table~\ref{tab:quantitative-benchmarks}, confirming that the composition of winning conditions does not inherently compound computational difficulty. The baseline condition~$\omega$ scale exceptionally well across the high-density random benchmarks, maintaining a 100\% solving rate (30/30) and completing in under 2.2 seconds even on the largest $R\_10xh$ instances.
 
-A key strength of the \noc toolchain is highlighted in the multi-objective configurations. When combining parity with an energy objective (e.g., $\omega \otimes \eta$), the solver frequently demonstrates a pruning effect, where the parity condition helps narrow the search space, leading to more robust solving times compared to other combinations. However, for the most complex triple-objective configurations ($\omega \otimes \eta \otimes \mu$), the performance tends to be bottlenecked by the mean-payoff component.
+A key strength of the \nocq toolchain is highlighted in the multi-objective configurations. When combining parity with an energy objective (e.g., $\omega \otimes \eta$), the solver frequently demonstrates a pruning effect, where the parity condition helps narrow the search space, leading to more robust solving times compared to other combinations. However, for the most complex triple-objective configurations ($\omega \otimes \eta \otimes \mu$), the performance tends to be bottlenecked by the mean-payoff component.
 
 Since the benchmarking software in \cite{Chaloupka:2011} has not been released, we could not perform a side-by-side comparison. Nevertheless, our results for energy games show a reasonable solving time compared with their reported results.  Furthermore, obtaining standardized benchmarks for this class of games remains a challenge, as few publicly available datasets or implementations exist.
 
@@ -832,6 +864,8 @@ Furthermore, because the memoization only captures cycles sharing the exact same
 
 % To print the credit authorship contribution details
 \printcredits
+
+\newpage
 
 %% Loading bibliography style file
 %\bibliographystyle{model1-num-names}
