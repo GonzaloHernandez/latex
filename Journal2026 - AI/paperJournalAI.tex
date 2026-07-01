@@ -178,15 +178,16 @@ Constraint programming  \sep Parity games \sep Verification.
 \section{Introduction}
 Two-player, zero-sum, infinite-duration games played on graphs provide the foundational mathematical framework for the automated verification and synthesis of reactive systems. In this paradigm, vertices represent states of the system and its environment, edges denote possible transitions or actions, and infinite paths (plays) represent the ongoing behavior of the system. Solving these games—determining which player can force a play to satisfy a specific objective—is central to model checking, synthesis of controllers, and verifying specifications against adversarial environments.
 %
-Depending on the system requirements, these objectives are specified using different winning conditions on infinite paths. These are broadly categorized into qualitative and quantitative conditions. Qualitative conditions focus on the structural or topological properties of infinite paths; classic examples include Büchi conditions (visiting designated states infinitely often), Rabin conditions, and parity conditions (evaluating the parity of the maximum priority seen infinitely often) \cite{Chatterjee:2012,Erich:2008}. Quantitative conditions, on the other hand, incorporate resource constraints or performance metrics, such as energy conditions (keeping a running resource counter above zero) and mean-payoff conditions (optimizing the long-run average reward)\cite{ChatterjeeHJ05,Chaloupka:2011}.
+Depending on the system requirements, these objectives are specified using different winning conditions on infinite paths. These are broadly categorized into qualitative and quantitative conditions. Qualitative conditions focus on the structural or topological properties of infinite paths; classic examples include Büchi conditions (visiting designated states infinitely often), and parity conditions (evaluating the parity of the maximum priority seen infinitely often) \cite{Chatterjee:2012,Erich:2008}. Quantitative conditions, on the other hand, incorporate resource constraints or performance metrics, such as energy conditions (keeping a running resource counter above zero) and mean-payoff conditions (optimizing the long-run average reward)\cite{ChatterjeeHJ05,Chaloupka:2011}.
 %
 While specialized, highly tuned algorithms exist for isolated game types—most notably for parity games, which belong to $\mathsf{NP} \cap \mathsf{co\textit{-}NP}$~\cite{Jurdziński:1998}  —handling multi-conditioned objectives or transitioning between qualitative and quantitative variants often requires abandoning the underlying algorithmic machinery entirely. Because these state-of-the-art approaches rely on dedicated engines hardcoded to exploit the distinct mathematical structure of a single winning condition, they lack architectural modularity. Consequently, extending them to multi-conditioned settings typically requires complex reductions that fundamentally alter the game graph, leading to severe state-space explosion.
 %
 Traditional attempts to apply general combinatorial optimization frameworks, such as static reductions to Boolean Satisfiability (SAT), suffer from severe scalability bottlenecks. Forbidding winning cycles for an opponent via propositional logic leads to a massive explosion in formula size~\cite{Heljanko:2012}, severely limiting their practical application. In this paper, we overcome these limitations by presenting a unified, constraint-based approach capable of solving deterministic \wregulargames across a spectrum of winning conditions. Instead of relying on rigid, monolithic encodings, our approach is built upon a novel propagation algorithm designed to dynamically eliminate opponent winning cycles from the game graph. By abstracting the core graph reasoning into a dedicated constraint propagator, our method directly exploits the inherent duality between players, providing a symmetric and highly efficient mechanism for filtering invalid actions.
 %
-We implement this system within a Lazy Clause Generation (LCG) framework~\cite{DBLP:journals/constraints/OhrimenkoSC09}. By dynamically reasoning about the graph's structure during search and generating precise explanations for edge prunings, our framework combines the operational efficiency of specialized graph algorithms with the conflict-driven learning capabilities of modern constraint solvers. Empirical evaluations \cite{Hernandez:2026:noc} demonstrate that this approach not only outperforms previous constraint-based and SAT-based formulations for qualitative games like parity, but also performs highly competitively against state-of-the-art, non-CP-based specialized algorithms. More importantly, we show that the inherent flexibility of general constraint programming allows our framework to seamlessly scale from purely qualitative objectives (Büchi, Rabin, parity) to complex quantitative settings (energy, mean-payoff), as well as multi-conditioned formulations where qualitative and quantitative constraints must be satisfied simultaneously.
+We implement this system within a Lazy Clause Generation (LCG) framework~\cite{DBLP:journals/constraints/OhrimenkoSC09}. By dynamically reasoning about the graph's structure during search and generating precise explanations for edge prunings, our framework combines the operational efficiency of specialized graph algorithms with the conflict-driven learning capabilities of modern constraint solvers. Empirical evaluations \cite{Hernandez:2026:noc} demonstrate that this approach not only outperforms previous constraint-based and SAT-based formulations for qualitative games like parity, but also performs highly competitively against state-of-the-art, non-CP-based specialized algorithms. More importantly, we show that the inherent flexibility of general constraint programming allows our framework to seamlessly scale from purely qualitative objectives (Büchi, parity) to complex quantitative settings (energy, mean-payoff), as well as multi-conditioned formulations where qualitative and quantitative constraints must be satisfied simultaneously.
 
-The remainder of this paper is organized as follows. Section...
+The remainder of this paper is organized as follows. Section... 
+\todo{complete}
 
 \section{Preliminaries}\label{sec:prelims}
 
@@ -240,22 +241,12 @@ We partition these objectives into two major paradigms: \textit{qualitative cond
 
 Qualitative conditions depend strictly on the set of vertices that appear infinitely often in a play $\pi$, denoted as $\text{Inf}(\pi) \subseteq V$.
 
-\paragraph{Büchi and co-Büchi Objectives:}
+\paragraph{Büchi Objectives:}
 A Büchi condition is defined relative to a designated set of target vertices $F \subseteq V$. The objective for Player~$\even$ is to visit this set infinitely often. Formally, a play $\pi$ satisfies the Büchi objective if:
 \[
 \text{Inf}(\pi) \cap F \neq \emptyset
 \]
 Conversely, the dual co-Büchi objective requires that the play eventually settles outside the complement of $F$, meaning that vertices outside of $F$ are visited only finitely many times. A play $\pi$ satisfies the co-Büchi objective if $\text{Inf}(\pi) \subseteq F$.
-
-\paragraph{Rabin and Streett Objectives:}
-A Rabin condition is parameterized by a set of pairs $P = \{(L_1, U_1), \dots, (L_m, U_m)\}$, where $L_i, U_i \subseteq V$ for $i \in \{1, \dots, m\}$. Player~$\even$ wins the Rabin objective if there exists at least one index $i$ where the play visits $L_i$ infinitely often but $U_i$ only finitely often:
-\[
-\exists i \in \{1, \dots, m\} \text{ such that } \text{Inf}(\pi) \cap L_i \neq \emptyset \text{ and } \text{Inf}(\pi) \cap U_i = \emptyset
-\]
-The Streett condition is the deterministic complement of the Rabin condition. It requires that for every index $i$, if the set $L_i$ is visited infinitely often, then the set $U_i$ must also be visited infinitely often:
-\[
-\forall i \in \{1, \dots, m\}, \quad \text{Inf}(\pi) \cap L_i \neq \emptyset \implies \text{Inf}(\pi) \cap U_i \neq \emptyset
-\]
 
 \paragraph{Parity Objectives:}
 The parity condition evaluates a play using the arena's priority coloring function $\Omega: V \to \mathbb{N}$. Player~$\even$ satisfies the parity objective if the maximum priority that appears infinitely often along the play is an even integer:
@@ -263,7 +254,6 @@ The parity condition evaluates a play using the arena's priority coloring functi
 \max \{ \Omega(v) \mid v \in \text{Inf}(\pi) \} \bmod 2 = 0
 \]
 If the maximum infinite priority is odd, the play is won by Player~$\odd$.
-
 
 \subsubsection{Quantitative Conditions}
 \label{subsec:quantitative}
@@ -371,7 +361,7 @@ The CSP for an arena $\mathcal{A} = (V, E, \Omega, \Xi)$ starting at an initial 
     \item [$\mathcal{C}_{\!E}$ :] $\bigwedge_{w \in V, w \neq v_0} \left(\left(\bigvee_{v \in Ew} \mathcal{E}_{(v,w)}\right) \rightarrow \mathcal{V}_w\right)$
     \item [$\mathcal{C}_{\noc}(f)$ :] $\bigwedge_{v_0, \closerdots, v_k} \left( \left(\bigwedge_{i=0}^{k-1} \mathcal{E}_{(v_i,v_{i+1})}\right) \to \bigwedge_{j=0}^{k-1} \left((v_j = v_k) \to f(v_j, \closerdots, v_k)\right) \right)$
 \end{itemize}
-where the evaluation criteria $f$ for a given cycle $v_j, \dots, v_k$ are provided by specific qualitative or quantitative verification functions—encompassing Büchi ($f^\mathcal{B}$), Rabin ($f^\mathcal{R}$), Parity ($f^\omega$), Energy ($f^\eta$), and Mean-Payoff ($f^\mu$) conditions—which are formally detailed in Section~\ref{sec:function_conditions}.
+where the evaluation criteria $f$ for a given cycle $v_j, \dots, v_k$ are provided by specific qualitative or quantitative verification functions—encompassing Büchi ($f^\mathcal{\varphi}$), Parity ($f^\omega$), Energy ($f^\eta$), and Mean-Payoff ($f^\mu$) conditions—which are formally detailed in Section~\ref{sec:function_conditions}.
 
 \end{definition}
 
@@ -424,7 +414,7 @@ mapped to individual Boolean domains $\mathcal{D}$. The structural and global co
     \item \textbf{Root Activation ($\mathcal{C}_{v_0}$):} The search initializes by anchoring the root vertex: $\mathcal{V}_0 = \top$.
     \item \textbf{Deterministic Strategy Choice ($\mathcal{C}_{\player}$):} Vertex $v_0$ is controlled by Player~$\even$. The constraint forces exactly one outgoing edge to be selected. 
     \begin{itemize}
-        \item If the solver branches and tests $\mathcal{E}_0 = \top$, forward propagation ($\mathcal{C}_E$) activates vertex $v_1$ ($\mathcal{V}_1 = \top$). Because vertex $v_1$ belongs to Player~$\odd$, its outgoing edge is forced active ($\mathcal{E}_2 = \top$), closing a localized cycle on vertex $v_1$ (See Figure \ref{fig:ex11}). The global constraint evaluates $f^\mathcal{B}(v_1, v_1) = \{v_1\} \cap \{v_3\} \neq \emptyset$, which returns $\bot$. The propagator immediately rejects this branch, forcing the solver to backtrack.
+        \item If the solver branches and tests $\mathcal{E}_0 = \top$, forward propagation ($\mathcal{C}_E$) activates vertex $v_1$ ($\mathcal{V}_1 = \top$). Because vertex $v_1$ belongs to Player~$\odd$, its outgoing edge is forced active ($\mathcal{E}_2 = \top$), closing a localized cycle on vertex $v_1$ (See Figure \ref{fig:ex11}). The global constraint evaluates $f^\mathcal{\varphi}(v_1, v_1) = \{v_1\} \cap \{v_3\} \neq \emptyset$, which returns $\bot$. The propagator immediately rejects this branch, forcing the solver to backtrack.
         \item The solver then selects the winning alternative: $\mathcal{E}_1 = \top$. This choice propagates and activates vertex $v_2$ ($\mathcal{V}_2 = \top$).
     \end{itemize}
     \item \textbf{Propagation Loop:} At vertex $v_2$, Player~$\even$ must again pick exactly one deterministic transition. The solver selects $\mathcal{E}_3 = \top$, which propagates and activates the opponent's vertex $v_3$ ($\mathcal{V}_3 = \top$).
@@ -435,19 +425,19 @@ mapped to individual Boolean domains $\mathcal{D}$. The structural and global co
     Consequently, both $\mathcal{E}_5$ and $\mathcal{E}_6$ are set to $\top$ (See Figure \ref{fig:ex12}).
 \end{enumerate}
 
-At this stage, the structural layout constraints have successfully isolated a candidate strategy sub-graph. The global constraint $\mathcal{C}_{\noc}(f^\mathcal{B})$ now scans this active sub-arena and extracts all reachable cycles:
+At this stage, the structural layout constraints have successfully isolated a candidate strategy sub-graph. The global constraint $\mathcal{C}_{\noc}(f^\mathcal{\varphi})$ now scans this active sub-arena and extracts all reachable cycles:
 \begin{itemize}
     \item \textbf{Cycle 1 ($v_0 \rightarrow v_2 \rightarrow v_3 \rightarrow v_0$):} Traversing edges $e_1, e_3, e_5$, the solver evaluates the cycle sequence:
     \[
-    f^\mathcal{B}(v_0, v_2, v_3, v_0) = \{v_0, v_2, v_3\} \cap \{v_3\} \neq \emptyset \implies \top
+    f^\mathcal{\varphi}(v_0, v_2, v_3, v_0) = \{v_0, v_2, v_3\} \cap \{v_3\} \neq \emptyset \implies \top
     \]
     \item \textbf{Cycle 2 ($v_2 \rightarrow v_3 \rightarrow v_2$):} Reachable via $e_1$ and traversing edges $e_3, e_6$, the solver evaluates the tighter loop:
     \[
-    f^\mathcal{B}(v_2, v_3, v_2) = \{v_2, v_3\} \cap \{v_3\} \neq \emptyset \implies \top
+    f^\mathcal{\varphi}(v_2, v_3, v_2) = \{v_2, v_3\} \cap \{v_3\} \neq \emptyset \implies \top
     \]
 \end{itemize}
 
-Because every active cycle within this adversarial attractor structure satisfies the function $f^\mathcal{B}$, the global constraint validates the assignment. The solver successfully terminates, outputting a satisfying strategy assignment proving that Player~$\even$ wins the game from $v_0$.
+Because every active cycle within this adversarial attractor structure satisfies the function $f^\mathcal{\varphi}$, the global constraint validates the assignment. The solver successfully terminates, outputting a satisfying strategy assignment proving that Player~$\even$ wins the game from $v_0$.
 
 %------------------------------------------------------------------------------
 
@@ -467,9 +457,9 @@ In contrast, the cycle validation constraint $\mathcal{C}_{\noc}(f)$ governs non
 
 To make this global propagator fully modular across multi-conditioned arenas, we decouple the global path evaluation function $f$ into an abstract, vertex-level winning predicate. We define the global objective profile as a conjunctive operator composition over the individual game criteria:
 \[
-f = f^\mathcal{B} \otimes f^\mathcal{R} \otimes f^\omega \otimes f^\eta \otimes f^\mu 
+f = f^\mathcal{\varphi} \otimes f^\omega \otimes f^\eta \otimes f^\mu 
 \]
-where $B, R, \omega, \eta$, and $\mu$ represent qualitative and quantitative objectives (specifically Büchi, Rabin, parity, energy boundaries, and mean-payoffs, respectively). 
+where $B, \omega, \eta$, and $\mu$ represent qualitative and quantitative objectives (specifically Büchi, parity, energy boundaries, and mean-payoffs, respectively). 
 
 Correspondingly, for any individual state, the predicate $f_{\player}(v)$ evaluates whether the local property of vertex $v$ satisfies or actively contributes to the winning requirements of $\player$ under the composed objective $f_{\player}$. If $f_{\player}(v)$ holds true, vertex $v$ belongs to the safe region for the player of interest; if false ($\neg f_{\player}(v)$), the state inherently risks driving the game into a component dominated by the adversary. The algorithms in this section leverage this predicate to systematically slice away valid sub-graphs and isolate losing loops.
 
@@ -481,7 +471,7 @@ The checker isolates the induced active sub-graph containing only assigned varia
 
 \begin{algorithm}[htb]
 \small
-\caption{\textbf{\nocchecker}}
+\caption{\textbf{\nocchecker-Ql}}
 \textbf{Input}: Induced active sub-graph $G = (V', E')$ \\
 \textbf{Output}: $\top$ if the strategy graph contains no winning opponent cycles; $\bot$ otherwise
 \begin{algorithmic}[1]
@@ -495,13 +485,52 @@ The checker isolates the induced active sub-graph containing only assigned varia
             \}$ \label{alg:nocchecker:best}
             \STATE \textbf{if } $ \textit{objectiveSet} = \emptyset$ \textbf{then return $\bot$} \label{alg:nocchecker:opponent}
 
-            \STATE \nocchecker($G \setminus \textit{objectiveSet}$) \label{alg:nocchecker:recursion}
+            \STATE \nocchecker-Ql($G \setminus \textit{objectiveSet}$) \label{alg:nocchecker:recursion}
         \ENDIF
     \ENDFOR
     \RETURN $\top$
 \end{algorithmic}
+
 \label{alg:nocchecker}
 \end{algorithm}
+
+\begin{algorithm}[htb]
+\small
+\caption{\textbf{\nocchecker-Qt}}
+\textbf{Input}:  Induced active sub-graph $G = (V', E')$,
+                 threshold $\nu \in \mathbb{Z}$ \\
+\textbf{Output}: $\top$ if the strategy graph contains no winning opponent cycles;
+                 $\bot$ otherwise
+\begin{algorithmic}[1]
+    \FOR{$\textit{scc} \in \textit{Tarjan}(G)$}
+    \label{alg:nocqt:tarjan}
+        \IF{$|\textit{scc}| = 1$}
+        \label{alg:nocqt:single}
+            \STATE $v \gets$ the unique vertex in $\textit{scc}$
+            \IF{$\mathcal{E}_{[vEv]} $}
+            \label{alg:nocqt:selfloop}
+                \STATE \textbf{if } $\Xi(v,v) < \nu$
+                       \textbf{ then return } $\bot$
+                \label{alg:nocqt:selfenergy}
+            \ENDIF
+        \ELSE
+            \IF{$f^{\eta}$ \textbf{ and }
+                $\textit{MinEnergyCycle}(\textit{scc}) < 0$}
+            \label{alg:nocqt:energy}
+                \RETURN $\bot$
+            \ENDIF
+            \IF{$f^{\mu}$ \textbf{ and }
+                $\textit{MinMeanCycle}(\textit{scc},\,\nu)$}
+            \label{alg:nocqt:mean}
+                \RETURN $\bot$
+            \ENDIF
+        \ENDIF
+    \ENDFOR
+    \RETURN $\top$
+\end{algorithmic}
+\label{alg:noccheckerQuant}
+\end{algorithm}
+
 
 Algorithm~\ref{alg:nocchecker} is executed when all decision variables within the current search branch become fixed. The function is invoked with the induced sub-graph containing exclusively the active components: \nocchecker$(\{ v \in V \mid \mathcal{V}_v = \top \})$.
 
@@ -545,7 +574,7 @@ The eager propagator triggers recursively, initialized as \noceager$(\emptyset, 
 %
 When a vertex is re-encountered along the trail (Line~\ref{alg:noceager:pathcheck}), a closed cycle is isolated. The propagator locates the cycle's starting index (Line~\ref{alg:noceager:findcycle}) and passes this specific vertex sequence directly to our verification function $f_{\player}$ (Line~\ref{alg:noceager:checkopponent}). If $f_{\player}$ evaluates to false, the cycle represents an unvalidated opponent loop. The cycle-closing edge responsible for completing this component is immediately forced to false.
 
-A standard propagation algorithm would restrict its exploration exclusively to committed edges where $\mathcal{E}_{e'} = \top$. However, a crucial strength of our eager design is that it is permitted to explore up to at most one unassigned decision variable ($\mathcal{E}_{e'} = \text{unassigned}$). This look-ahead capability enables the engine to intercept dangerous loops and prune them before they are formally committed by the search engine. For instance, in our running example (Figure~\ref{fig:ex12}), when the search reaches vertex $v_2$, the propagator proactively evaluates the unassigned self-loop $e_4$. Because $f^{\mathcal{B}}(v_2, v_2) = \bot$, the propagator immediately rules out $e_4$ in advance, preventing a fruitless search branch.
+A standard propagation algorithm would restrict its exploration exclusively to committed edges where $\mathcal{E}_{e'} = \top$. However, a crucial strength of our eager design is that it is permitted to explore up to at most one unassigned decision variable ($\mathcal{E}_{e'} = \text{unassigned}$). This look-ahead capability enables the engine to intercept dangerous loops and prune them before they are formally committed by the search engine. For instance, in our running example (Figure~\ref{fig:ex12}), when the search reaches vertex $v_2$, the propagator proactively evaluates the unassigned self-loop $e_4$. Because $f^{\mathcal{\varphi}}(v_2, v_2) = \bot$, the propagator immediately rules out $e_4$ in advance, preventing a fruitless search branch.
 
 To leverage the power of LCG clause learning, Line~\ref{alg:noceager:reason} generates a dynamic semantic justification clause explaining the pruning step. For example, in our running example, when the solver rules out the first invalid branch (see Figure~\ref{fig:ex11}), the LCG engine generates the structural clause $(\neg \mathcal{E}_0 \lor \neg \mathcal{E}_2)$. Similarly, when the solver tentatively extends its path into the unassigned self-loop on vertex $v_2$, the propagator intercepts the cycle and records the learned clause $(\neg \mathcal{E}_1 \lor \neg \mathcal{E}_4)$. This permanently bars the solver from picking this destructive combination in subsequent search branches, triggering an immediate backjump.
 
@@ -559,13 +588,13 @@ To optimize traversal efficiency and avoid redundant path analysis, an advanced 
 
 The true expressive power of our generalized Game CSP framework lies in its absolute mathematical modularity. As established in Section~\ref{sec:global_propagators}, the custom propagation loop remains structurally invariant regardless of the underlying game mechanics. The global constraint $\mathcal{C}_{\!N\!O\!C}(f)$ treats the winning criteria as an isolated, functional plug-in. Consequently, porting the engine across diverse qualitative automata-theoretic objectives or quantitative resource-bounded paradigms is achieved exclusively by specifying the concrete operational behavior of the evaluation function $f$ over an extracted cycle sequence.
 
-Let a detected cycle path be chronologically defined by its sequence of visited vertices $C = (v_j, \dots, v_k)$, where $v_j = v_k$ indicates the closure point of the loop. To ground these calculations across qualitative automata-theoretic lenses and quantitative resource-bounded formulations, we define the underlying arena parameters. Let $F \subseteq V$ denote a designated target accepting set; let $P = \{ (L_1, U_1), \dots, (L_m, U_m) \}$ represent a finite set of Rabin tracking pairs where $L_i, U_i \subseteq V$; let $\Omega: V \rightarrow \mathbb{N}$ map each state to a discrete priority; and let $\Xi: E \rightarrow \mathbb{Z}$ assign an integer weight or resource payoff to each directed transition. 
+Let a detected cycle path be chronologically defined by its sequence of visited vertices $C = (v_j, \dots, v_k)$, where $v_j = v_k$ indicates the closure point of the loop. To ground these calculations across qualitative automata-theoretic lenses and quantitative resource-bounded formulations, we define the underlying arena parameters. Let $F \subseteq V$ denote a designated target accepting set; let $\Omega: V \rightarrow \mathbb{N}$ map each state to a discrete priority; and let $\Xi: E \rightarrow \mathbb{Z}$ assign an integer weight or resource payoff to each directed transition. 
 
 From the perspective of the protagonist ($\player$), the functional validation criteria $f$ for a given cycle path are explicitly defined under five classic winning objectives as follows:
 
 \begin{itemize}[leftmargin=3.1cm, labelwidth=2.8cm, align=right, itemsep=0.8ex, parsep=0pt, topsep=4pt]
-    \item [$f^{\mathcal{B}}(v_j, \dots, v_k) =$] $\{v_j, \dots, v_{k-1}\} \cap F \neq \emptyset$
-    \item [$f^{\mathcal{R}}(v_j, \dots, v_k) =$] $\exists (L_i, U_i) \in P : \left( \{v_j, \dots, v_{k-1}\} \cap L_i \neq \emptyset \;\land\; \{v_j, \dots, v_{k-1}\} \cap U_i = \emptyset \right)$
+    \item [$f^{\mathcal{\varphi  }}(v_j, \dots, v_k) =$] $\{v_j, \dots, v_{k-1}\} \cap F \neq \emptyset$
+
     \item [$f^{\omega}(v_j, \dots, v_k) =$] $\max\{\Omega(v) \mid v \in \{v_j, \dots, v_{k-1}\}\} \bmod 2 \neq \opponent$
     \item [$f^{\eta}(v_j, \dots, v_k) =$] $\sum_{i=j}^{k-1} \Xi(v_i, v_{i+1}) \geq \nu$
     \item [$f^{\mu}(v_j, \dots, v_k) =$] $\frac{1}{k-j} \sum_{i=j}^{k-1} \Xi(v_i, v_{i+1}) \geq \nu$
@@ -581,7 +610,7 @@ By exposing this functional interface directly to the solver, our global propaga
 
 A defining architectural capability of our generalized Game CSP framework is its native capacity to evaluate multi-conditioned arenas—combining both qualitative automata-theoretic tracking and quantitative resource constraints within a single, unified search loop. Under this multi-objective paradigm, we define the global objective profile as a conjunctive operator composition over the individual game criteria:
 \[
-f = f^{\mathcal{B}} \otimes f^{\mathcal{R}} \otimes f^{\omega} \otimes f^{\eta} \otimes f^{\mu} 
+f = f^{\mathcal{\varphi}} \otimes f^{\omega} \otimes f^{\eta} \otimes f^{\mu} 
 \]
 where $\otimes$ denotes the product composition operator. The global propagator validates a candidate strategy sub-graph if and only if every reachable cycle simultaneously satisfies the criteria dictated by the composed objective profile $f$.
 
@@ -608,7 +637,7 @@ where $\otimes$ denotes the product composition operator. The global propagator 
              \label{fig:ex22}
          \end{subfigure}
      }
-     \caption{The same arena as Figure~\ref{fig:ex10}, showing vertex priorities $\{0, 1, 1, 2\}$ and edge weights $\{1, 1, 1, 1, -1, -3, -2\}$.}
+     \caption{The same arena as Figure~\ref{fig:ex10}, showing vertex priorities $\Omega = \{0, 1, 1, 2\}$ and edge weights $\Xi = \{1, 1, 1, 1, -1, -3, -2\}$.}
      \label{fig:ex20}
 \end{figure}
 
@@ -802,7 +831,7 @@ To do so, one can use Algorithm \ref{alg:nocmemo}, which incorporates a paramete
 
 This generalization results in a bounded worst-case runtime, as the recursion is strictly limited by the number of graph edges and the capacity of the domain governing the winning condition. An edge triggers a recursive look-ahead re-evaluation only when a strictly more dominant property is encountered, meaning the maximum number of updates per edge is directly bounded by the number of distinct values the dominant property can assume.
 
-While this mechanism enforces a strict bound on execution relative to the size of the property's domain, the underlying complexity classification varies by winning condition. For standard qualitative conditions like Büchi and Parity, the domain scales polynomially with the graph size and priorities. For Rabin conditions, the domain depends exponentially on the number of pairs. For quantitative, weight-based conditions such as Energy and Mean-Payoff, the domain size depends on the maximum absolute edge weight, resulting in a pseudo-polynomial worst-case bound rather than a purely polynomial one.
+While this mechanism enforces a strict bound on execution relative to the size of the property's domain, the underlying complexity classification varies by winning condition. For standard qualitative conditions like Büchi and Parity, the domain scales polynomially with the graph size and priorities. For quantitative, weight-based conditions such as Energy and Mean-Payoff, the domain size depends on the maximum absolute edge weight, resulting in a pseudo-polynomial worst-case bound rather than a purely polynomial one.
 
 Furthermore, because the memoization only captures cycles sharing the exact same starting node, the propagator remains incomplete and may miss cycles that cross paths globally. To preserve full completeness across all supported winning conditions, \nocmemo should be used in conjunction with the global \nocchecker.
 
