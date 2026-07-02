@@ -176,9 +176,9 @@ Constraint programming  \sep Parity games \sep Verification.
 \newpage
 
 \section{Introduction}
-Two-player, zero-sum, infinite-duration games played on graphs provide the foundational mathematical framework for the automated verification and synthesis of reactive systems. In this paradigm, vertices represent states of the system and its environment, edges denote possible transitions or actions, and infinite paths (plays) represent the ongoing behavior of the system. Solving these games—determining which player can force a play to satisfy a specific objective—is central to model checking, synthesis of controllers, and verifying specifications against adversarial environments.
+Two-player, zero-sum, infinite-duration games played on graphs provide the foundational mathematical framework for the automated verification and synthesis of reactive systems. In this paradigm, vertices represent states of the system and its environment, edges denote possible transitions or actions, and infinite paths (plays) represent the ongoing behaviour of the system. Solving these games—determining which player can force a play to satisfy a specific objective—is central to model checking, synthesis of controllers, and verifying specifications against adversarial environments.
 %
-Depending on the system requirements, these objectives are specified using different winning conditions on infinite paths. These are broadly categorized into qualitative and quantitative conditions. Qualitative conditions focus on the structural or topological properties of infinite paths; classic examples include Büchi conditions (visiting designated states infinitely often), and parity conditions (evaluating the parity of the maximum priority seen infinitely often) \cite{Chatterjee:2012,Erich:2008}. Quantitative conditions, on the other hand, incorporate resource constraints or performance metrics, such as energy conditions (keeping a running resource counter above zero) and mean-payoff conditions (optimizing the long-run average reward)\cite{ChatterjeeHJ05,Chaloupka:2011}.
+Depending on the system requirements, these objectives are specified using different winning conditions on infinite paths. These are broadly categorized into qualitative and quantitative conditions. Qualitative conditions focus on the structural or topological properties of infinite paths; classic examples range from foundational objectives like reachability (visiting a target set of states at least once) and safety (remaining within a designated safe region indefinitely) to more complex $\omega$-regular specifications such as Büchi conditions (visiting designated states infinitely often) and parity conditions (evaluating the parity of the maximum priority seen infinitely often) \cite{Chatterjee:2012,Erich:2008}. Quantitative conditions, on the other hand, incorporate resource constraints or performance metrics, such as energy conditions (keeping a running resource counter above zero) and mean-payoff conditions (optimizing the long-run average reward)\cite{ChatterjeeHJ05,Chaloupka:2011}.
 %
 While specialized, highly tuned algorithms exist for isolated game types—most notably for parity games, which belong to $\mathsf{NP} \cap \mathsf{co\textit{-}NP}$~\cite{Jurdziński:1998}  —handling multi-conditioned objectives or transitioning between qualitative and quantitative variants often requires abandoning the underlying algorithmic machinery entirely. Because these state-of-the-art approaches rely on dedicated engines hardcoded to exploit the distinct mathematical structure of a single winning condition, they lack architectural modularity. Consequently, extending them to multi-conditioned settings typically requires complex reductions that fundamentally alter the game graph, leading to severe state-space explosion.
 %
@@ -186,7 +186,7 @@ Traditional attempts to apply general combinatorial optimization frameworks, suc
 %
 We implement this system within a Lazy Clause Generation (LCG) framework~\cite{DBLP:journals/constraints/OhrimenkoSC09}. By dynamically reasoning about the graph's structure during search and generating precise explanations for edge prunings, our framework combines the operational efficiency of specialized graph algorithms with the conflict-driven learning capabilities of modern constraint solvers. Empirical evaluations \cite{Hernandez:2026:noc} demonstrate that this approach not only outperforms previous constraint-based and SAT-based formulations for qualitative games like parity, but also performs highly competitively against state-of-the-art, non-CP-based specialized algorithms. More importantly, we show that the inherent flexibility of general constraint programming allows our framework to seamlessly scale from purely qualitative objectives (Büchi, parity) to complex quantitative settings (energy, mean-payoff), as well as multi-conditioned formulations where qualitative and quantitative constraints must be satisfied simultaneously.
 
-The remainder of this paper is organized as follows. Section... 
+The remainder of this paper is organized as follows. Section...
 \todo{complete}
 
 \section{Preliminaries}\label{sec:prelims}
@@ -203,7 +203,7 @@ A turn-based game \textit{arena} $\mathcal{A}$ is a tuple $\mathcal{A} = (V, E, 
 \begin{itemize}
     \item $V$ is a finite set of vertices partitioned into two disjoint sets: $V_{\even}$ (vertices controlled by Player~$\even$) and $V_{\odd}$ (vertices controlled by Player~$\odd$).
     \item $E \subseteq V \times V$ is a set of directed transitions such that every vertex has at least one outgoing edge, i.e., $\forall v \in V, |vE| \geq 1$, where $vE = \{ w \in V \mid (v, w) \in E \}$ denotes the set of successors of $v$. We denote $Ev = \{ u \in V \mid (u, v) \in E \}$ as the set of predecessors of $v$.
-    \item $\Omega: V \to \mathbb{N}$ is a priority coloring function that assigns to each vertex a non-negative integer priority (primarily utilized in qualitative and parity contexts).
+    \item $\Omega: V \to \mathbb{N}$ is a priority colouring function that assigns to each vertex a non-negative integer priority (primarily utilized in qualitative contexts).
     \item $\Xi: E \to \mathbb{Z}$ is a weight function that assigns an integer weight to each transition, representing resource costs or rewards (primarily utilized in quantitative contexts).
 \end{itemize}
 \end{definition}
@@ -213,14 +213,6 @@ A game begins with a token placed at an initial vertex $v_0 \in V$. If $v_0 \in 
 %------------------------------------------------------------------------------
 
 \subsection{Strategies and Determinism}
-% A \textit{strategy} for a player is a recipe specifying which successor to choose based on the history of the play up to the current vertex. In this work, we focus on \textit{memoryless} (or positional) strategies, which are sufficient for solving the standard classes of deterministic $\omega$-regular games considered here. A memoryless strategy for Player~$\even$ is a function $\sigma: V_{\even} \to V$ such that $\sigma(v) \in vE$ for all $v \in V_{\even}$. Symmetrically, a memoryless strategy for Player~$\odd$ is a function $\tau: V_{\odd} \to V$ such that $\tau(v) \in vE$ for all $v \in V_{\odd}$. 
-
-% A profile consisting of a pair of memoryless strategies $(\sigma, \tau)$ completely determines a unique play $\pi(v_0, \sigma, \tau) = v_0 v_1 v_2 \ldots$ starting from any initial vertex $v_0$, where $v_{i+1} = \sigma(v_i)$ if $v_i \in V_{\even}$ and $v_{i+1} = \tau(v_i)$ if $v_i \in V_{\odd}$. 
-
-% An objective $\mathcal{W}$ for Player~$\even$ is a subset of all possible infinite plays, $\mathcal{W} \subseteq \text{Plays}(\mathcal{A})$. A play $\pi$ is winning for Player~$\even$ if $\pi \in \mathcal{W}$; otherwise, because the games are zero-sum, the play is winning for Player~$\odd$. A strategy $\sigma$ is a winning strategy for Player~$\even$ from a vertex $v_0$ if for all possible strategies $\tau$ of the opponent, the resulting play $\pi(v_0, \sigma, \tau)$ belongs to $\mathcal{W}$. Solving a game means partitioning the vertex set $V$ into two winning regions $W_{\even}$ and $W_{\odd}$, containing the vertices from which Player~$\even$ and Player~$\odd$ possess a winning strategy, respectively.
-
-
-% \subsection*{Strategies and Initial-Vertex Game Solving}
 A \textit{memoryless} strategy for Player~$\even$ is a function $\sigma: V_{\even} \to V$ such that $\sigma(v) \in vE$ for all $v \in V_{\even}$. Symmetrically, a memoryless strategy for Player~$\odd$ is a function $\tau: V_{\odd} \to V$ such that $\tau(v) \in vE$ for all $v \in V_{\odd}$. These strategies depend solely on the current position of the token, ignoring the history of the play. A pair of memoryless strategies $(\sigma, \tau)$ completely determines a unique infinite play $\pi(v_0, \sigma, \tau) = v_0 v_1 v_2 \ldots$ starting from a designated initial vertex $v_0 \in V$. 
 
 An objective $\mathcal{W}$ for Player~$\even$ is a subset of all possible infinite plays, $\mathcal{W} \subseteq \text{Plays}(\mathcal{A})$. A strategy $\sigma$ is a winning strategy for Player~$\even$ from the initial vertex $v_0$ if, for all possible adversarial strategies $\tau$ of Player~$\odd$, the resulting unique play satisfies the objective, i.e., $\pi(v_0, \sigma, \tau) \in \mathcal{W}$. Due to the memoryless determinism of the deterministic \wregulargames\ studied here~\cite{Zielonka:1998}, if a player has a winning strategy from $v_0$, they are guaranteed to have a memoryless one. 
@@ -234,48 +226,46 @@ In this work, we focus on the \textit{initial-vertex game solving problem}. Give
 
 The classification of an infinite play as winning or losing is governed by the game's \textit{winning condition}, which dictates how the path's structural or numerical properties are evaluated. From a player's perspective, this condition defines their \textit{objective} $\mathcal{W} \subseteq \text{Plays}(\mathcal{A})$, representing the specific set of plays they aim to enforce. For consistency across all discussed variants, we focus on the objective $\mathcal{W}$ from the perspective of Player~$\even$. Because these games are zero-sum, a play $\pi$ is winning for Player~$\even$ if $\pi \in \mathcal{W}$, and winning for Player~$\odd$ if $\pi \notin \mathcal{W}$. 
 
-We partition these objectives into two major paradigms: \textit{qualitative conditions}, which evaluate the structural topology of the vertices visited infinitely often, and \textit{quantitative conditions}, which evaluate the numerical accumulation of resource weights along the traversed edges.
+We partition these objectives into two major paradigms: \textit{qualitative conditions}, which evaluate the structural topology of the vertices visited infinitely often (or reached within a finite horizon), and \textit{quantitative conditions}, which evaluate the numerical accumulation of resource weights along the traversed edges.
 
 \subsubsection{Qualitative Conditions}
 \label{subsec:qualitative}
 
-Qualitative conditions depend strictly on the set of vertices that appear infinitely often in a play $\pi$, denoted as $\text{Inf}(\pi) \subseteq V$.
+Qualitative conditions depend strictly on the set of vertices that appear infinitely often in a play $\pi$, denoted as $\text{Inf}(\pi) \subseteq V$. While our core framework addresses complex $\omega$-regular behaviors defined over these infinite limits, it inherently scales down to foundational, finite-horizon qualitative properties. Specifically, \textit{Reachability} objectives require Player~$\even$ to hit a target set $T \subseteq V$ at least once along the play, whereas \textit{Safety} objectives demand that the play remains entirely within a designated safe region $S \subseteq V$ indefinitely. Beyond these basic properties, we focus on the following standard $\omega$-regular qualitative conditions:
 
 \paragraph{Büchi Objectives:}
-A Büchi condition is defined relative to a designated set of target vertices $F \subseteq V$. The objective for Player~$\even$ is to visit this set infinitely often. Formally, a play $\pi$ satisfies the Büchi objective if:
-\[
-\text{Inf}(\pi) \cap F \neq \emptyset
-\]
-Conversely, the dual co-Büchi objective requires that the play eventually settles outside the complement of $F$, meaning that vertices outside of $F$ are visited only finitely many times. A play $\pi$ satisfies the co-Büchi objective if $\text{Inf}(\pi) \subseteq F$.
+A Büchi condition is defined relative to a designated set of target vertices $F \subseteq V$. The objective for Player~$\even$ is to visit this set infinitely often. Formally, a play $\pi$ satisfies the Büchi objective if $\text{Inf}(\pi) \cap F \neq \emptyset$.
+Conversely, the dual co-Büchi objective requires that the play eventually settles outside the complement of $F$, meaning that vertices outside $F$ are visited only finitely many times. A play $\pi$ satisfies the co-Büchi objective if $\text{Inf}(\pi) \subseteq F$.
 
 \paragraph{Parity Objectives:}
-The parity condition evaluates a play using the arena's priority coloring function $\Omega: V \to \mathbb{N}$. Player~$\even$ satisfies the parity objective if the maximum priority that appears infinitely often along the play is an even integer:
+The parity condition evaluates a play using the arena's priority colouring function $\Omega: V \to \mathbb{N}$. Player~$\even$ satisfies the parity objective if the maximum priority that appears infinitely often along the play is an even integer.
 \[
-\max \{ \Omega(v) \mid v \in \text{Inf}(\pi) \} \bmod 2 = 0
+\max \{ \Omega(v) \mid v \in \text{Inf}(\pi) \} \bmod 2 = 0 
 \]
-If the maximum infinite priority is odd, the play is won by Player~$\odd$.
+
+Conversely, if this maximum priority is an odd integer, the play is won by Player~$\odd$.
 
 \subsubsection{Quantitative Conditions}
 \label{subsec:quantitative}
 
-Quantitative conditions shift the evaluation to the infinite sequence of transitions $e_0 e_1 e_2 \ldots$ generated during a play $\pi = v_0 v_1 v_2 \ldots$, tracking numerical behaviors via the arena's edge weight function $\Xi: E \to \mathbb{Z}$.
+Quantitative conditions shift the evaluation to the infinite sequence of transitions $e_0 e_1 e_2 \ldots$ generated during a play $\pi = v_0 v_1 v_2 \ldots$, tracking numerical behaviours via the arena's edge weight function $\Xi: E \to \mathbb{Z}$.
 
 \paragraph{Energy Objectives:}
-Energy conditions model games with physical resource constraints (such as fuel, electricity, or memory). Given an initial resource capacity $c_{\text{init}} \in \mathbb{N}$ and an upper storage boundary $W \in \mathbb{N} \cup \{\infty\}$, the energy level $c_k$ after $k$ transitions is tracked dynamically via the recurrence relation $c_{k+1} = \min(W, c_k + \Xi(e_k))$, where $c_0 = c_{\text{init}}$. Player~$\even$ wins the energy objective if the running resource total remains non-negative at every step along the infinite play:
+Energy conditions model games with physical resource constraints, where Player~$\even$ must navigate the arena indefinitely without ever allowing the resource level to drop below zero. Under memoryless strategies, any infinite play $\pi$ eventually settles into a closed terminal cycle. Consequently, satisfying the energy objective is equivalent to ensuring that the net resource change over this loop is non-negative, preventing a systematic depletion of the resource over time. Formally, letting $E' \subseteq E$ denote the set of directed transitions comprising this terminal cycle, Player~$\even$ satisfies the objective if the accumulated weights of the edges in the loop meet or exceed a designated threshold $\nu \in \mathbb{Z}$ (typically $\nu = 0$):
 \[
-\forall k \geq 0, \quad c_k \geq 0
+\sum_{(v, w) \in E'} \Xi(v, w) \geq \nu
 \]
 
 \paragraph{Mean-Payoff Objectives:}
-The mean-payoff condition evaluates the long-term average reward or cost accumulated per transition. The numerical value assigned to a play $\pi$ is defined as the limit inferior of the average edge weights over time:
+Mean-payoff conditions evaluate the long-term average reward or cost accumulated per transition over an infinite duration. Under memoryless strategies, any infinite play $\pi$ eventually settles into a closed terminal cycle, meaning the long-run performance is entirely determined by the transitions repeated within this loop. Consequently, satisfying the mean-payoff objective is equivalent to ensuring that the average edge weight over this cycle meets or exceeds a specified threshold. Formally, letting $E' \subseteq E$ denote the set of directed transitions comprising this terminal cycle, Player~$\even$ satisfies the objective if the average weight of the edges in this subset meets or exceeds a designated performance threshold $\nu \in \mathbb{R}$:
 \[
-\mu(\pi) = \liminf_{n \to \infty} \frac{1}{n} \sum_{i=0}^{n-1} \Xi(e_i)
-\]
-Given a target performance threshold $\nu \in \mathbb{R}$, Player~$\even$ satisfies the mean-payoff objective if the long-run average meet or exceeds this bound:
-\[
-\mu(\pi) \geq \nu
+\frac{1}{|E'|} \sum_{(v, w) \in E'} \Xi(v, w) \geq \nu
 \]
 
+%------------------------------------------------------------------------------
+
+\subsection{Constraint Programming and Propositional Satisfiability}
+\todo{Introduce CP and SAT}
 
 % \section{Constraint Programming Framework for Game Solving}\label{sec:cp_framework}
 % \subsection{Decision Variables and Local Strategy Characterization}\label{sec:variables_local}
@@ -293,7 +283,13 @@ This section describes our constraint programming (CP) framework for solving det
 \subsection{Decision Variables and Local Strategy Characterization}
 \label{sec:variables_local}
 
-To solve an initial-vertex game using a constraint-based approach, the search space for a winning memoryless strategy must be mapped into finite-domain decision variables. Let $\player \in \{\even, \odd\}$ denote the \textit{player of interest}, and let $\opponent = 1 - \player$ represent their designated opponent. We partition the finite set of vertices $V$ of the arena $\mathcal{A}$ into $V_{\player}$ (vertices controlled by the player of interest) and $V_{\opponent}$ (vertices controlled by the opponent). 
+To solve an initial-vertex game using a constraint-based approach, the search space for a winning memoryless strategy must be mapped into finite-domain decision variables. 
+%
+Let $\player \in \{\even, \odd\}$ denote the \textit{player of interest}, and let $\opponent$ represent their designated opponent, defined as:
+
+$\opponent = \begin{cases} \even & \text{if } \player = \odd, \\ \odd & \text{if } \player = \even. \end{cases}$
+
+We partition the finite set of vertices $V$ of the arena $\mathcal{A}$ into $V_{\player}$ (vertices controlled by the player of interest) and $V_{\opponent}$ (vertices controlled by the opponent). 
 
 Given a specific starting vertex $v_0 \in V$, we introduce two sets of Boolean decision variables to track the active sub-graph induced by the players' strategic choices during the search:
 \begin{itemize}
@@ -306,7 +302,7 @@ The structural conditions required to characterize a valid winning region from $
 To embed this operational capability natively into our CP variable framework, the active strategy sub-graph must be constrained such that $\player$ maintains absolute deterministic control, while simultaneously guarding against every possible counter-move from $\opponent$. Structurally, this requires enforcing the following connectivity rules from $v_0$:
 \begin{enumerate}
     \item \textbf{Root Activation:} The initial vertex must always be active ($\mathcal{V}_{v_0} = \top$).
-    \item \textbf{Deterministic Selection:} For every active vertex controlled by the player of interest ($v \in V_{\player}$), the solver must select at least one outgoing transition to enforce a positional choice.
+    \item \textbf{Deterministic Selection:} For every active vertex controlled by the player of interest ($v \in V_{\player}$), the solver must select one outgoing transition to enforce a positional choice.
     \item \textbf{Adversarial Closure:} For every active vertex controlled by the opponent ($v \in V_{\opponent}$), the formulation must activate \textit{all} of its outgoing transitions. This models the attractor logic by guaranteeing that no matter which edge the opponent selects, the play cannot escape the verified strategy graph.
     \item \textbf{Forward Propagation:} Any vertex reached by an active edge must itself be marked as active.
 \end{enumerate}
@@ -320,7 +316,7 @@ By combining these structural layout constraints, the CP solver isolates a well-
 
 Historically, constraint-based game solving has relied on encoding cycle conditions statically into propositional logic. The standard reference approach by Heljanko et al.~\cite{Heljanko:2012} translates a game into Boolean Satisfiability (SAT) or Satisfiability Modulo Theories (SMT) formulas by leveraging a \textit{progress measure}~\cite{Jurdziński:2000}.
 
-In this baseline formulation, the structural graph properties are captured by the following Conjunctive Normal Form (CNF) clauses:
+In this baseline formulation, the structural graph properties are captured by the following difference logic formula straightforward to reduce to a Conjunctive Normal Form (CNF):
 \begin{itemize}
     \item $\Phi_\exists = \bigwedge_{v \in V_{\subeven}} \left(S_v \rightarrow \bigvee_{w \in vE} T_{(v,w)}\right)$
     \item $\Phi_\forall = \bigwedge_{v \in V_{\subodd}} \left(S_v \rightarrow \bigwedge_{w \in vE} T_{(v,w)}\right)$
@@ -459,7 +455,7 @@ To make this global propagator fully modular across multi-conditioned arenas, we
 \[
 f = f^\mathcal{\varphi} \otimes f^\omega \otimes f^\eta \otimes f^\mu 
 \]
-where $B, \omega, \eta$, and $\mu$ represent qualitative and quantitative objectives (specifically Büchi, parity, energy boundaries, and mean-payoffs, respectively). 
+where $\varphi, \omega, \eta$, and $\mu$ represent qualitative and quantitative objectives (specifically Büchi, parity, energy boundaries, and mean-payoffs, respectively). 
 
 Correspondingly, for any individual state, the predicate $f_{\player}(v)$ evaluates whether the local property of vertex $v$ satisfies or actively contributes to the winning requirements of $\player$ under the composed objective $f_{\player}$. If $f_{\player}(v)$ holds true, vertex $v$ belongs to the safe region for the player of interest; if false ($\neg f_{\player}(v)$), the state inherently risks driving the game into a component dominated by the adversary. The algorithms in this section leverage this predicate to systematically slice away valid sub-graphs and isolate losing loops.
 
@@ -471,7 +467,7 @@ The checker isolates the induced active sub-graph containing only assigned varia
 
 \begin{algorithm}[htb]
 \small
-\caption{\textbf{\nocchecker-Ql}}
+\caption{\textbf{\nocchecker}}
 \textbf{Input}: Induced active sub-graph $G = (V', E')$ \\
 \textbf{Output}: $\top$ if the strategy graph contains no winning opponent cycles; $\bot$ otherwise
 \begin{algorithmic}[1]
@@ -485,12 +481,11 @@ The checker isolates the induced active sub-graph containing only assigned varia
             \}$ \label{alg:nocchecker:best}
             \STATE \textbf{if } $ \textit{objectiveSet} = \emptyset$ \textbf{then return $\bot$} \label{alg:nocchecker:opponent}
 
-            \STATE \nocchecker-Ql($G \setminus \textit{objectiveSet}$) \label{alg:nocchecker:recursion}
+            \STATE \nocchecker($G \setminus \textit{objectiveSet}$) \label{alg:nocchecker:recursion}
         \ENDIF
     \ENDFOR
     \RETURN $\top$
 \end{algorithmic}
-
 \label{alg:nocchecker}
 \end{algorithm}
 
@@ -530,7 +525,6 @@ The checker isolates the induced active sub-graph containing only assigned varia
 \end{algorithmic}
 \label{alg:noccheckerQuant}
 \end{algorithm}
-
 
 Algorithm~\ref{alg:nocchecker} is executed when all decision variables within the current search branch become fixed. The function is invoked with the induced sub-graph containing exclusively the active components: \nocchecker$(\{ v \in V \mid \mathcal{V}_v = \top \})$.
 
@@ -593,8 +587,7 @@ Let a detected cycle path be chronologically defined by its sequence of visited 
 From the perspective of the protagonist ($\player$), the functional validation criteria $f$ for a given cycle path are explicitly defined under five classic winning objectives as follows:
 
 \begin{itemize}[leftmargin=3.1cm, labelwidth=2.8cm, align=right, itemsep=0.8ex, parsep=0pt, topsep=4pt]
-    \item [$f^{\mathcal{\varphi  }}(v_j, \dots, v_k) =$] $\{v_j, \dots, v_{k-1}\} \cap F \neq \emptyset$
-
+    \item [$f^{\mathcal{\varphi}}(v_j, \dots, v_k) =$] $\{v_j, \dots, v_{k-1}\} \cap F \neq \emptyset$
     \item [$f^{\omega}(v_j, \dots, v_k) =$] $\max\{\Omega(v) \mid v \in \{v_j, \dots, v_{k-1}\}\} \bmod 2 \neq \opponent$
     \item [$f^{\eta}(v_j, \dots, v_k) =$] $\sum_{i=j}^{k-1} \Xi(v_i, v_{i+1}) \geq \nu$
     \item [$f^{\mu}(v_j, \dots, v_k) =$] $\frac{1}{k-j} \sum_{i=j}^{k-1} \Xi(v_i, v_{i+1}) \geq \nu$
