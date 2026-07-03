@@ -297,17 +297,21 @@ Given a specific starting vertex $v_0 \in V$, we introduce two sets of Boolean d
     \item $\mathcal{E}_e \in \{\top, \bot\}$ for each directed edge $e \in E$, denoting whether transition $e$ is actively selected or traversed within the strategy sub-graph.
 \end{itemize}
 
-The structural conditions required to characterize a valid winning region from $v_0$ for the player of interest are deeply rooted in the classic game-theoretic concept of an \textit{attractor}~\cite{Zielonka:1998,Aggarwal:2023}. Given a target set of vertices, the $\player$-attractor is the set of states from which $\player$ can force the play into that target set in a finite number of steps, regardless of the choices made by $\opponent$. 
+The structural conditions required to characterize a valid winning play from $v_0$ for the player of interest are deeply rooted in the classic game-theoretic concept of an \textit{attractor}. Given a target set of vertices, the $\player$-attractor is the set of states from which $\player$ can force the play into that target set in a finite number of steps, regardless of the choices made by $\opponent$. ~\cite{Zielonka:1998,Aggarwal:2023}. 
 
 To embed this operational capability natively into our CP variable framework, the active strategy sub-graph must be constrained such that $\player$ maintains absolute deterministic control, while simultaneously guarding against every possible counter-move from $\opponent$. Structurally, this requires enforcing the following connectivity rules from $v_0$:
-\begin{enumerate}
+\begin{itemize}
     \item \textbf{Root Activation:} The initial vertex must always be active ($\mathcal{V}_{v_0} = \top$).
     \item \textbf{Deterministic Selection:} For every active vertex controlled by the player of interest ($v \in V_{\player}$), the solver must select one outgoing transition to enforce a positional choice.
     \item \textbf{Adversarial Closure:} For every active vertex controlled by the opponent ($v \in V_{\opponent}$), the formulation must activate \textit{all} of its outgoing transitions. This models the attractor logic by guaranteeing that no matter which edge the opponent selects, the play cannot escape the verified strategy graph.
     \item \textbf{Forward Propagation:} Any vertex reached by an active edge must itself be marked as active.
-\end{enumerate}
+\end{itemize}
 
 By combining these structural layout constraints, the CP solver isolates a well-formed sub-arena where Player~$\player$ has a valid strategy from $v_0$. The remaining task for the solver is to ensure that the cycles formed within this attractor structure satisfy the designated qualitative or quantitative winning conditions.
+
+\begin{itemize}
+    \item \textbf{Winning Evaluation:} The active sub-graph must guarantee that any infinite path originating from $v_0$ satisfies the specific winning conditions established in Section~\ref{sec:winning_conditions}. Operationally, the solver imposes structural or numerical constraints to ensure that all active cycles conform to these criteria, preventing the opponent from forcing the play into a losing infinite loop.
+\end{itemize}
 
 %------------------------------------------------------------------------------
 
@@ -376,16 +380,15 @@ A key architectural advantage of this design is that by simply swapping the role
 
 \begin{figure}
      \centering
-     % Pull the images slightly into the margins to maximize center space
      \makebox[\textwidth][c]{
          \begin{subfigure}[t]{0.51\textwidth}
              \centering
              \includegraphics[width=0.8\textwidth, trim={0 0 0 0}, clip]{images/ex11.pdf}
-             \vspace{-5pt} % Reduces gap between image and sub-caption
+             \vspace{-5pt}
              \caption{First assignment.}
              \label{fig:ex11}
          \end{subfigure}
-         \hspace{1pt} % Minimal gap
+         \hspace{1pt}
          \begin{subfigure}[t]{0.51\textwidth}
              \centering
              \includegraphics[width=0.8\textwidth, trim={0 0 0 0}, clip]{images/ex12.pdf}
@@ -394,46 +397,43 @@ A key architectural advantage of this design is that by simply swapping the role
              \label{fig:ex12}
          \end{subfigure}
      }
-     \caption{Arena with 4 vertices and 7 edges.  Vertices controlled by Player \even are shown as circles, while vertices controlled by Player \odd are shown as squares.}
-     \label{fig:ex10}
+    \caption{Game arena featuring $|V|=4$ and $|E|=7$. Vertices in $V_{\even}$ are depicted as circles, and vertices in $V_{\odd}$ as squares. Active components are highlighted in solid black, unassigned/inactive elements are faded in gray or dashed lines, and red indicates a cycle rejected by the propagator.}     
+    \label{fig:ex10}
 \end{figure}
 
-To demonstrate the structural and operational mechanics of our generalized CSP formulation, consider the 2-player game arena illustrated in Figure~\ref{fig:ex10}. The arena consists of four vertices $V = \{v_0, v_1, v_2, v_3\}$, which are partitioned into $V_{\subeven} = \{v_0, v_2\}$ (represented as circles) and $V_{\subodd} = \{v_1, v_3\}$ (represented as squares). The directed edge set is defined as $E = \{e_0, e_1, e_2, e_3, e_4, e_5, e_6 \}$. We evaluate a Büchi objective from the perspective of Player~$\even$ ($\player = \even$), where the target accepting set is $F = \{v_3\}$, and the initial vertex is $v_0$.
+To demonstrate the structural and operational mechanics of our generalized CSP formulation, consider the 2-player game arena illustrated in Figure~\ref{fig:ex10}. The arena consists of four vertices $V = \{v_0, v_1, v_2, v_3\}$, which are partitioned into $V_{\even} = \{v_0, v_2\}$ and $V_{\odd} = \{v_1, v_3\}$. The directed edge set is defined as $E = \{e_0, e_1, e_2, e_3, e_4, e_5, e_6 \}$. We evaluate a Büchi objective from the perspective of Player~$\even$ ($\player = \even$), where the target accepting set is $F = \{v_3\}$, and the initial vertex is $v_0$.
 
-Under our framework, the solver instantiates the core set of Boolean decision variables:
+Under our framework, the solver instantiates the following core set of Boolean decision variables:
 \[
-\mathcal{X} = \{\mathcal{V}_0, \mathcal{V}_1, \mathcal{V}_2, \mathcal{V}_3, \mathcal{E}_0, \mathcal{E}_1, \mathcal{E}_2, \mathcal{E}_3, \mathcal{E}_4, \mathcal{E}_5, \mathcal{E}_6 \}
+\mathcal{X} = \{\mathcal{V}_0, \mathcal{V}_1, \mathcal{V}_2, \mathcal{V}_3, \mathcal{E}_0, \mathcal{E}_1, \mathcal{E}_2, \mathcal{E}_3, \mathcal{E}_4, \mathcal{E}_5, \mathcal{E}_6 \}.
 \]
-mapped to individual Boolean domains $\mathcal{D}$. The structural and global constraints execute through the following progression:
+ 
+The structural constraints $\mathcal{C}_{v_0}$, $\mathcal{C}_{\player}$, $\mathcal{C}_E$, and $\mathcal{C}_{\opponent}$ allow the solver to make an initial assignment activating $\mathcal{V}_0, \mathcal{E}_0, \mathcal{V}_1$, and $\mathcal{E}_2$ by setting these variables to $\top$ (see Figure~\ref{fig:ex11}). At this stage, the global constraint $\mathcal{C}_{\noc}$ determines the existence of a unique cycle:
 
-\begin{enumerate}
-    \item \textbf{Root Activation ($\mathcal{C}_{v_0}$):} The search initializes by anchoring the root vertex: $\mathcal{V}_0 = \top$.
-    \item \textbf{Deterministic Strategy Choice ($\mathcal{C}_{\player}$):} Vertex $v_0$ is controlled by Player~$\even$. The constraint forces exactly one outgoing edge to be selected. 
-    \begin{itemize}
-        \item If the solver branches and tests $\mathcal{E}_0 = \top$, forward propagation ($\mathcal{C}_E$) activates vertex $v_1$ ($\mathcal{V}_1 = \top$). Because vertex $v_1$ belongs to Player~$\odd$, its outgoing edge is forced active ($\mathcal{E}_2 = \top$), closing a localized cycle on vertex $v_1$ (See Figure \ref{fig:ex11}). The global constraint evaluates $f^\mathcal{\varphi}(v_1, v_1) = \{v_1\} \cap \{v_3\} \neq \emptyset$, which returns $\bot$. The propagator immediately rejects this branch, forcing the solver to backtrack.
-        \item The solver then selects the winning alternative: $\mathcal{E}_1 = \top$. This choice propagates and activates vertex $v_2$ ($\mathcal{V}_2 = \top$).
-    \end{itemize}
-    \item \textbf{Propagation Loop:} At vertex $v_2$, Player~$\even$ must again pick exactly one deterministic transition. The solver selects $\mathcal{E}_3 = \top$, which propagates and activates the opponent's vertex $v_3$ ($\mathcal{V}_3 = \top$).
-    \item \textbf{Attractor Logic Realization ($\mathcal{C}_{\opponent}$):} Because vertex $v_3$ is controlled by the opponent, constraint $\mathcal{C}_{\opponent}$ triggers. To guarantee that Player~$\even$ is safe against any adversarial counter-play, the model forces \textit{all} outgoing transitions from vertex $v_3$ to activate simultaneously:
-    \[
-    \mathcal{V}_3 \rightarrow (\mathcal{E}_5 \land \mathcal{E}_6)
-    \]
-    Consequently, both $\mathcal{E}_5$ and $\mathcal{E}_6$ are set to $\top$ (See Figure \ref{fig:ex12}).
-\end{enumerate}
-
-At this stage, the structural layout constraints have successfully isolated a candidate strategy sub-graph. The global constraint $\mathcal{C}_{\noc}(f^\mathcal{\varphi})$ now scans this active sub-arena and extracts all reachable cycles:
 \begin{itemize}
-    \item \textbf{Cycle 1 ($v_0 \rightarrow v_2 \rightarrow v_3 \rightarrow v_0$):} Traversing edges $e_1, e_3, e_5$, the solver evaluates the cycle sequence:
+    \item \textbf{Cycle ($v_1 \rightarrow v_1$):} Traversing the self-loop edge $e_2$, the solver evaluates the cycle sequence:
     \[
-    f^\mathcal{\varphi}(v_0, v_2, v_3, v_0) = \{v_0, v_2, v_3\} \cap \{v_3\} \neq \emptyset \implies \top
-    \]
-    \item \textbf{Cycle 2 ($v_2 \rightarrow v_3 \rightarrow v_2$):} Reachable via $e_1$ and traversing edges $e_3, e_6$, the solver evaluates the tighter loop:
-    \[
-    f^\mathcal{\varphi}(v_2, v_3, v_2) = \{v_2, v_3\} \cap \{v_3\} \neq \emptyset \implies \top
+    f^\mathcal{\varphi}(v_1, v_1) = \{v_1\} \cap \{v_3\} = \emptyset \implies \bot.
     \]
 \end{itemize}
 
-Because every active cycle within this adversarial attractor structure satisfies the function $f^\mathcal{\varphi}$, the global constraint validates the assignment. The solver successfully terminates, outputting a satisfying strategy assignment proving that Player~$\even$ wins the game from $v_0$.
+The propagator immediately rejects this branch because the infinite path trapped in this cycle fails the Büchi condition, forcing the solver to backtrack. 
+
+In a subsequent alternative assignment, the structural constraints activate the variables $\mathcal{V}_0, \mathcal{E}_1, \mathcal{V}_2, \mathcal{E}_3, \mathcal{V}_3, \mathcal{E}_5$, and $\mathcal{E}_6$ by setting them to $\top$ (see Figure~\ref{fig:ex12}). At this point, the structural layout constraints have successfully isolated a valid candidate strategy sub-graph. The global constraint $\mathcal{C}_{\noc}(f^\mathcal{\varphi})$ scans this active sub-arena and extracts all reachable loops to evaluate their infinite behavior against the Büchi conditions:
+
+\begin{itemize}
+    \item \textbf{Cycle ($v_0 \rightarrow v_2 \rightarrow v_3 \rightarrow v_0$):} Traversing edges $e_1, e_3$, and $e_5$, the solver evaluates the cycle sequence:
+    \[
+    f^\mathcal{\varphi}(v_0, v_2, v_3, v_0) = \{v_0, v_2, v_3\} \cap \{v_3\} \neq \emptyset \implies \top.
+    \]
+    \item \textbf{Cycle ($v_2 \rightarrow v_3 \rightarrow v_2$):} Reachable via $e_1$ and traversing edges $e_3$ and $e_6$, the solver evaluates the tighter internal loop:
+    \[
+    f^\mathcal{\varphi}(v_2, v_3, v_2) = \{v_2, v_3\} \cap \{v_3\} \neq \emptyset \implies \top.
+    \]
+\end{itemize}
+
+Because every active cycle within this adversarial sub-graph contains a vertex from the accepting set $F$, any resulting infinite path satisfies the winning criteria. The global constraint validates the assignment, and the solver successfully terminates, outputting a satisfying assignment that proves Player~$\even$ wins the game from $v_0$.
+
 
 %------------------------------------------------------------------------------
 
@@ -584,7 +584,7 @@ The true expressive power of our generalized Game CSP framework lies in its abso
 
 Let a detected cycle path be chronologically defined by its sequence of visited vertices $C = (v_j, \dots, v_k)$, where $v_j = v_k$ indicates the closure point of the loop. To ground these calculations across qualitative automata-theoretic lenses and quantitative resource-bounded formulations, we define the underlying arena parameters. Let $F \subseteq V$ denote a designated target accepting set; let $\Omega: V \rightarrow \mathbb{N}$ map each state to a discrete priority; and let $\Xi: E \rightarrow \mathbb{Z}$ assign an integer weight or resource payoff to each directed transition. 
 
-From the perspective of the protagonist ($\player$), the functional validation criteria $f$ for a given cycle path are explicitly defined under five classic winning objectives as follows:
+From the perspective of the protagonist ($\player$), the functional validation criteria $f$ for a given cycle path are explicitly defined under four classic winning objectives as follows:
 
 \begin{itemize}[leftmargin=3.1cm, labelwidth=2.8cm, align=right, itemsep=0.8ex, parsep=0pt, topsep=4pt]
     \item [$f^{\mathcal{\varphi}}(v_j, \dots, v_k) =$] $\{v_j, \dots, v_{k-1}\} \cap F \neq \emptyset$
@@ -595,7 +595,7 @@ From the perspective of the protagonist ($\player$), the functional validation c
 
 \noindent where $\nu \in \mathbb{Z}$ acts as a predefined quantitative threshold constraint for energy bounds or minimum sustainable payoffs. 
 
-By exposing this functional interface directly to the solver, our global propagators \nooppc   can evaluate arbitrary path slices natively. If any cycle closure evaluates to false ($\bot$), the LCG infrastructure traces the precise participating variable configurations to generate explanatory clauses, preventing the search engine from getting trapped in adversarial components across any of these five paradigms.
+By exposing this functional interface directly to the solver, our global propagators \nooppc   can evaluate arbitrary path slices natively. If any cycle closure evaluates to false ($\bot$), the LCG infrastructure traces the precise participating variable configurations to generate explanatory clauses, preventing the search engine from getting trapped in adversarial components across any of these four paradigms.
 
 %------------------------------------------------------------------------------
 
@@ -630,13 +630,50 @@ where $\otimes$ denotes the product composition operator. The global propagator 
              \label{fig:ex22}
          \end{subfigure}
      }
-     \caption{The same arena as Figure~\ref{fig:ex10}, showing vertex priorities $\Omega = \{0, 1, 1, 2\}$ and edge weights $\Xi = \{1, 1, 1, 1, -1, -3, -2\}$.}
-     \label{fig:ex20}
+     \caption{The same arena as Figure~\ref{fig:ex10}, showing vertex priorities $\{0, 1, 1, 2\}$ and edge weights $\{1, 1, 1, 1, -1, -3, -2\}$.}
+    \caption{The game arena from Figure~\ref{fig:ex10} annotated with vertex priorities $\Omega: V \to \{0, 1, 2\}$ and edge weights $\Xi: E \to \{-3, -2, -1, 1\}$.}
+\label{fig:ex20}
 \end{figure}
 
-In the example shown in Figure~\ref{fig:ex20}, the goal is to find a winning strategy for the Player \even to hold parity condition and a positive energy condition simultaneously ($f = f^{\omega} \otimes f^{\eta}$) starting at $v_0$.
+To illustrate the capabilities of our framework in multi-objective settings, consider the same arena operating under a combinations of conditions. We evaluate a multi-condition objective for Player~$\even$ ($\player = \even$) starting from $v_0$, requiring the simultaneous satisfaction of a Parity objective and a Positivity Energy objective ($f = f^{\omega} \land f^{\eta}$). The arena is annotated with vertex priorities $\Omega(v)$ and edge weights $\Xi(e)$ as illustrated in Figure~\ref{fig:ex20}.
 
-\todo{explain example}
+The structural filtering constraints ($\mathcal{C}_{v_0}$, $\mathcal{C}_{\player}$, $\mathcal{C}_E$, and $\mathcal{C}_{\opponent}$) isolate candidate sub-graphs identically to the single-objective case, delegating the multi-objective evaluation to the global constraint $\mathcal{C}_{\noc}(f)$. In the initial search branch, the structural constraints activate $\mathcal{V}_0, \mathcal{E}_0, \mathcal{V}_1$, and $\mathcal{E}_2$ (see Figure~\ref{fig:ex21}). The global constraint evaluates the isolated self-loop from two separate dimensions:
+\begin{itemize}
+    \item \textbf{Cycle ($v_1 \rightarrow v_1$):} Traversing the self-loop edge $e_2$, the solver processes the joint functions:
+    \[
+    f^\mathcal{\omega}(v_1, v_1) = \max\{\Omega(v_1)\} \bmod 2 = 1 \bmod 2 = 1 \implies \bot,
+    \]
+    \[
+    f^\mathcal{\eta}(v_1, v_1) = \Xi(e_2) = 1 \geq 0 \implies \top.
+    \]
+\end{itemize}
+The global constraint computes the conjunctive victory condition $f = \bot \land \top = \bot$. Because the infinite path trapped in this sub-graph fails the Parity condition, the propagator immediately rejects the branch and forces the solver to backtrack.
+
+In the second assignment scenario, the structural constraints isolate the alternative strategy sub-graph by activating $\mathcal{V}_0, \mathcal{E}_1, \mathcal{V}_2, \mathcal{E}_3, \mathcal{V}_3, \mathcal{E}_5$, and $\mathcal{E}_6$ (see Figure~\ref{fig:ex22}). The global constraint $\mathcal{C}_{\noc}$ extracts the two active loops and scrutinizes their infinite behaviors:
+\begin{itemize}
+    \item \textbf{Cycle ($v_0 \rightarrow v_2 \rightarrow v_3 \rightarrow v_0$):} Traversing edges $e_1, e_3$, and $e_5$, the solver evaluates the long loop:
+    \[
+    f^\mathcal{\omega}(v_0, v_2, v_3, v_0) = \max\{\Omega(v_0), \Omega(v_2), \Omega(v_3)\} \bmod 2 = \max\{0, 1, 2\} \bmod 2 = 0 \implies \top,
+    \]
+    \[
+    f^\mathcal{\eta}(v_0, v_2, v_3, v_0) = \Xi(e_1) + \Xi(e_3) + \Xi(e_5) = 1 + 1 + (-3) = -1 < 0 \implies \bot.
+    \]
+    \item \textbf{Cycle ($v_2 \rightarrow v_3 \rightarrow v_2$):} Traversing the tighter internal loop via edges $e_3$ and $e_6$, the solver evaluates:
+    \[
+    f^\mathcal{\omega}(v_2, v_3, v_2) = \max\{\Omega(v_2), \Omega(v_3)\} \bmod 2 = \max\{1, 2\} \bmod 2 = 0 \implies \top,
+    \]
+    \[
+    f^\mathcal{\eta}(v_2, v_3, v_2) = \Xi(e_3) + \Xi(e_6) = 1 + (-2) = -1 < 0 \implies \bot.
+    \]
+\end{itemize}
+For both active cycles, the joint evaluation yields $f = \top \land \bot = \bot$. While this second strategy configuration successfully satisfies the Parity objective, it systematically drains the system's energy, creating loops with negative weight accumulation. 
+
+The propagator rejects this assignment, triggering another backtrack step. Given that no alternative structural configurations remain, the solver concludes that the problem instance is unsatisfiable. Player~$\even$ possesses an Energy-winning strategy in the first sub-arena and a Parity-winning strategy in the second, but cannot satisfy both constraints simultaneously. Consequently, Player~$\even$ does not possess a winning multi-condition strategy from $v_0$.
+
+
+
+
+
 
 From a theoretical perspective, it is well-established that while pure qualitative games (such as parity or Büchi) and pure quantitative games (such as energy bounds or mean-payoffs) admit optimal memoryless (positional) strategies, combining these heterogeneous objectives generally forces the players to rely on infinite or finite-memory counter-strategies to win~\cite{ChatterjeeHJ05,Chatterjee:2010}. Because our CP-based architecture maps decision variables ($\mathcal{E}$) directly to fixed, deterministic choices at each vertex, the solutions computed by our framework are strictly defined over the class of positional strategy profiles. Restricting the search space to positional configurations allows the solver to harvest the strong pruning capabilities of our global propagators while remaining highly effective for a vast array of practical synthesis and controller verification problems where memoryless implementations are preferred due to hardware constraints.
 
