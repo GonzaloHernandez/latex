@@ -1,0 +1,100 @@
+\usepackage{xcolor}
+\usepackage{fvextra}
+
+\usepackage{amsmath}
+\usepackage[hybrid]{markdown}
+
+\definecolor{darkblue}{rgb}{0.0, 0.0, 0.60}
+\usepackage{amsmath}
+\usepackage[hybrid]{markdown}
+
+\DefineVerbatimEnvironment{reviewer}{Verbatim}
+  {formatcom=\color{darkblue}, breaklines=true, breaksymbolleft={}}
+
+\begin{document}
+
+%-----------------------------------------------------------------------------------------------
+
+\section{Reviewer A (rev 5, score 1)}\label{rev:A}
+\begin{reviewer}
+Paper summary
+This paper presents a constraint-satisfaction-based tool for parity games with additional quantitative objectives (mean payoff and energy). Importantly, it is restricted to positional strategies even if combinations of the objectives may require memory in general.
+
+Assessment of the paper (significance, strengths, weakenesses)
+Strenghts
+The paper provides a clear description of the approach and positions the paper well with respect to previous developments and the best comparable tool, Oink.
+The comparison with Oink and the use of PGSolver and Keiren's benchmarks is also a positive point of the paper (the empirical evaluation is quite good in this regard)
+Weaknesses
+I suppose it is the CSP encoding that limits the use of this approach for memoryful strategies in mean payoff parity games? What I am also missing in this regard is why this is the most natural extension of a plain parity game solver?
+The authors seem to have missed that https://www.syntcomp.org/ has a track for parity game solvers that includes not just oink but also ltlsynt (a part of the spot library for manipulating automata). This makes the empirical comparison a bit biased towards Oink only (even if it was the winner of many editions of syntcomp in this track).
+Comments for authors
+Other game-solvers you may want to compare against include those developed by P. Totzke: https://cgi.csc.liv.ac.uk/~patrick/software/
+
+Post-rebuttal
+Ltlsynt does allow to solve games (in HOA or PGSOLVER format) bypassing the LTL-to-game part.
+
+I believe this contribution could be a solid section for an extended/journal version of [21] but requires more work if you want to polish it for a tool paper on its own.
+
+Questions for authors’ response
+See above.
+\end{reviewer}
+
+%-----------------------------------------------------------------------------------------------
+
+\section{Reviewer B(rev 3, score 5)}\label{rev:B}
+\begin{reviewer}
+Paper summary
+The paper presents a constraint-programming-based toolchain for solving parity games with quantitative objectives. The approach exploits the duality of zero-sum games and incorporates symmetry-aware constraint-solving techniques. The framework can handle a variety of game types, including parity, energy, and mean-payoff requirements. The paper describes the architecture of the tool and evaluates it experimentally against state-of-the-art parity-game solvers.
+
+Assessment of the paper (significance, strengths, weakenesses)
+The paper addresses a problem that is relevant to the verification and synthesis communities. We know that parity games are a fundamental computational model underlying many verification procedures, and quantitative objectives such as energy and mean-payoff conditions arise naturally in synthesis and controller design.
+
+The main strength of the work is the flexibility provided by the constraint-programming framework. Unlike highly specialized parity-game solvers, the current tool seems to allows additional quantitative requirements, which can be valuable in applications where multiple objectives must be considered simultaneously.
+
+The experimental evaluation is comprehensive and demonstrates that the proposed approach remains competitive with specialized solvers despite relying on a more general framework. This is an encouraging result and suggests that the additional flexibility does not come at a prohibitive computational cost.
+
+While the practical contribution is clear, the technical novelty is somewhat less apparent. The paper would benefit from a more explicit discussion of the algorithmic ideas that make the CP formulation effective for parity games and quantitative objectives. It is not always easy to distinguish between conceptual advances and engineering decisions. Having said that, we are talking about tool, so the above is an observation that than real. criticism
+
+Questions for authors’ response
+Which components of the encoding and search procedure are specific to parity games, and which are generic CP techniques?
+\end{reviewer}
+
+%-----------------------------------------------------------------------------------------------
+
+\section{Reviewer C(rev 3,score 3)}\label{rev:C}
+\begin{reviewer}
+Paper summary
+The paper presents NOCQ -- an implementation of a constraint-based algorithm for solving parity games and parity games enriched with quantitative objectives such as energy and mean-payoff conditions. The tool implements the CP-based algorithms recently introduced by the authors in [21], extends them with support for additional quantitative winning conditions. The paper describes the tool as well as an experimental evaluation that demonstrates the applicability of the framework to parity games with quantitative objectives.
+
+Assessment of the paper (significance, strengths, weakenesses)
+The paper addresses an important problem and the experimental evaluation demonstrates competitive performance relative to several established parity-game solvers. The architecture is modular and supports multiple backends, and the support of quantitative objectives within the same framework is appealing.
+
+My main reservation concerns the dedication of a "tool paper" for the implementation. Since the whole setting (and also the comparisons in the evaluations) is based on the CP approach in [21], it may be more adequate to include the contribution in a section in the full version of [21].
+\end{reviewer}
+
+%-----------------------------------------------------------------------------------------------
+
+\section{Reviewer D(rev 2, score 4)}\label{rev:D}
+\begin{reviewer}
+Paper summary
+This tool paper presents an open-source tool called NOCQ for solving parity games with qualitative and quantitative (Energy, Mean Payoff) winning conditions. The implemented algorithms rely on SAT/SMT/CSP solvers. The architecture is modular such that further winning conditions can be integrated. The tool has been evaluated on various benchmark sets and demonstrates, on average, favorable performance compared to to the state of the art, including dedicated parity game solvers.
+
+Assessment of the paper (significance, strengths, weakenesses)
+The paper fits well into the scope of ATVA. The tool provides more features than an earlier publication about the underlying algorithms. The paper is readable and provides a detailed experimental evaluation, including a comparison with the state of the art based on standard benchmarks for the classical parity game winning condition. The performance is comparable (and sometimes better) than the state of the art - at least when comparing average times over the selected benchmarks.
+
+My main concern is the way the experimental results are presented (see also question about a cumulative plot below). For example, in table three, the time of many rows is dominated by the "penalty time" of 120s for timeouts from PAR2 scoring.
+
+Assuming a positive artifact evaluation, I believe this paper could be accepted at ATVA if the concerns about the presentation of experiments are resolved.
+
+Comments for authors
+Algorithm 1: NOCEager is not explained
+Are the identical times in Table 3 due to the timeout penalty? Otherwise, this looks suspicious and demands some more explanation (in addition to the paper mentioning structural properties)
+4.2: Goas -> Goals
+The artifact evaluation might be challenging for this paper, because of the hardware requirements (250 GB RAM...).
+Questions for authors’ response
+Q1: Would the comparison change significantly, if we slightly modify the timeout or only compare successfully solved instances? To account for that, an additional cumulative/survival plot (%problems solved against time) might be helpful.
+
+Q2: Please address my question about basically identical times in Table 3.
+\end{reviewer}
+
+\end{document}
