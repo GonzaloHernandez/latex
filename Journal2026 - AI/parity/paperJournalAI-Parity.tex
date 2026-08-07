@@ -497,28 +497,31 @@ However, to leverage domain-specific filtering algorithms (e.g., bounds consiste
 A key advantage of the integer formulation is that edge variables ($\mathcal{E}_e$) are no longer required. For player vertices ($v \in V_{\player}$), the domain value of $\mathcal{V}_v$ directly encodes the selected successor edge $(v, w)$ where $w = \mathcal{V}_v$. For opponent vertices ($v \in V_{\opponent}$), the Boolean flag $\mathcal{V}_v = 1$ inherently implies that all outgoing edges are active. This reduces the total number of variables from $\mathcal{O}(|V| + |E|)$ to strictly $\mathcal{O}(|V|)$, drastically shrinking the solver's search space.
 
 \paragraph{Constraint Updates.} 
-By leveraging the integer domain encoding, edge variables are eliminated, simplifying the constraint set $C_{\mathbb{Z}}$ as follows:
+By leveraging the integer domain encoding, edge variables are eliminated. The original constraint $\mathcal{C}_{\player}$ ($\sum \mathcal{E}_{(v,w)} = 1$) is subsumed by domain construction, while edge-to-vertex reachability ($\mathcal{C}_{E}$) is folded directly into $\mathcal{C}_{\player}$ and $\mathcal{C}_{\opponent}$:
 
 \begin{itemize}[leftmargin=3.0cm, labelwidth=2.8cm, align=right, itemsep=1.0ex, parsep=0pt]
 
     \item [$\mathcal{C}_{v_0}$ :] $\mathcal{V}_{v_0} > 0$
 
-    \item [$\mathcal{C}_{\player}$ :] \textit{Subsumed directly by domain construction $\mathcal{D}(\mathcal{V}_v) \subseteq \{0\} \cup vE$, enforcing that an active player vertex selects exactly one successor $w \in vE$.}
+    \item [$\mathcal{C}_{\player}$ :] $\bigwedge_{v \in V_{\player}} \left( \mathcal{V}_v > 0 \rightarrow \mathcal{V}_{\mathcal{V}_v} > 0 \right)$
 
-    \item [$\mathcal{C}_{\!E}$ :] $\bigwedge_{w \in V, w \neq v_0} \left( \left( \bigvee_{v \in Ew \cap V_{\player}} (\mathcal{V}_v = w) \; \lor \bigvee_{v \in Ew \cap V_{\opponent}} (\mathcal{V}_v = 1) \right) \rightarrow (\mathcal{V}_w > 0) \right)$
+    \item [$\mathcal{C}_{\opponent}$ :] $\bigwedge_{v \in V_{\opponent}} \left( \mathcal{V}_v > 0 \rightarrow \bigwedge_{w \in vE} \mathcal{V}_w > 0 \right)$
 
     \item [$\mathcal{C}_{NOC}(f)$ :] $\bigwedge_{v_0, \dots, v_k} \left( \left( \bigwedge_{i=0}^{k-1} \text{Active}(v_i, v_{i+1}) \right) \to \bigwedge_{j=0}^{k-1} ((v_j = v_k) \to f(v_j, \dots, v_k)) \right)$
 
 \end{itemize}
-
-\noindent where the indicator predicate $\text{Active}(v, w)$ defines edge activation as:
+\noindent where $\mathcal{V}_v \in \{0\} \cup vE$ stores the selected successor vertex $w$ for $v \in V_{\player}$, and the edge activation predicate is defined as:
 \[
 \text{Active}(v, w) \equiv 
 \begin{cases} 
     \mathcal{V}_v = w & \text{if } v \in V_{\player} \\
-    \mathcal{V}_v = 1 & \text{if } v \in V_{\opponent}
+    % \mathcal{V}_v > 0 \wedge w \in vE & \text{if } v \in V_{\opponent}
+    (\mathcal{V}_v > 0) \land (w \in vE) & \text{if } v \in V_{\opponent}
 \end{cases}
 \]
+
+
+
 
 \subsection{Search Strategies and Game-Specific Heuristics}\label{sec:search_heuristics}
 
