@@ -388,7 +388,7 @@ In addition to \nocchecker, we also propose a complete propagator based on Depth
         \STATE $i_v \gets \textit{index}(v, path_V)$
         \STATE $m \gets \max\{f(v') \mid v' \in path_V[i_v:]\}$
         \IF{$m \text{ mod } 2 = \opponent$} \label{alg:noc-eager:checkopponent}
-            \STATE $\textit{reason} \gets \textit{clausify}(\neg path_E[i_v:])$ \label{alg:noc-eager:reason}
+            \STATE $\textit{reason} \gets \textit{clausify}(\neg path_E)$ \label{alg:noc-eager:reason}
             \STATE \textbf{if }not ($\mathcal{E}[e] \gets (\bot, \textit{reason}))$ \textbf{then return $\bot$}
         \ENDIF
     \ELSIF{$\textit{defined}$} \label{alg:noc-eager:defcheck}
@@ -485,16 +485,19 @@ Definition~\ref{def:csp} introduces a Boolean encoding of the arena, enabling st
 
 However, to leverage domain-specific filtering algorithms (e.g., bounds consistency) in CP solvers, we extend this formulation to an integer-based model. The variable structure and constraint logic remain identical to Definition~\ref{def:csp}, with the following updates:
 
-\paragraph{Variable Domains.} The variable set $\mathcal{X}$ is redefined over integer domains $\mathcal{D}_{\mathbb{Z}} = \{0, \dots, d_v\}$, where $d_v$ represents the upper bound for vertex $v \in V$, and $0$ indicates that a vertex is inactive ($\bot$). Specifically, for active vertices ($> 0$):
+
+
+
+\paragraph{Variable Domains.} The variable set $\mathcal{X}$ is redefined over integer domains $\mathcal{D}_{\mathbb{Z}}(v) \in \{0, \dots, d_v\}$, where $d_v = |vE|$ represents the out-degree for vertex $v \in V$, and $0$ indicates that a vertex is inactive ($\bot$). Specifically:
 \[
 \mathcal{D}_{\mathbb{Z}}(v) \in 
 \begin{cases} 
-    \{0, 1, \dots, |V|\} & \text{if } v \in V_{\player}, \text{ where values } 1 \dots |V| \text{ denote the selected successor,} \\
+    \{0, \dots, d_v\} & \text{if } v \in V_{\player}, \text{ where } \mathcal{V}_v = i > 0 \text{ selects the } i\text{-th successor } vE[i], \\
     \{0, 1\} & \text{if } v \in V_{\opponent}, \text{ where } 1 \text{ denotes that every successor is selected.}
 \end{cases}
 \]
 
-A key advantage of the integer formulation is that edge variables ($\mathcal{E}_e$) are no longer required. For player vertices ($v \in V_{\player}$), the domain value of $\mathcal{V}_v$ directly encodes the selected successor edge $(v, w)$ where $w = \mathcal{V}_v$. For opponent vertices ($v \in V_{\opponent}$), the Boolean flag $\mathcal{V}_v = 1$ inherently implies that all outgoing edges are active. This reduces the total number of variables from $\mathcal{O}(|V| + |E|)$ to strictly $\mathcal{O}(|V|)$, drastically shrinking the solver's search space.
+A key advantage of the integer formulation is that edge variables ($\mathcal{E}_e$) are no longer required. For player vertices ($v \in V_{\player}$), the domain value $\mathcal{V}_v = i$ directly encodes the selected successor edge $(v, vE[i])$. For opponent vertices ($v \in V_{\opponent}$), the Boolean flag $\mathcal{V}_v = 1$ inherently implies that all outgoing edges are active. This reduces the total number of variables from $\mathcal{O}(|V| + |E|)$ to strictly $\mathcal{O}(|V|)$, drastically shrinking the solver's search space and the number of constraint clauses.
 
 \paragraph{Constraint Updates.} 
 By leveraging the integer domain encoding, edge variables are eliminated. The original constraint $\mathcal{C}_{\player}$ ($\sum \mathcal{E}_{(v,w)} = 1$) is subsumed by domain construction, while edge-to-vertex reachability ($\mathcal{C}_{E}$) is folded directly into $\mathcal{C}_{\player}$ and $\mathcal{C}_{\opponent}$:
@@ -503,27 +506,99 @@ By leveraging the integer domain encoding, edge variables are eliminated. The or
 
     \item [$\mathcal{C}_{v_0}$ :] $\mathcal{V}_{v_0} > 0$
 
-    \item [$\mathcal{C}_{\player}$ :] $\bigwedge_{v \in V_{\player}} \left( \mathcal{V}_v > 0 \rightarrow \mathcal{V}_{\mathcal{V}_v} > 0 \right)$
+    \item [$\mathcal{C}_{\player}$ :] $\bigwedge_{v \in V_{\player}} \bigwedge_{i=1}^{d_v} \left( (\mathcal{V}_v = i) \rightarrow (\mathcal{V}_{vE[i]} > 0) \right)$
 
     \item [$\mathcal{C}_{\opponent}$ :] $\bigwedge_{v \in V_{\opponent}} \left( \mathcal{V}_v > 0 \rightarrow \bigwedge_{w \in vE} \mathcal{V}_w > 0 \right)$
 
-    \item [$\mathcal{C}_{NOC}(f)$ :] $\bigwedge_{v_0, \dots, v_k} \left( \left( \bigwedge_{i=0}^{k-1} \text{Active}(v_i, v_{i+1}) \right) \to \bigwedge_{j=0}^{k-1} ((v_j = v_k) \to f(v_j, \dots, v_k)) \right)$
+    \item [$\mathcal{C}_{NOC}(f)$ :] $\bigwedge_{v_0, \dots, v_k} \left( \left( \bigwedge_{j=0}^{k-1} \text{Active}(v_j, v_{j+1}) \right) \to \bigwedge_{j=0}^{k-1} ((v_j = v_k) \to f(v_j, \dots, v_k)) \right)$
 
 \end{itemize}
-\noindent where $\mathcal{V}_v \in \{0\} \cup vE$ stores the selected successor vertex $w$ for $v \in V_{\player}$, and the edge activation predicate is defined as:
+\noindent where the edge activation predicate $\text{Active}(v, w)$ for $w \in vE$ is defined as:
 \[
 \text{Active}(v, w) \equiv 
 \begin{cases} 
-    \mathcal{V}_v = w & \text{if } v \in V_{\player} \\
-    % \mathcal{V}_v > 0 \wedge w \in vE & \text{if } v \in V_{\opponent}
-    (\mathcal{V}_v > 0) \land (w \in vE) & \text{if } v \in V_{\opponent}
+    \mathcal{V}_v = \text{idx}_v(w) & \text{if } v \in V_{\player} \\
+    \mathcal{V}_v > 0 & \text{if } v \in V_{\opponent}
 \end{cases}
 \]
+\noindent where $\text{idx}_v(w) \in \{1, \dots, d_v\}$ denotes the unique index of successor $w$ in $vE$ (i.e., $vE[\text{idx}_v(w)] = w$).
 
+\begin{figure}
+    \centering
+    \includegraphics[width=0.35\textwidth]{images/game03.pdf}
+    \caption{Integer variable representation of the search state from Example~\ref{exa:jurd-2-1-f0}. Domain values $\mathcal{V}_v = i$ directly designate the selected $i$-th successor $vE[i]$ for player vertices.}
+    \label{fig:game03}
+\end{figure}
 
+\paragraph{Revisiting Example~\ref{exa:jurd-2-1-f0} under Integer Variables.}
+To illustrate the difference in variable representation, consider the assignments described in Example~\ref{exa:jurd-2-1-f0} and Figure~\ref{fig:game03}.  In \textit{Boolean/SAT Formulation} The initial failing search state required assigning over  distinct Boolean variables: three vertex variables ($\mathcal{V}_0 = \mathcal{V}_1 = \mathcal{V}_2 = \top$) and four explicit edge variables ($\mathcal{E}_0 = \mathcal{E}_1 = \mathcal{E}_2 = \mathcal{E}_3 = \top$).  In \textit{Integer Formulation} The explicit edge variables ($\mathcal{E}_e$) are eliminated entirely. Assuming $vE[1]$ corresponds to edge $\mathcal{E}_0$ for vertex $v_0$, the exact same initial state is encoded using only three vertex domain assignments:
+\[
+    \mathcal{V}_0 = \textcolor{blue}{1}, \quad \mathcal{V}_1 = \textcolor{blue}{1}, \quad \mathcal{V}_2 = \textcolor{blue}{1}
+\]
+Similarly, the second (satisfiable) assignment—which previously required setting 9 Boolean variables ($\mathcal{V}_0, \dots, \mathcal{V}_3$ and $\mathcal{E}_0, \mathcal{E}_1, \mathcal{E}_2, \mathcal{E}_4, \mathcal{E}_6$)—is now completely captured by assigning just four integer vertex variables:
+\[
+    \mathcal{V}_0 = \textcolor{blue}{1}, \quad \mathcal{V}_1 = \textcolor{blue}{1}, \quad \mathcal{V}_2 = \textcolor{blue}{2}, \quad \mathcal{V}_3 = \textcolor{blue}{1}
+\]
 
+The integer model replaces redundant edge choices with direct index selections, reducing both the number of active decision variables and the depth of the search tree.
+
+\begin{algorithm}[htb]
+\small
+\caption{\textbf{\textit{NOCEagerInt}}}
+\textbf{Input}: $path_V,\ path_E,\ v,\ \textit{last},\ e,\ \textit{defined}$ \\
+\textbf{Output}: $\top$ is valid; $\bot$ otherwise
+\begin{algorithmic}[1]
+    \IF{$v \in path_V$} \label{alg:noc-eager-int:pathcheck}
+        \STATE $i_v \gets \textit{index}(v, path_V)$
+        \STATE $m \gets \max\{f(v') \mid v' \in path_V[i_v:]\}$
+        \IF{$m \text{ mod } 2 = \opponent$} \label{alg:noc-eager-int:checkopponent}
+            \STATE $\textit{reason} \gets \textit{clausify}(\neg path_V)$ \label{alg:noc-eager-int:reason}
+
+            \IF{$\textit{owner}(last)=\player$} \label{alg:noc-eager-int:filtering}
+            \STATE $index \gets \textit{idx}_{\textit{last}}(v)$
+            \STATE \textbf{if }not ($\mathcal{V}_{\textit{last}} \gets (\neq index, \textit{reason}))$ \textbf{then return $\bot$} \label{alg:noc-eager-int:filtering-player}
+            \ELSE
+                \STATE \textbf{if }not ($\mathcal{V}_{\textit{last}} \gets (0, \textit{reason}))$ \textbf{then return $\bot$} \label{alg:noc-eager-int:filtering-opponent}
+            \ENDIF
+        \ENDIF
+    \ELSIF{$\textit{defined}$} \label{alg:noc-eager-int:defcheck}
+        \IF{$\textit{owner}(v)=\player$}
+            \STATE $\textit{targetSet} \gets \{vE[\mathcal{V}_v]\}$ \label{alg:noc-eager-int:traversal-player}
+        \ELSE
+            \STATE $\textit{targetSet} \gets vE$ \label{alg:noc-eager-int:traversal-opponent}
+        \ENDIF
+
+        \FOR{$w \in \textit{targetSet}$} \label{alg:noc-eager-int:edgecheck}
+            \STATE $p_V \gets path_V \cup \{v\}$
+            \STATE $p_E \gets path_E \cup \{e'\}$
+            \STATE $\textit{def} \gets \mathcal{V}[w] > 0$ \label{alg:noc-eager-int:def}
+            \STATE \textit{NOCEagerInt}(
+                $p_V$,
+                $p_E$,
+                $w$,
+                $v$,
+                $\textit{def}$\ )
+        \ENDFOR
+    \ENDIF
+    \RETURN $\top$
+\end{algorithmic}
+\label{alg:noc-eager-int}
+\end{algorithm}
+
+\paragraph{\nooppc Updated:}
+
+Algorithm~\ref{alg:noc-eager-int} updates the eager propagator (\textit{NOCEager}) to operate directly over integer vertex domains ($\mathcal{V}$), eliminating all references to explicit edge variables ($\mathcal{E}$). The core modifications from Algorithm~\ref{alg:noc-eager} focus on conflict propagation and path exploration:
+
+When an illegal opponent cycle is detected, conflict clauses are framed over vertex variables ($\neg path_V$) rather than edge variables ($\neg path_E$). Instead of setting a single Boolean edge variable to false ($\mathcal{E}[e] \gets \bot$), propagation directly prunes the domain of the predecessor vertex $\textit{last}$ based on its owner where for vertices controled by $\player$ the propagator prunes only the specific index corresponding to the offending successor ($\mathcal{V}_{\textit{last}} \neq \textit{idx}_{\textit{last}}(v)$) (Line~\ref{alg:noc-eager-int:filtering-player}), leaving other outgoing choices open. For opponent vertices it invalidates the whole outgoing succesor vertex, setting $\mathcal{V}_{\textit{last}} \gets 0$ (Line~\ref{alg:noc-eager-int:filtering-opponent}).
+
+Furthermore, instead of iterating over all non-false outgoing edges $e' \in \textit{edges}(v)$, line~\ref{alg:noc-eager-int:defcheck} constructs a candidate successor set ($\textit{targetSet}$) based on node ownership:
+For player nodes ($v \in V_{\player}$), traversal is restricted solely to the single successor $vE[\mathcal{V}_v]$ designated by the integer variable (Line~\ref{alg:noc-eager-int:traversal-player}) and for opponent nodes ($v \in V_{\opponent}$), the algorithm branches across all outgoing successors $vE$ (Line~\ref{alg:noc-eager-int:traversal-opponent}).
+
+Additionally, vertex assignment status ($\textit{def}$) is determined by verifying whether the target node is active ($\mathcal{V}[w] > 0$), replacing the Boolean edge evaluation ($\mathcal{E}[e'] = \top$) (Line~\ref{alg:noc-eager-int:def}).
 
 \subsection{Search Strategies and Game-Specific Heuristics}\label{sec:search_heuristics}
+
+
 
 \section{Experiments and Evaluation}\label{sec:experiments}
 
