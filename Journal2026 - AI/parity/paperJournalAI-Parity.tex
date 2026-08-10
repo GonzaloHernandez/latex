@@ -347,7 +347,7 @@ If, in the end, all remaining single vertices lack both self-loops and $\opponen
 \begin{algorithm}[htb]
 \small
 \caption{\textbf{\textit{NOCChecker}}}
-\textbf{Input}: $G$ \\
+\textbf{Input}: Current game graph $G$ \\
 \textbf{Output}: $\top$ is valid; $\bot$ otherwise
 \begin{algorithmic}[1]
     \FOR{$scc \in \textit{Tarjan}(G)$} \label{alg:noc-checker:breakingdown}
@@ -381,7 +381,7 @@ In addition to \nocchecker, we also propose a complete propagator based on Depth
 \begin{algorithm}[htb]
 \small
 \caption{\textbf{\textit{NOCEager}}}
-\textbf{Input}: $path_V,\ path_E,\ v,\ e,\ \mathcal{E},\ \textit{defined}$ \\
+\textbf{Input}: Vertex list $path_V$,\ Edge list $path_E$,\ Current vertex $v$,\ Current edge $e$,\ Flag $\textit{defined}$ \\
 \textbf{Output}: $\top$ is valid; $\bot$ otherwise
 \begin{algorithmic}[1]
     \IF{$v \in path_V$} \label{alg:noc-eager:pathcheck}
@@ -433,7 +433,7 @@ Remembering cycles is particularly effective in games where the number of cycles
 \begin{algorithm}[htb]
 \caption{\textbf{\textit{NOCMemo}}}
 \small
-\textbf{Input}: $path_V, path_E, v, e, \mathcal{E}, \textit{defined}, \textit{memo}$ \\
+\textbf{Input}: Vertex list $path_V$,\ Edge list $path_E$,\ Current vertex $v$, Current edge $e$,\ Flag $\textit{defined}$, Edge table $\textit{memo}$ \\
 \textbf{Output}: $\top$ is valid; $\bot$ otherwise
 \begin{algorithmic}[1]
     \IF{$v \in path_V$}
@@ -545,7 +545,7 @@ The integer model replaces redundant edge choices with direct index selections, 
 \begin{algorithm}[htb]
 \small
 \caption{\textbf{\textit{NOCEagerInt}}}
-\textbf{Input}: $path_V,\ path_E,\ v,\ \textit{last},\ e,\ \textit{defined}$ \\
+\textbf{Input}: Vertex list $path_V$,\ Current vertex $v$,\ Former vertex $\textit{last}$,\ Flag $\textit{defined}$ \\
 \textbf{Output}: $\top$ is valid; $\bot$ otherwise
 \begin{algorithmic}[1]
     \IF{$v \in path_V$} \label{alg:noc-eager-int:pathcheck}
@@ -570,11 +570,9 @@ The integer model replaces redundant edge choices with direct index selections, 
 
         \FOR{$w \in \textit{targetSet}$} \label{alg:noc-eager-int:edgecheck}
             \STATE $p_V \gets path_V \cup \{v\}$
-            \STATE $p_E \gets path_E \cup \{e'\}$
             \STATE $\textit{def} \gets \mathcal{V}[w] > 0$ \label{alg:noc-eager-int:def}
             \STATE \textit{NOCEagerInt}(
                 $p_V$,
-                $p_E$,
                 $w$,
                 $v$,
                 $\textit{def}$\ )
@@ -598,7 +596,61 @@ Additionally, vertex assignment status ($\textit{def}$) is determined by verifyi
 
 \subsection{Search Strategies and Game-Specific Heuristics}\label{sec:search_heuristics}
 
+Standard general-purpose search heuristics (such as VSIDS or $\text{dom}/\text{wdeg}$) branch indiscriminately across all unassigned variables in the solver's model. In parity games, this leads to redundant decision-making on unreached graph components or opponent vertices where no strategy choice is required. To overcome this, we design a customized, reachability-guided branching strategy (\nocbrancher) that focuses decisions exclusively on active, player-controlled choices.
 
+\paragraph{Player-Restricted Decision Scope.}
+
+Strategy synthesis requires determining choices solely for the searching player $\player$. For the opponent $\opponent$, vertex activation is deterministic: once an opponent node is active, constraint propagation automatically enforces that all of its outgoing edges are active. Consequently, the solver does not need to make decision steps on $\opponent$ vertices, as their outgoing transitions are fully determined by propagation once paths are established.
+
+Consequently, \nocbrancher redefines search termination (\textsf{finished}): search terminates as soon as all \emph{active} $\player$ choices are resolved.
+
+\paragraph{Reachability-Guided Branching Mechanism.}
+The brancher selects decision variables dynamically by following graph reachability top-down from active paths: 
+%
+Over \textit{Boolean Formulation} (see Algorithm~\ref{alg:brancher-bool}), edge decisions are strictly gated by vertex reachability. An outgoing edge $e \in \text{outs}(v)$ is eligible for branching if and only if its source player vertex $v \in V_{\player}$ has already been fixed as active ($\mathcal{V}_v = \top$). Unfixed outgoing edges $\mathcal{E}_e$ are then assigned sequentially. This prevents the solver from making arbitrary edge assignments in disconnected regions of the arena.
+%
+Over \textit{Integer Formulation} (see Algorithm~\ref{alg:brancher-int}), for player vertices $v \in V_{\player}$, decisions are made directly on the integer variable $\mathcal{V}_v$. The brancher scans candidate vertices and selects the first unfixed $\mathcal{V}_v$ whose inactive state $0$ has been pruned by reachability propagation ($\min(\mathcal{D}(\mathcal{V}_v)) > 0$). Assigning an integer value directly selects the successor edge $(v, vE[i])$, allowing reachability propagation to immediately activate target node domains before the next decision step.
+
+\begin{algorithm}[htb]
+\small
+\caption{\textbf{\textit{NOCBrancherBool}}}
+\textbf{Input}: Game graph $G$, vertex variables $\mathcal{V}$, edge variables $\mathcal{E}$, target player $\player$ \\
+\textbf{Output}: Decision variable $\mathcal{E}_e$ to branch on, or $\text{null}$ if finished
+\begin{algorithmic}[1]
+    \FOR{$v \in V$}
+        \IF{$\textit{owner}(v) = \player \textbf{ and } \textit{isFixed}(\mathcal{V}_v) \textbf{ and } \mathcal{V}_v = \top$}
+            \FOR{$e \in \textit{outs}(v)$}
+                \IF{\textbf{not } $\textit{isFixed}(\mathcal{E}_e)$}
+                    \RETURN $\mathcal{E}_e$
+                \ENDIF
+            \ENDFOR
+        \ENDIF
+    \ENDFOR
+    \RETURN $\text{null}$
+\end{algorithmic}
+\label{alg:brancher-bool}
+\end{algorithm}
+
+\begin{algorithm}[htb]
+\small
+\caption{\textbf{\textit{NOCBrancherInt}}}
+\textbf{Input}: Game graph $G$, vertex integer variables $\mathcal{V}$, target player $\player$ \\
+\textbf{Output}: Decision variable $\mathcal{V}_v$ to branch on, or $\text{null}$ if finished
+\begin{algorithmic}[1]
+    \FOR{$v \in V$}
+        \IF{$\textit{owner}(v) = \player \textbf{ and } \textbf{not } \textit{isFixed}(\mathcal{V}_v)$}
+            \IF{$\min(\mathcal{D}(\mathcal{V}_v)) > 0$} 
+            % \COMMENT{$v$ is active; inactive value $-1$ is pruned}
+                \RETURN $\mathcal{V}_v$
+            \ENDIF
+        \ENDIF
+    \ENDFOR
+    \RETURN $\text{null}$
+\end{algorithmic}
+\label{alg:brancher-int}
+\end{algorithm}
+
+By coupling decision variable selection directly with reachability, \nocbrancher ensures that search tree exploration constructs a memoryless winning strategy outward from $v_0$, drastically pruning irrelevant search subtrees.
 
 \section{Experiments and Evaluation}\label{sec:experiments}
 
@@ -770,7 +822,7 @@ Our work goes beyond parity games by easily enabling new solutions to synthesis 
 \newpage
 
 %% Loading bibliography style file
-%\bibliographystyle{model1-num-names}
+% \bibliographystyle{model1-num-names}
 \bibliographystyle{cas-model2-names}
 
 % Loading bibliography database
