@@ -1,0 +1,283 @@
+\documentclass{article}
+\usepackage[letterpaper, margin=1in]{geometry}
+\setlength{\parskip}{1em}
+\usepackage{graphicx}
+\setlength\parindent{0pt}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage[table]{xcolor}
+\usepackage{tikz}
+\usepackage{array}
+\usepackage{placeins}
+\usepackage{algorithm}
+\usepackage[noend]{algorithmic}
+% \usepackage{algpseudocode}
+\usepackage{tcolorbox}
+\usepackage{arydshln}
+\usepackage[font=small,skip=2pt]{caption}
+\usepackage{hyperref}
+\usepackage{colortbl}
+\usepackage{enumitem}
+\usepackage{ifthen}
+\usepackage[final]{pdfpages}
+\usepackage{subcaption}
+
+\input{macros}
+
+
+\makeatletter
+
+\usepackage{titling}
+\setlength{\droptitle}{-8em}
+
+\title{Generic Constraint Games\\PhD Final Review Report}
+\author{Gonzalo Hernandez}
+\date{}
+
+\begin{document}
+
+% ----------------------------------------------------------------------
+
+\begin{center}
+  \includegraphics[width=15cm]{images/monash-logo.jpg} \\[0.6cm]
+
+  \textbf{
+    \large Department of Data Science and Artificial Intelligence (DSAI) \\[0.3cm]
+    \large Faculty of Information Technology \\[5.0cm]
+  }
+  \textbf{
+    \LARGE Generic Constraint Games\\[1.0cm]
+    \large Gonzalo Hernandez\\[0.5cm]
+    \large Aug 2026\\[6cm]
+  }
+  \textbf{
+    \large PhD Final Review Report\\[1.0cm]
+  }
+\end{center}
+
+\thispagestyle{empty}
+\newpage
+
+% ----------------------------------------------------------------------
+
+\tableofcontents
+\newpage
+
+% -----------------------------------------------------------------------------
+
+\section{Introduction}
+
+\subsection{Additional Literature Review}
+
+
+
+\subsection{Aim and Problem Statement}
+
+\wregulargames are defined purely using utility functions, and usually modeled and solved using rigid methods that do not allow for modifications to the game without necessitating changes to the method itself. 
+
+\textit{Games} in \constraintform, on the other hand, offer richer modelling functionality by supporting global constraints that are common to all players.
+
+The objective of this project is to enhance the expressivity of \wregulargames with parity conditions, improve the efficiency of solving methods, and integrate \wregulargames into \constraintgames to fully leverage the advantages of constraint approaches.
+
+\subsection{Refined Research Questions}
+
+Building on the research questions defined in my first year, we have refined our focus to games with parity conditions, which were further explored during my second year. As part of my third-year work, we aim to extend this scope to stochastic games. The refined research questions are as follows:
+
+\begin{itemize}[left=1.2cm]\label{sec:rq}
+    \item[\textbf{RQ1}] How can games in \wregularform with parity conditions be systematically translated into a \constraintform to enable the effective use of constraint-solving techniques?
+
+    \item[\textbf{RQ2}] How can solvers based on constraint technologies effectively and efficiently address the performance challenges of solving \wregulargames with parity conditions?
+
+    \item[\textbf{RQ3}] How can the proposed modelling framework for solving \wregulargames be extended to address games with multiconditions using finite memory?
+
+    \item[\textbf{RQ4}] How can the CP-based modelling framework for \wregulargames be further extended to handle stochastic parity games?
+\end{itemize}
+
+\subsection{Contributions So Far}
+
+\begin{itemize}
+  \item We have developed a method for modeling and solving \wregulargames with parity conditions through the application of constraint technologies. [\hyperref[sec:rq]{RQ1, RQ2}]
+  \item We have published our method in CPAIOR2026.
+  \item We have submitted an extension of our method encompassing multiconditions twice: To CAV2026 and ATVA2026, both provides us important feedback what were used to refine \hyperref[sec:rq]{RQ3}.
+  \item We plan to develop a new \textit{game form} based on constraints, extending our current modelling framework to encompass stochastic \wregulargames. [\hyperref[sec:rq]{RQ4}]
+  \item In addition to the refined research questions, we have proposed a novel method for solving games using clause learning, guided by \textit{utility}. This line of work remains ongoing as a parallel branch of my research.
+\end{itemize}
+
+\section{Methodology and Progress}
+
+\subsection{Modelling [\hyperref[sec:rq]{RQ1, RQ2}]}
+
+Parity games are two-player, zero-sum games played on a directed graph called the \textit{arena}. Two players, \textit{Even} and \textit{Odd} (denoted~\even{} or $0$, and~\odd{} or $1$, respectively), move a token along outgoing edges depending on who controls the current vertex, generating an infinite path of visited states. Every path is winning for exactly one player, and each player's objective is to force a path that satisfies their winning parity condition.
+
+In~\cite{Hernandez:2026:noc}, we introduced a Constraint Programming (CP) model for parity games using Boolean decision variables. The formulation employs a custom propagator to evaluate parity conditions by systematically ruling out subgraphs (traps) where the opponent has a winning strategy. To exploit the game's inherent asymmetry, the model is solved in parallel from both players' perspectives. As a result, this method outperforms existing CP approaches and remains highly competitive against specialized state-of-the-art parity game solvers.
+
+\subsection{The Integer Formulation (\nooppc-Int)}\label{sec:noc_int}
+
+In \cite{Hernandez:2026:noc} we introduce a Boolean encoding of the arena, enabling straightforward implementation via state-of-the-art SAT solvers, where constraints $\mathcal{C}_{v_0}, \mathcal{C}_{\player}, \mathcal{C}_{\opponent}$, and $\mathcal{C}_{E}$ are naturally expressed as clauses. Furthermore, modern SAT solvers such as CaDiCaL provide external propagator interfaces to implement $\mathcal{C}_{\noc}$ \cite{Fazekas:2023}.
+
+However, to leverage higher abstraction level filtering algorithms (e.g., maintaining bounds consistency) in CP solvers, we extend this formulation to an integer-based model. The variable structure and constraint logic remain identical to Definition in \cite{Hernandez:2026:noc}, with the following updates:
+
+\paragraph{Variable Domains.} The variable set $\mathcal{X}$ is redefined over integer domains $\mathcal{D}_{\mathbb{Z}}(v) \in \{0, \dots, d_v\}$, where $d_v = |vE|$ represents the out-degree for vertex $v \in V$, and $0$ indicates that a vertex is inactive ($\bot$). Specifically:
+\[
+\mathcal{D}_{\mathbb{Z}}(v) \in 
+\begin{cases} 
+    \{0, \dots, d_v\} & \text{if } v \in V_{\player}, \text{ where } \mathcal{V}_v = i > 0 \text{ selects the } i\text{-th successor } vE[i], \\
+    \{0, 1\} & \text{if } v \in V_{\opponent}, \text{ where } 1 \text{ denotes that every successor is selected.}
+\end{cases}
+\]
+
+A key advantage of the integer formulation is the unification of node activation and outgoing edge selection into a single decision. For player vertices ($v \in V_{\player}$), the domain value $\mathcal{V}_v = i$ directly encodes the selected successor edge $(v, vE[i])$. For opponent vertices ($v \in V_{\opponent}$), the Boolean flag $\mathcal{V}_v = 1$ inherently implies that all outgoing edges are active. This reduces the total number of variables from $\mathcal{O}(|V| + |E|)$ to strictly $\mathcal{O}(|V|)$, drastically shrinking the solver's search space and the number of constraint clauses.
+
+\paragraph{Constraint Updates.} 
+By leveraging the integer domain encoding, edge variables are eliminated. The original constraint $\mathcal{C}_{\player}$ ($\sum \mathcal{E}_{(v,w)} = 1$) is subsumed by domain construction, while edge-to-vertex reachability ($\mathcal{C}_{E}$) is folded directly into $\mathcal{C}_{\player}$ and $\mathcal{C}_{\opponent}$:
+
+\begin{itemize}[leftmargin=3.0cm, labelwidth=2.8cm, align=right, itemsep=1.0ex, parsep=0pt]
+
+    \item [$\mathcal{C}_{v_0}$ :] $\mathcal{V}_{v_0} > 0$
+
+    \item [$\mathcal{C}_{\player}$ :] $\bigwedge_{v \in V_{\player}} \bigwedge_{i=1}^{d_v} \left( (\mathcal{V}_v = i) \rightarrow (\mathcal{V}_{vE[i]} > 0) \right)$
+
+    \item [$\mathcal{C}_{\opponent}$ :] $\bigwedge_{v \in V_{\opponent}} \left( \mathcal{V}_v > 0 \rightarrow \bigwedge_{w \in vE} \mathcal{V}_w > 0 \right)$
+
+    \item [$\mathcal{C}_{NOC}(f)$ :] $\bigwedge_{v_0, \dots, v_k} \left( \left( \bigwedge_{j=0}^{k-1} \text{Active}(v_j, v_{j+1}) \right) \to \bigwedge_{j=0}^{k-1} ((v_j = v_k) \to f(v_j, \dots, v_k)) \right)$
+
+\end{itemize}
+\noindent where the edge activation predicate $\text{Active}(v, w)$ for $w \in vE$ is defined as:
+\[
+\text{Active}(v, w) \equiv 
+\begin{cases} 
+    \mathcal{V}_v = \text{idx}_v(w) & \text{if } v \in V_{\player} \\
+    \mathcal{V}_v > 0 & \text{if } v \in V_{\opponent}
+\end{cases}
+\]
+\noindent where $\text{idx}_v(w) \in \{1, \dots, d_v\}$ denotes the unique index of successor $w$ in $vE$ (i.e., $vE[\text{idx}_v(w)] = w$).
+
+\begin{figure}
+    \centering
+    \includegraphics[width=0.35\textwidth]{images/game03.pdf}
+    \caption{Integer variable representation of the search state from Example~\ref{exa:jurd-2-1-f0}. Domain values $\mathcal{V}_v = i$ directly designate the selected $i$-th successor $vE[i]$ for player vertices.}
+    \label{fig:game03}
+\end{figure}
+
+\paragraph{Revisiting Example in \cite{Hernandez:2026:noc} under Integer Variables.}
+To illustrate the difference in variable representation, consider the assignments described in Figure~\ref{fig:game03}.  In \textit{Boolean/SAT Formulation}, The initial failing search state required assigning over  distinct Boolean variables: three vertex variables ($\mathcal{V}_0 = \mathcal{V}_1 = \mathcal{V}_2 = \top$) and four explicit edge variables ($\mathcal{E}_0 = \mathcal{E}_1 = \mathcal{E}_2 = \mathcal{E}_3 = \top$).  In \textit{Integer Formulation}, the explicit edge variables ($\mathcal{E}_e$) are eliminated entirely. Assuming $vE[1]$ corresponds to edge $\mathcal{E}_0$ for vertex $v_0$, the same initial state is encoded using only three vertex domain assignments:
+\[
+    \mathcal{V}_0 = \textcolor{blue}{1}, \quad \mathcal{V}_1 = \textcolor{blue}{1}, \quad \mathcal{V}_2 = \textcolor{blue}{1}
+\]
+Similarly, the second (satisfiable) assignment—which previously required setting 9 Boolean variables ($\mathcal{V}_0, \dots, \mathcal{V}_3$ and $\mathcal{E}_0, \mathcal{E}_1, \mathcal{E}_2, \mathcal{E}_4, \mathcal{E}_6$)—is now completely captured by assigning just four integer vertex variables:
+\[
+    \mathcal{V}_0 = \textcolor{blue}{1}, \quad \mathcal{V}_1 = \textcolor{blue}{1}, \quad \mathcal{V}_2 = \textcolor{blue}{2}, \quad \mathcal{V}_3 = \textcolor{blue}{1}
+\]
+
+The integer model replaces redundant edge choices with direct index selections, reducing both the number of active decision variables and the depth of the search tree.
+
+\begin{algorithm}[htb]
+\small
+\caption{\textbf{\textit{NOCEagerInt}}}
+\textbf{Input}: Vertex list $path_V$,\ Current vertex $v$,\ Former vertex $\textit{last}$,\ Flag $\textit{defined}$ \\
+\textbf{Output}: $\top$ is valid; $\bot$ otherwise
+\begin{algorithmic}[1]
+    \IF{$v \in path_V$} \label{alg:noc-eager-int:pathcheck}
+        \STATE $i_v \gets \textit{index}(v, path_V)$
+        \STATE $m \gets \max\{f(v') \mid v' \in path_V[i_v:]\}$
+        \IF{$m \text{ mod } 2 = \opponent$} \label{alg:noc-eager-int:checkopponent}
+            \STATE $\textit{reason} \gets \textit{clausify}(\neg path_V)$ \label{alg:noc-eager-int:reason}
+
+            \IF{$\textit{owner}(last)=\player$} \label{alg:noc-eager-int:filtering}
+            \STATE $index \gets \textit{idx}_{\textit{last}}(v)$
+            \STATE \textbf{if }not ($\mathcal{V}_{\textit{last}} \gets (\neq index, \textit{reason}))$ \textbf{then return $\bot$} \label{alg:noc-eager-int:filtering-player}
+            \ELSE
+                \STATE \textbf{if }not ($\mathcal{V}_{\textit{last}} \gets (0, \textit{reason}))$ \textbf{then return $\bot$} \label{alg:noc-eager-int:filtering-opponent}
+            \ENDIF
+        \ENDIF
+    \ELSIF{$\textit{defined}$} \label{alg:noc-eager-int:defcheck}
+        \IF{$\textit{owner}(v)=\player$}
+            \STATE $\textit{targetSet} \gets \{vE[\mathcal{V}_v]\}$ \label{alg:noc-eager-int:traversal-player}
+        \ELSE
+            \STATE $\textit{targetSet} \gets vE$ \label{alg:noc-eager-int:traversal-opponent}
+        \ENDIF
+
+        \FOR{$w \in \textit{targetSet}$} \label{alg:noc-eager-int:edgecheck}
+            \STATE $p_V \gets path_V \cup \{v\}$
+            \STATE $\textit{def} \gets \mathcal{V}[w] > 0$ \label{alg:noc-eager-int:def}
+            \STATE \textbf{if }not \textit{NOCEagerInt}(
+                $p_V$,
+                $w$,
+                $v$,
+                $\textit{def}$\ ) \textbf{then return $\bot$}
+        \ENDFOR
+    \ENDIF
+    \RETURN $\top$
+\end{algorithmic}
+\label{alg:noc-eager-int}
+\end{algorithm}
+
+\paragraph{\nooppc Updated:}
+
+Algorithm~\ref{alg:noc-eager-int} updates the eager propagator (\textit{NOCEager}) to operate directly over integer vertex domains ($\mathcal{V}$), eliminating all references to explicit edge variables ($\mathcal{E}$). The core modifications from Algorithm in \cite{Hernandez:2026:noc} focus on conflict propagation and path exploration:
+
+When an illegal opponent cycle is detected, conflict clauses are framed over vertex variables ($\neg path_V$) rather than edge variables ($\neg path_E$). Instead of setting a single Boolean edge variable to false ($\mathcal{E}[e] \gets \bot$), propagation directly prunes the domain of the predecessor vertex $\textit{last}$ based on its owner where for vertices controlled by $\player$ the propagator prunes only the specific index corresponding to the offending successor ($\mathcal{V}_{\textit{last}} \neq \textit{idx}_{\textit{last}}(v)$) (Line~\ref{alg:noc-eager-int:filtering-player}), leaving other outgoing choices open. For opponent vertices, it invalidates the whole outgoing successor vertex, setting $\mathcal{V}_{\textit{last}} \gets 0$ (Line~\ref{alg:noc-eager-int:filtering-opponent}).
+
+Furthermore, instead of iterating over all non-false outgoing edges $e' \in \textit{edges}(v)$, line~\ref{alg:noc-eager-int:defcheck} constructs a candidate successor set ($\textit{targetSet}$) based on node ownership:
+For player nodes ($v \in V_{\player}$), traversal is restricted solely to the single successor $vE[\mathcal{V}_v]$ designated by the integer variable (Line~\ref{alg:noc-eager-int:traversal-player}) and for opponent nodes ($v \in V_{\opponent}$), the algorithm branches across all outgoing successors $vE$ (Line~\ref{alg:noc-eager-int:traversal-opponent}).
+
+Additionally, vertex assignment status ($\textit{def}$) is determined by verifying whether the target node is active ($\mathcal{V}[w] > 0$), replacing the Boolean edge evaluation ($\mathcal{E}[e'] = \top$) (Line~\ref{alg:noc-eager-int:def}).
+
+
+\subsection{Enhancing the Framework with finite memory [\hyperref[sec:rq]{RQ3}]}
+
+
+\subsection{Stochastic \wregulargames [\hyperref[sec:rq]{RQ4}]}
+
+\section{Future Plan and Next Steps}
+
+In my third year, I plan to address \hyperref[sec:rq]{RQ4} by extending our modelling framework to incorporate stochastic \wregulargames. The objective is to evaluate the state of the art in solving Markov Decision Processes (MDPs) within a CP framework and to adapt our current work accordingly. To achieve this, both literature review and experimentation will once again play a central role in this new phase.
+
+Beyond this, an important direction is to explore how concepts from two-player games with alternating quantifiers—existential, universal, and random—can be integrated into our framework. While existential and universal quantifiers naturally capture the interaction between competing players, the addition of random quantifiers introduces probabilistic uncertainty that must be treated explicitly. This makes the problem substantially more complex, as strategies need to combine adversarial reasoning with stochastic analysis. Addressing this topic represents a significant and independent extension of the project, requiring methodological advances and careful identification of practical application domains.
+
+
+Table~\ref{tab:planning} presents the revised timeline outlining the planned completion of each research task.
+
+
+\begin{table}[H]\centering
+    \newcommand{\y}{\cellcolor{black!50}}
+    \newcommand{\n}{\cellcolor{white!100}}
+    \newcolumntype{:}{!{\color{gray!20}\vrule}}
+    \begin{tabular}{|r p{7.9cm}|l:l|l:l:l:l|l:l:l:l|l:l:l:l|l:l|}
+        \hline
+            & \textbf{Activities} 
+            & \multicolumn{4}{c|}{\textbf{2023}} & \multicolumn{4}{c|}{\textbf{2024}} 
+            & \multicolumn{4}{c|}{\textbf{2025}} & \multicolumn{4}{c|}{\textbf{2026}} \\
+        \hline
+            & Literature review
+            & \n & \n & \y & \y & \y & \n & \n & \n & \n & \n & \n & \n & \n & \n & \n & \n \\
+        \arrayrulecolor{gray!20}\hline
+        \hyperref[sec:rq]{RQ1}
+            & Encoding \wregulargames into \constraintgames
+            & \n & \n & \n & \n & \n & \n & \y & \y & \y & \y & \y & \n & \n & \n & \n & \n \\
+        \hline
+        \hyperref[sec:rq]{RQ2}
+            & Solving Games with new constraint technologies
+            & \n & \n & \n & \y & \y & \y & \n & \y & \y & \y & \y & \n & \n & \n & \n & \n \\
+        \hline
+        \hyperref[sec:rq]{RQ3}
+            & Enhancing with additional constraints
+            & \n & \n & \n & \n & \n & \n & \n & \n & \n & \y & \y & \y & \n & \n & \n & \n \\
+        \hline
+        \hyperref[sec:rq]{RQ4}
+            & Extending to stochastic \wregulargames
+            & \n & \n & \n & \n & \n & \n & \n & \n & \n & \n & \y & \y & \y & \y & \n & \n \\
+        \hline
+            & Thesis Writing
+            & \n & \n & \n & \n & \n & \n & \n & \n & \n & \n & \n & \n & \n & \y & \y & \y \\
+        \arrayrulecolor{black}\hline
+    \end{tabular}
+    \caption{Activity planning}
+    \label{tab:planning}
+\end{table}
+
+% \newpage
+\bibliographystyle{acm}
+\bibliography{main}
+
+\end{document}
