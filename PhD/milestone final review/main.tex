@@ -21,6 +21,9 @@
 \usepackage{ifthen}
 \usepackage[final]{pdfpages}
 \usepackage{subcaption}
+\usepackage{booktabs}
+% \usepackage[title]{appendix}
+\usepackage[toc,page]{appendix}
 
 \input{macros}
 
@@ -67,9 +70,13 @@
 
 \section{Introduction}
 
+\todo{Update}
+
 \subsection{Additional Literature Review}
 
+\cite{ChatterjeeHJ05,Chatterjee:2010:GMaE,Chatterjee:2010EP,Velner:2015,Bouyer:2022}
 
+\todo{Describe those papers}
 
 \subsection{Aim and Problem Statement}
 
@@ -88,7 +95,7 @@ Building on the research questions defined in my first year, we have refined our
 
     \item[\textbf{RQ2}] How can solvers based on constraint technologies effectively and efficiently address the performance challenges of solving \wregulargames with parity conditions?
 
-    \item[\textbf{RQ3}] How can the proposed modelling framework for solving \wregulargames be extended to address games with multiconditions using finite memory?
+    \item[\textbf{RQ3}] How can the proposed modelling framework for solving \wregulargames be extended to address games with multiconditions?
 
     \item[\textbf{RQ4}] How can the CP-based modelling framework for \wregulargames be further extended to handle stochastic parity games?
 \end{itemize}
@@ -97,7 +104,7 @@ Building on the research questions defined in my first year, we have refined our
 
 \begin{itemize}
   \item We have developed a method for modeling and solving \wregulargames with parity conditions through the application of constraint technologies. [\hyperref[sec:rq]{RQ1, RQ2}]
-  \item We have published our method in CPAIOR2026.
+  \item We have published our method in CPAIOR2026~\cite{Hernandez:2026:noc}.
   \item We have submitted an extension of our method encompassing multiconditions twice: To CAV2026 and ATVA2026, both provides us important feedback what were used to refine \hyperref[sec:rq]{RQ3}.
   \item We plan to develop a new \textit{game form} based on constraints, extending our current modelling framework to encompass stochastic \wregulargames. [\hyperref[sec:rq]{RQ4}]
   \item In addition to the refined research questions, we have proposed a novel method for solving games using clause learning, guided by \textit{utility}. This line of work remains ongoing as a parallel branch of my research.
@@ -113,131 +120,152 @@ In~\cite{Hernandez:2026:noc}, we introduced a Constraint Programming (CP) model 
 
 \subsection{The Integer Formulation (\nooppc-Int)}\label{sec:noc_int}
 
-In \cite{Hernandez:2026:noc} we introduce a Boolean encoding of the arena, enabling straightforward implementation via state-of-the-art SAT solvers, where constraints $\mathcal{C}_{v_0}, \mathcal{C}_{\player}, \mathcal{C}_{\opponent}$, and $\mathcal{C}_{E}$ are naturally expressed as clauses. Furthermore, modern SAT solvers such as CaDiCaL provide external propagator interfaces to implement $\mathcal{C}_{\noc}$ \cite{Fazekas:2023}.
+The Boolean encoding introduced in~\cite{Hernandez:2026:noc} translates naturally to standard SAT solvers, enabling straightforward implementation via state-of-the-art SAT solvers, where constraints $\mathcal{C}_{v_0}, \mathcal{C}_{\player}, \mathcal{C}_{\opponent}$, and $\mathcal{C}_{E}$ are naturally expressed as clauses. Furthermore, modern SAT solvers such as CaDiCaL provide external propagator interfaces to implement $\mathcal{C}_{\noc}$ \cite{Fazekas:2023}.
 
-However, to leverage higher abstraction level filtering algorithms (e.g., maintaining bounds consistency) in CP solvers, we extend this formulation to an integer-based model. The variable structure and constraint logic remain identical to Definition in \cite{Hernandez:2026:noc}, with the following updates:
+However, to exploit higher-level domain filtering algorithms (e.g., bounds and domain consistency) available in native CP solvers, we generalize this formulation into an integer-based model. While preserving the core relational logic of the original definition in~\cite{Hernandez:2026:noc}, the domain representations and constraint definitions are updated accordingly. A comprehensive specification of this integer model—prepared for submission to the \textit{Artificial Intelligence} journal—is provided in Appendix~\ref{apx:integer}.
 
-\paragraph{Variable Domains.} The variable set $\mathcal{X}$ is redefined over integer domains $\mathcal{D}_{\mathbb{Z}}(v) \in \{0, \dots, d_v\}$, where $d_v = |vE|$ represents the out-degree for vertex $v \in V$, and $0$ indicates that a vertex is inactive ($\bot$). Specifically:
-\[
-\mathcal{D}_{\mathbb{Z}}(v) \in 
-\begin{cases} 
-    \{0, \dots, d_v\} & \text{if } v \in V_{\player}, \text{ where } \mathcal{V}_v = i > 0 \text{ selects the } i\text{-th successor } vE[i], \\
-    \{0, 1\} & \text{if } v \in V_{\opponent}, \text{ where } 1 \text{ denotes that every successor is selected.}
-\end{cases}
-\]
+\subsection{Search Strategies and Game-Specific Heuristics}\label{sec:search_heuristics}
 
-A key advantage of the integer formulation is the unification of node activation and outgoing edge selection into a single decision. For player vertices ($v \in V_{\player}$), the domain value $\mathcal{V}_v = i$ directly encodes the selected successor edge $(v, vE[i])$. For opponent vertices ($v \in V_{\opponent}$), the Boolean flag $\mathcal{V}_v = 1$ inherently implies that all outgoing edges are active. This reduces the total number of variables from $\mathcal{O}(|V| + |E|)$ to strictly $\mathcal{O}(|V|)$, drastically shrinking the solver's search space and the number of constraint clauses.
+In addition to the integer model, we refine the search procedure by introducing custom variable and value ordering heuristics. These strategies exploit the asymmetric decision scope of the player of interest and employ reachability-guided branching to prioritize influential plays. Full technical details of these search heuristics, also included in our journal submission, are provided in Appendix~\ref{apx:heuristics}.
 
-\paragraph{Constraint Updates.} 
-By leveraging the integer domain encoding, edge variables are eliminated. The original constraint $\mathcal{C}_{\player}$ ($\sum \mathcal{E}_{(v,w)} = 1$) is subsumed by domain construction, while edge-to-vertex reachability ($\mathcal{C}_{E}$) is folded directly into $\mathcal{C}_{\player}$ and $\mathcal{C}_{\opponent}$:
+% \subsection{Multicondicioning modelling [\hyperref[sec:rq]{RQ3}]}
 
-\begin{itemize}[leftmargin=3.0cm, labelwidth=2.8cm, align=right, itemsep=1.0ex, parsep=0pt]
+% Qualitative and Quantitative conditions
 
-    \item [$\mathcal{C}_{v_0}$ :] $\mathcal{V}_{v_0} > 0$
+% Multicondicioning operation ($\player=$ conjuntion  vs $\opponent=$ disjuntion)
 
-    \item [$\mathcal{C}_{\player}$ :] $\bigwedge_{v \in V_{\player}} \bigwedge_{i=1}^{d_v} \left( (\mathcal{V}_v = i) \rightarrow (\mathcal{V}_{vE[i]} > 0) \right)$
+% Memory required (memoryless,finite,infinite)
 
-    \item [$\mathcal{C}_{\opponent}$ :] $\bigwedge_{v \in V_{\opponent}} \left( \mathcal{V}_v > 0 \rightarrow \bigwedge_{w \in vE} \mathcal{V}_w > 0 \right)$
+% Arena-dependency
 
-    \item [$\mathcal{C}_{NOC}(f)$ :] $\bigwedge_{v_0, \dots, v_k} \left( \left( \bigwedge_{j=0}^{k-1} \text{Active}(v_j, v_{j+1}) \right) \to \bigwedge_{j=0}^{k-1} ((v_j = v_k) \to f(v_j, \dots, v_k)) \right)$
 
+\subsection{Multi-Condition Modelling [\hyperref[sec:rq]{RQ3}]}\label{sec:multicondition_modelling}
+
+Extending parity games to multi-objective settings enables the formal specification of complex reactive systems requiring simultaneous qualitative and quantitative guarantees. In this context, the player of interest must enforce multiple concurrent criteria along an infinite play. Extending our constraint programming (CP) framework to multi-condition games requires addressing several fundamental challenges regarding condition types, operator duality, memory bounds, and graph-structural dependencies.
+
+\subsubsection{Qualitative and Quantitative Conditions}
+Winning objectives in two-player games fall broadly into two primary categories:
+\begin{itemize}
+    \item \textbf{Qualitative conditions} specify regular $\omega$-languages characterizing the sequence of visited states or priorities (e.g., Büchi, co-Büchi, Rabin, Streett, and Parity). These objectives are determined purely by recurring discrete state occurrences and priority values along the infinite path.
+    \item \textbf{Quantitative conditions} evaluate numerical metrics accumulated along a play, including Mean-Payoff~\cite{Daviaud:2018}, Energy~\cite{Chatterjee:2010EP}, and Discounted-Sum criteria. Extending these to multi-objective settings yields Generalized/Multi-Mean-Payoff and Multi-Energy games~\cite{Chatterjee:2010:GMaE,Velner:2015}, where players must maintain non-negative resource balances or asymptotic reward vectors across multiple dimensions.
 \end{itemize}
-\noindent where the edge activation predicate $\text{Active}(v, w)$ for $w \in vE$ is defined as:
-\[
-\text{Active}(v, w) \equiv 
-\begin{cases} 
-    \mathcal{V}_v = \text{idx}_v(w) & \text{if } v \in V_{\player} \\
-    \mathcal{V}_v > 0 & \text{if } v \in V_{\opponent}
-\end{cases}
-\]
-\noindent where $\text{idx}_v(w) \in \{1, \dots, d_v\}$ denotes the unique index of successor $w$ in $vE$ (i.e., $vE[\text{idx}_v(w)] = w$).
 
-\begin{figure}
-    \centering
-    \includegraphics[width=0.35\textwidth]{images/game03.pdf}
-    \caption{Integer variable representation of the search state from Example~\ref{exa:jurd-2-1-f0}. Domain values $\mathcal{V}_v = i$ directly designate the selected $i$-th successor $vE[i]$ for player vertices.}
-    \label{fig:game03}
-\end{figure}
+\subsubsection{Multi-Condition Operators: Conjunction vs. Disjunction}
+In a multi-objective formulation, the aggregate winning condition is formed via logical operations over a set of individual criteria $\{\Phi_1, \dots, \Phi_k\}$:
+\begin{itemize}
+    \item \textbf{Player perspective ($\player$):} The player of interest typically aims to satisfy a \textit{conjunction} of objectives ($\bigwedge_{i=1}^k \Phi_i$), requiring the synthesized strategy to enforce all specified properties simultaneously.
+    \item \textbf{Opponent perspective ($\opponent$):} Under zero-sum duality, the opponent's objective becomes a \textit{disjunction} ($\bigvee_{i=1}^k \neg\Phi_i$), where violating any single constituent condition guarantees an opponent win.
+\end{itemize}
+Within the CP model, this asymmetry requires the custom propagator to simultaneously verify all conjuncts for $\player$ while isolating minimal subgraphs where $\opponent$ can enforce at least one refutation.
 
-\paragraph{Revisiting Example in \cite{Hernandez:2026:noc} under Integer Variables.}
-To illustrate the difference in variable representation, consider the assignments described in Figure~\ref{fig:game03}.  In \textit{Boolean/SAT Formulation}, The initial failing search state required assigning over  distinct Boolean variables: three vertex variables ($\mathcal{V}_0 = \mathcal{V}_1 = \mathcal{V}_2 = \top$) and four explicit edge variables ($\mathcal{E}_0 = \mathcal{E}_1 = \mathcal{E}_2 = \mathcal{E}_3 = \top$).  In \textit{Integer Formulation}, the explicit edge variables ($\mathcal{E}_e$) are eliminated entirely. Assuming $vE[1]$ corresponds to edge $\mathcal{E}_0$ for vertex $v_0$, the same initial state is encoded using only three vertex domain assignments:
-\[
-    \mathcal{V}_0 = \textcolor{blue}{1}, \quad \mathcal{V}_1 = \textcolor{blue}{1}, \quad \mathcal{V}_2 = \textcolor{blue}{1}
-\]
-Similarly, the second (satisfiable) assignment—which previously required setting 9 Boolean variables ($\mathcal{V}_0, \dots, \mathcal{V}_3$ and $\mathcal{E}_0, \mathcal{E}_1, \mathcal{E}_2, \mathcal{E}_4, \mathcal{E}_6$)—is now completely captured by assigning just four integer vertex variables:
-\[
-    \mathcal{V}_0 = \textcolor{blue}{1}, \quad \mathcal{V}_1 = \textcolor{blue}{1}, \quad \mathcal{V}_2 = \textcolor{blue}{2}, \quad \mathcal{V}_3 = \textcolor{blue}{1}
-\]
+\subsubsection{Memory Requirements and Arena-Dependency}
+While single parity, mean-payoff, and energy games are positionally (memorylessly) determined~\cite{ChatterjeeHJ05,Chatterjee:2010EP}, combining multiple objectives typically demands memory-dependent strategies:
+\begin{itemize}
+    \item \textbf{Memoryless (Positional):} A strategy $\sigma: V_{\player} \to V$ depending solely on the current vertex. Positional determinacy holds for single-condition games and restricted hybrid combinations such as Parity $\land$ Mean-Payoff~\cite{ChatterjeeHJ05}.
+    \item \textbf{Finite-Memory:} A strategy requiring an internal controller state space $M$ to switch decisions dynamically along a play. As characterized by Bouyer et al.~\cite{Bouyer:2022}, finite memory bounds fall into two distinct structural classes:
+    \begin{itemize}
+        \item \textit{Arena-independent memory:} The memory size bound $|M| \le f(k, d)$ depends solely on the specification formula (e.g., number of objectives $k$ or priority range $d$), remaining constant with respect to the arena size $|V|$. Typical examples include Generalized Büchi ($|M| = k$) and Multi-Parity ($\mathcal{O}(d^k)$).
+        \item \textit{Arena-dependent memory:} The memory size bound $|M| \le f(|V|, W_{\max})$ scales with graph characteristics (number of vertices $|V|$ and maximum edge weights $W_{\max}$), as observed in Multi-Energy games~\cite{Velner:2015}.
+    \end{itemize}
+    \item \textbf{Infinite-Memory:} Necessary for non-regular objectives, such as exact multi-mean-payoff games with Pareto-optimal trade-offs~\cite{Velner:2015}.
+\end{itemize}
 
-The integer model replaces redundant edge choices with direct index selections, reducing both the number of active decision variables and the depth of the search tree.
+A structural and computational comparison of these game classes is summarized in Table~\ref{tab:game_conditions_comparison}.
 
-\begin{algorithm}[htb]
+\begin{table}[t]
+\centering
+\caption{Comparison of Qualitative, Quantitative, and Multi-Objective Game Classes}
+\label{tab:game_conditions_comparison}
 \small
-\caption{\textbf{\textit{NOCEagerInt}}}
-\textbf{Input}: Vertex list $path_V$,\ Current vertex $v$,\ Former vertex $\textit{last}$,\ Flag $\textit{defined}$ \\
-\textbf{Output}: $\top$ is valid; $\bot$ otherwise
-\begin{algorithmic}[1]
-    \IF{$v \in path_V$} \label{alg:noc-eager-int:pathcheck}
-        \STATE $i_v \gets \textit{index}(v, path_V)$
-        \STATE $m \gets \max\{f(v') \mid v' \in path_V[i_v:]\}$
-        \IF{$m \text{ mod } 2 = \opponent$} \label{alg:noc-eager-int:checkopponent}
-            \STATE $\textit{reason} \gets \textit{clausify}(\neg path_V)$ \label{alg:noc-eager-int:reason}
+\setlength{\tabcolsep}{1pt}
+\begin{tabular}{@{}llllll@{}}
+\toprule
+\textbf{Condition Type} & \textbf{Criterion} & \textbf{Player ($\player$)} & \textbf{Opponent ($\opponent$)} & \textbf{Memory Bound} & \textbf{Complexity} \\ 
+\midrule
+\textbf{Reachability / Safety} & Qualitative & Positional & Positional & Memoryless & $\text{P}$-complete \\
+\textbf{Büchi / co-Büchi} & Qualitative & Positional & Positional & Memoryless & $\text{P}$-complete \\
+\textbf{Parity} & Qualitative & Positional & Positional & Memoryless & $\text{NP} \cap \text{co-NP}$ \\
+\textbf{Energy} & Quantitative & Positional & Positional & Memoryless & $\text{NP} \cap \text{co-NP}$~\cite{Chatterjee:2010EP} \\
+\textbf{Mean-Payoff} & Quantitative & Positional & Positional & Memoryless & $\text{NP} \cap \text{co-NP}$~\cite{ChatterjeeHJ05} \\ 
+\midrule
+\textbf{Gen. Büchi ($\bigwedge \text{Büchi}$)} & Qual. Comb. & Finite ($\mathcal{O}(k)$) & Positional & Arena-Indep.~\cite{Bouyer:2022} & $\text{P}$-complete \\
+\textbf{Multi-Parity ($\bigwedge \text{Parity}$)} & Qual. Comb. & Finite ($\mathcal{O}(d^k)$) & Positional & Arena-Indep.~\cite{Bouyer:2022} & $\text{co-NP}$-complete \\
+\textbf{Parity $\land$ Mean-Payoff} & Hybrid & Positional & Positional & Memoryless & $\text{NP} \cap \text{co-NP}$~\cite{ChatterjeeHJ05} \\
+\textbf{Parity $\land$ Energy} & Hybrid & Finite & Positional & Arena-Dep. & $\text{NP} \cap \text{co-NP}$~\cite{Chatterjee:2010EP} \\
+\textbf{Multi-Energy ($\bigwedge \text{Energy}$)} & Quant. Comb. & Finite & Finite & Arena-Dep. & $\text{co-NP}$-complete~\cite{Velner:2015} \\
+\textbf{Multi-Mean-Payoff ($\bigwedge \text{MP}$)} & Quant. Comb. & Infinite & Positional & Unbounded & $\text{co-NP}$-complete~\cite{Velner:2015} \\ 
+\bottomrule
+\end{tabular}
 
-            \IF{$\textit{owner}(last)=\player$} \label{alg:noc-eager-int:filtering}
-            \STATE $index \gets \textit{idx}_{\textit{last}}(v)$
-            \STATE \textbf{if }not ($\mathcal{V}_{\textit{last}} \gets (\neq index, \textit{reason}))$ \textbf{then return $\bot$} \label{alg:noc-eager-int:filtering-player}
-            \ELSE
-                \STATE \textbf{if }not ($\mathcal{V}_{\textit{last}} \gets (0, \textit{reason}))$ \textbf{then return $\bot$} \label{alg:noc-eager-int:filtering-opponent}
-            \ENDIF
-        \ENDIF
-    \ELSIF{$\textit{defined}$} \label{alg:noc-eager-int:defcheck}
-        \IF{$\textit{owner}(v)=\player$}
-            \STATE $\textit{targetSet} \gets \{vE[\mathcal{V}_v]\}$ \label{alg:noc-eager-int:traversal-player}
-        \ELSE
-            \STATE $\textit{targetSet} \gets vE$ \label{alg:noc-eager-int:traversal-opponent}
-        \ENDIF
+\end{table}
 
-        \FOR{$w \in \textit{targetSet}$} \label{alg:noc-eager-int:edgecheck}
-            \STATE $p_V \gets path_V \cup \{v\}$
-            \STATE $\textit{def} \gets \mathcal{V}[w] > 0$ \label{alg:noc-eager-int:def}
-            \STATE \textbf{if }not \textit{NOCEagerInt}(
-                $p_V$,
-                $w$,
-                $v$,
-                $\textit{def}$\ ) \textbf{then return $\bot$}
-        \ENDFOR
-    \ENDIF
-    \RETURN $\top$
-\end{algorithmic}
-\label{alg:noc-eager-int}
-\end{algorithm}
+\subsubsection{Scope Delimitation: Arena-Independent Finite-Memory Games}
+While arena-dependent games (e.g., Multi-Energy) require dynamic resource intervals or pseudo-polynomial expansions scaling with $|V| \cdot W_{\max}$, arena-independent games induce a compact, compile-time static memory structure. In practice, system specifications typically involve a small number of concurrent criteria ($k \ll |V|$), meaning formula-dependent bounds like $\mathcal{O}(k)$ or $\mathcal{O}(d^k)$ introduce minimal state duplication compared to the graph size.
 
-\paragraph{\nooppc Updated:}
+Therefore, we delimit the implementation scope of \textbf{RQ3} to \textbf{qualitative multi-condition games with arena-independent finite memory bounds}.
 
-Algorithm~\ref{alg:noc-eager-int} updates the eager propagator (\textit{NOCEager}) to operate directly over integer vertex domains ($\mathcal{V}$), eliminating all references to explicit edge variables ($\mathcal{E}$). The core modifications from Algorithm in \cite{Hernandez:2026:noc} focus on conflict propagation and path exploration:
+\subsubsection{CP Encoding via Product Arena Augmentation}
+To synthesize finite-memory strategies within a static CP formulation, we construct a synchronized product arena $\mathcal{A} \times \mathcal{M}$, where $\mathcal{M} = \{m_1, \dots, m_K\}$ is a deterministic finite-state controller whose bound $K = |\mathcal{M}|$ is fixed \textit{a priori} by the arena-independent specification bound~\cite{Bouyer:2022}:
 
-When an illegal opponent cycle is detected, conflict clauses are framed over vertex variables ($\neg path_V$) rather than edge variables ($\neg path_E$). Instead of setting a single Boolean edge variable to false ($\mathcal{E}[e] \gets \bot$), propagation directly prunes the domain of the predecessor vertex $\textit{last}$ based on its owner where for vertices controlled by $\player$ the propagator prunes only the specific index corresponding to the offending successor ($\mathcal{V}_{\textit{last}} \neq \textit{idx}_{\textit{last}}(v)$) (Line~\ref{alg:noc-eager-int:filtering-player}), leaving other outgoing choices open. For opponent vertices, it invalidates the whole outgoing successor vertex, setting $\mathcal{V}_{\textit{last}} \gets 0$ (Line~\ref{alg:noc-eager-int:filtering-opponent}).
+\begin{itemize}
+    \item \textbf{Decision Variables:} The variable set is given by $\mathcal{X} = (\mathcal{V}^m_v)_{v \in V, m \in \mathcal{M}} \cup (\mathcal{E}^m_e)_{e \in E, m \in \mathcal{M}}$, where all variables remain Boolean ($\mathcal{D} = \{\bot, \top\}$):
+    \begin{itemize}
+        \item $\mathcal{V}^m_v = \top$ denotes that vertex $v$ is reachable under memory mode $m$ in $\player$'s winning sub-arena.
+        \item $\mathcal{E}^m_e = \top$ denotes that edge $e \in E$ is selected while in memory mode $m$.
+    \end{itemize}
 
-Furthermore, instead of iterating over all non-false outgoing edges $e' \in \textit{edges}(v)$, line~\ref{alg:noc-eager-int:defcheck} constructs a candidate successor set ($\textit{targetSet}$) based on node ownership:
-For player nodes ($v \in V_{\player}$), traversal is restricted solely to the single successor $vE[\mathcal{V}_v]$ designated by the integer variable (Line~\ref{alg:noc-eager-int:traversal-player}) and for opponent nodes ($v \in V_{\opponent}$), the algorithm branches across all outgoing successors $vE$ (Line~\ref{alg:noc-eager-int:traversal-opponent}).
+    \item \textbf{Initial Configuration ($\mathcal{C}_{v_0}^\times$):} The play originates at initial vertex $v_0$ in the default initial memory state $m_0 = 1$:
+    \begin{equation}
+        \mathcal{V}^{m_0}_{v_0} = \top
+    \end{equation}
 
-Additionally, vertex assignment status ($\textit{def}$) is determined by verifying whether the target node is active ($\mathcal{V}[w] > 0$), replacing the Boolean edge evaluation ($\mathcal{E}[e'] = \top$) (Line~\ref{alg:noc-eager-int:def}).
+    \item \textbf{Player Strategy Selection ($\mathcal{C}_{\player}^\times$):} For each reachable state owned by $\player$ at layer $m$, exactly one outgoing edge is selected:
+    \begin{equation}
+        \bigwedge_{v \in V_{\player}, m \in \mathcal{M}} \left( \mathcal{V}^m_v \to \left( \sum_{w \in vE} \mathcal{E}^m_{(v,w)} = 1 \right) \right)
+    \end{equation}
+
+    \item \textbf{Opponent Expansion ($\mathcal{C}_{\opponent}^\times$):} For each reachable state owned by $\opponent$ at layer $m$, all outgoing transitions are preserved:
+    \begin{equation}
+        \bigwedge_{v \in V_{\opponent}, m \in \mathcal{M}} \left( \mathcal{V}^m_v \to \bigwedge_{w \in vE} \mathcal{E}^m_{(v,w)} \right)
+    \end{equation}
+
+    \item \textbf{Reachability Propagation ($\mathcal{C}_{\!E}^\times$):} Activating an edge $\mathcal{E}^m_{(v,w)}$ enforces the activation of the target vertex $w$ at the updated layer $m' = \mu(m, v)$:
+    \begin{equation}
+        \bigwedge_{w \in V, m' \in \mathcal{M}, (w, m') \neq (v_0, m_0)} \left( \left( \bigvee_{\substack{v \in Ew, m \in \mathcal{M} \\ \text{s.t. } \mu(m, v) = m'}} \mathcal{E}^m_{(v,w)} \right) \to \mathcal{V}^{m'}_w \right)
+    \end{equation}
+\end{itemize}
 
 
-\subsection{Enhancing the Framework with finite memory [\hyperref[sec:rq]{RQ3}]}
+\subsubsection{Multi-Objective Propagator Design and Compound Traps}
+Filtering subgraphs in multi-condition CP models requires reasoning about compound winning conditions under zero-sum duality. For a conjunctive objective $\bigwedge_{i=1}^k \Phi_i$ for player $\player$, a candidate winning region must simultaneously satisfy every constituent condition, whereas player $\opponent$ wins if they can enforce the disjunction $\bigvee_{i=1}^k \neg \Phi_i$.
+
+To enforce this efficiently without combinatorial explosion, the custom propagator $\mathcal{C}_{\text{multi}}$ operates across two complementary filtering phases:
+\begin{enumerate}
+    \item \textbf{Independent Dimension Filtering:} During each propagation step, the propagator executes single-condition trap finders for each dimension $\Phi_i$ independently. If a subgraph $U \subseteq V \times \mathcal{M}$ is identified as a winning trap for $\opponent$ under any single refutation $\neg \Phi_i$, $U$ is immediately pruned from $\player$'s candidate winning domain.
+    \item \textbf{Coupled SCC Multi-Trap Decomposition:} For subgraphs surviving independent filtering, the propagator evaluates the strongly connected components (SCCs) in the augmented graph $\mathcal{A} \times \mathcal{M}$. An SCC is valid for $\player$ if and only if every maximal end component within it satisfies the joint condition $\bigwedge_{i=1}^k \Phi_i$. Any SCC that allows $\opponent$ to force a cycle violating at least one conjunct is pruned as a compound trap.
+\end{enumerate}
+This decoupled architecture allows the solver to exploit rapid polynomial-time pruning in individual objective dimensions before triggering more expensive coupled-consistency checks.
 
 
 \subsection{Stochastic \wregulargames [\hyperref[sec:rq]{RQ4}]}
 
+\subsubsection{Single-Agent Stochastic Games (MDPs)}
+
+\todo{Complement with my current work}
+
+\subsubsection{Two-Player Adversarial Stochastic Games (Simple Games)}
+
+\todo{Complement with my current work}
+
 \section{Future Plan and Next Steps}
 
-In my third year, I plan to address \hyperref[sec:rq]{RQ4} by extending our modelling framework to incorporate stochastic \wregulargames. The objective is to evaluate the state of the art in solving Markov Decision Processes (MDPs) within a CP framework and to adapt our current work accordingly. To achieve this, both literature review and experimentation will once again play a central role in this new phase.
+In last 6 months, I plan to address \hyperref[sec:rq]{RQ3} by extending our modelling framework to incorporate games with multiconditions with arena-independent, and conclude \hyperref[sec:rq]{RQ4} stochastic \wregulargames.
 
-Beyond this, an important direction is to explore how concepts from two-player games with alternating quantifiers—existential, universal, and random—can be integrated into our framework. While existential and universal quantifiers naturally capture the interaction between competing players, the addition of random quantifiers introduces probabilistic uncertainty that must be treated explicitly. This makes the problem substantially more complex, as strategies need to combine adversarial reasoning with stochastic analysis. Addressing this topic represents a significant and independent extension of the project, requiring methodological advances and careful identification of practical application domains.
-
+\todo{Complement}
 
 Table~\ref{tab:planning} presents the revised timeline outlining the planned completion of each research task.
 
+\subsection{Schedule}
 
 \begin{table}[H]\centering
     \newcommand{\y}{\cellcolor{black!50}}
@@ -261,12 +289,12 @@ Table~\ref{tab:planning} presents the revised timeline outlining the planned com
             & \n & \n & \n & \y & \y & \y & \n & \y & \y & \y & \y & \n & \n & \n & \n & \n \\
         \hline
         \hyperref[sec:rq]{RQ3}
-            & Enhancing with additional constraints
-            & \n & \n & \n & \n & \n & \n & \n & \n & \n & \y & \y & \y & \n & \n & \n & \n \\
+            & Enhancing model with multiconditions
+            & \n & \n & \n & \n & \n & \n & \n & \n & \n & \y & \y & \y & \y & \y & \y & \y \\
         \hline
         \hyperref[sec:rq]{RQ4}
             & Extending to stochastic \wregulargames
-            & \n & \n & \n & \n & \n & \n & \n & \n & \n & \n & \y & \y & \y & \y & \n & \n \\
+            & \n & \n & \n & \n & \n & \n & \n & \n & \n & \n & \y & \y & \n & \n & \y & \y \\
         \hline
             & Thesis Writing
             & \n & \n & \n & \n & \n & \n & \n & \n & \n & \n & \n & \n & \n & \y & \y & \y \\
@@ -276,8 +304,30 @@ Table~\ref{tab:planning} presents the revised timeline outlining the planned com
     \label{tab:planning}
 \end{table}
 
+\subsection{Thesis Structure}
+
+\begin{itemize}
+    \item Introduction
+    \item Literature Review / Preliminaires
+    \item \wregulargames with parity conditions
+    \item \wregulargames with multiconditions
+    \item Stochastic \wregulargames
+\end{itemize}
 % \newpage
 \bibliographystyle{acm}
 \bibliography{main}
+
+\newpage
+
+\begin{appendices}
+\addtocontents{toc}{\protect\setcounter{tocdepth}{0}}
+
+\section{The Integer Formulation (\nooppc-Int)}\label{apx:integer}
+
+\section{Search Strategies and Game-Specific Heuristics}\label{apx:heuristics}
+\addtocontents{toc}{\protect\setcounter{tocdepth}{2}}
+\end{appendices}
+
+
 
 \end{document}

@@ -153,6 +153,15 @@
   url       = {\htmladdnormallink{Online access }{https://ieeexplore.ieee.org/document/8576023}}
 }
 
+@article{Bouyer:2022,
+author = {Bouyer, Patricia and Roux, Stéphane Le and Oualhadj, Youssouf and Randour, Mickael and Vandenhove, Pierre},
+copyright = {http://creativecommons.org/licenses/by/4.0},
+keywords = {Computer Science - Computer Science and Game Theory ;  Computer Science - Formal Languages and Automata Theory ;  Computer Science - Logic in Computer Science},
+language = {eng},
+title = {Games Where You Can Play Optimally with Arena-Independent Finite Memory},
+year = {2022},
+}
+
 @article{bozzelly:2020,
   title    = {Hierarchical cost-parity games},
   journal  = {Theoretical Computer Science},
@@ -206,8 +215,6 @@
 }
 
 @article{Bruyere:2021,
-  abstract  = {We study multi-player turn-based games played on (potentially infinite) directed graphs. An outcome is assigned to every play of the game. Each player has a preference relation on the set of outcomes which allows him to compare plays. We focus on the recently introduced notion of weak subgame perfect equilibrium (weak SPE). This is a variant of the classical notion of SPE, where players who deviate can only use strategies deviating from their initial strategy in a finite number of histories. Having an SPE in a game implies having a weak SPE but the contrary is generally false.
-               We propose general conditions on the structure of the game graph and on the preference relations of the players that guarantee the existence of a weak SPE, that additionally is finite-memory. From this general result, we derive two large classes of games for which there always exists a weak SPE: (i) the games with a finite-range outcome function, and (ii) the games with a finite underlying graph and a prefix-independent outcome function. For the second class, we identify conditions on the preference relations that guarantee memoryless strategies for the weak SPE.},
   author    = {Bruyère, Véronique and Le Roux, Stéphane and Pauly, Arno and Raskin, Jean-François},
   address   = {SAN DIEGO},
   copyright = {2020 Elsevier Inc.},
@@ -265,7 +272,7 @@
   url     = {https://is.muni.cz/th/bvfcr/phd_thesis.pdf}
 }
 
-@article{Chatterjee:2010,
+@article{Chatterjee:2010EP,
   author     = {Krishnendu Chatterjee and
                 Laurent Doyen},
   title      = {Energy Parity Games},
@@ -280,7 +287,16 @@
   bibsource  = {dblp computer science bibliography, https://dblp.org}
 }
 
-@article{Chatterjee:2012,
+@article{Chatterjee:2010:GMaE,
+author = {Chatterjee, Krishnendu and Doyen, Laurent and Henzinger, Thomas A and Raskin, Jean-Francois},
+copyright = {http://arxiv.org/licenses/nonexclusive-distrib/1.0},
+keywords = {Computer Science - Computer Science and Game Theory ;  Computer Science - Logic in Computer Science},
+language = {eng},
+title = {Generalized Mean-payoff and Energy Games},
+year = {2010},
+}
+
+@article{Chatterjee:2012Survey,
   abstract = {We summarize classical and recent results about two-player games played on graphs with omega -regular objectives. These games have applications in the verification and synthesis of reactive systems. Important distinctions are whether a graph game is turn-based or concurrent; deterministic or stochastic; zero-sum or not. We cluster known results and open problems according to these classifications.},
   author   = {Chatterjee, Krishnendu and Henzinger, Thomas A.},
   issn     = {0022-0000},
@@ -294,21 +310,6 @@
   year     = {2012}
 }
 
-
-@article{ChatterjeeD12,
-  author    = {Krishnendu Chatterjee and
-               Laurent Doyen},
-  title     = {Energy parity games},
-  journal   = {Theor. Comput. Sci.},
-  volume    = {458},
-  pages     = {49--60},
-  year      = {2012},
-  url       = {https://doi.org/10.1016/j.tcs.2012.07.038},
-  doi       = {10.1016/J.TCS.2012.07.038},
-  timestamp = {Wed, 17 Feb 2021 21:59:32 +0100},
-  biburl    = {https://dblp.org/rec/journals/tcs/ChatterjeeD12.bib},
-  bibsource = {dblp computer science bibliography, https://dblp.org}
-}
 
 @inproceedings{ChatterjeeHJ05,
   author    = {Krishnendu Chatterjee and
@@ -806,6 +807,21 @@ bibtex@InProceedings{Fazekas:2023,
   url      = {https://www.sciencedirect.com/science/article/abs/pii/S0141933119300821?via\%3Dihub}
 }
 
+@inproceedings{Daviaud:2018,
+author = {Daviaud, Laure and Jurdziński, Martin and Lazić, Ranko},
+address = {New York, NY, USA},
+booktitle = {Proceedings of the 33rd Annual ACM/IEEE Symposium on Logic in Computer Science},
+copyright = {2018 ACM},
+isbn = {1450355838},
+keywords = {Applied computing ;  Applied computing -- Law social and behavioral sciences ;  Applied computing -- Law social and behavioral sciences -- Economics ;  Mathematics of computing ;  Mathematics of computing -- Mathematical analysis ;  Mathematics of computing -- Mathematical analysis -- Numerical analysis ;  Mathematics of computing -- Mathematical analysis -- Numerical analysis -- Computations on polynomials ;  Theory of computation ;  Theory of computation -- Design and analysis of algorithms ;  Theory of computation -- Theory and algorithms for application domains -- Algorithmic game theory and mechanism design ;  Theory of computation -- Theory and algorithms for application domains ;  Theory of computation -- Theory and algorithms for application domains -- Algorithmic game theory and mechanism design -- Algorithmic game theory ;  Theory of computation -- Theory and algorithms for application domains -- Algorithmic game theory and mechanism design -- Exact and approximate computation of equilibria},
+language = {eng ; jpn},
+pages = {325-334},
+publisher = {ACM},
+title = {A pseudo-quasi-polynomial algorithm for mean-payoff parity games},
+year = {2018},
+}
+
+
 @article{Luttenberger:2020,
   abstract  = {The synthesis of reactive systems from linear temporal logic (LTL) specifications is an important aspect in the design of reliable software and hardware. We present our adaption of the classic automata-theoretic approach to LTL synthesis, implemented in the tool Strix which has won the two last synthesis competitions (Syntcomp2018/2019). The presented approach is (1) structured, meaning that the states used in the construction have a semantic structure that is exploited in several ways, it performs a (2) forward exploration such that it often constructs only a small subset of the reachable states, and it is (3) incremental in the sense that it reuses results from previous inconclusive solution attempts. Further, we present and study different guiding heuristics that determine where to expand the on-demand constructed arena. Moreover, we show several techniques for extracting an implementation (Mealy machine or circuit) from the witness of the tree-automaton emptiness check. Lastly, the chosen constructions use a symbolic representation of the transition functions to reduce runtime and memory consumption. We evaluate the proposed techniques on the Syntcomp2019 benchmark set and show in more detail how the proposed techniques compare to the techniques implemented in other leading LTL synthesis tools.},
   author    = {Luttenberger, Michael and Meyer, Philipp J. and Sickert, Salomon},
@@ -1088,6 +1104,20 @@ bibtex@InProceedings{Fazekas:2023,
   abstract  = {Parity games have important practical applications in formal verification and synthesis, especially to solve the model-checking problem of the modal mu-calculus. They are also interesting from the theory perspective, as they are widely believed to admit a polynomial solution, but so far no such algorithm is known. In recent years, a number of new algorithms and improvements to existing algorithms have been proposed. We implement a new and easy to extend tool Oink, which is a high-performance implementation of modern parity game algorithms. We further present a comprehensive empirical evaluation of modern parity game algorithms and solvers, both on real world benchmarks and randomly generated games. Our experiments show that our new tool Oink outperforms the current state-of-the-art.},
   isbn      = {978-3-319-89960-2}
 }
+
+@article{Velner:2015,
+author = {Velner, Yaron and Chatterjee, Krishnendu and Doyen, Laurent and Henzinger, Thomas A. and Rabinovich, Alexander and Raskin, Jean-François},
+copyright = {2015 Elsevier Inc.},
+issn = {0890-5401},
+journal = {Information and computation},
+language = {eng},
+pages = {177-196},
+publisher = {Elsevier Inc},
+title = {The complexity of multi-mean-payoff and multi-energy games},
+volume = {241},
+year = {2015},
+}
+
 
 @book{vonNeumann:1947,
   added-at             = {2007-02-09T09:58:08.000+0100},
