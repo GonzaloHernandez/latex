@@ -1,0 +1,465 @@
+\documentclass{article}
+\usepackage[letterpaper, margin=1in]{geometry}
+\setlength{\parskip}{1em}
+\usepackage{graphicx}
+\setlength\parindent{0pt}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage[table]{xcolor}
+\usepackage{tikz}
+\usepackage{array}
+\usepackage{placeins}
+\usepackage{algorithm}
+\usepackage[noend]{algorithmic}
+% \usepackage{algpseudocode}
+\usepackage{tcolorbox}
+\usepackage{arydshln}
+\usepackage[font=small,skip=2pt]{caption}
+\usepackage{hyperref}
+\usepackage{colortbl}
+\usepackage{enumitem}
+\usepackage{ifthen}
+\usepackage[final]{pdfpages}
+\usepackage{subcaption}
+\usepackage{booktabs}
+\usepackage[toc,page]{appendix}
+
+\input{macros}
+
+\hypersetup{
+    pdftitle={PhD Final Review Report},
+    pdfauthor={Gonzalo Hernandez}
+}
+
+\makeatletter
+
+\usepackage{titling}
+\setlength{\droptitle}{-8em}
+
+\title{Generic Constraint Games\\PhD Final Review Report}
+\author{Gonzalo Hernandez}
+\date{}
+
+\begin{document}
+
+% ----------------------------------------------------------------------
+
+\begin{center}
+  \includegraphics[width=15cm]{images/monash-logo.jpg} \\[0.6cm]
+
+  \textbf{
+    \large Department of Data Science and Artificial Intelligence (DSAI) \\[0.3cm]
+    \large Faculty of Information Technology \\[5.0cm]
+  }
+  \textbf{
+    \LARGE Generic Constraint Games\\[1.0cm]
+    \large Gonzalo Hernandez\\[0.5cm]
+    \large Aug 2026\\[6cm]
+  }
+  \textbf{
+    \large PhD Final Review Report\\[1.0cm]
+  }
+\end{center}
+
+\thispagestyle{empty}
+\newpage
+
+% ----------------------------------------------------------------------
+
+\tableofcontents
+\newpage
+
+% -----------------------------------------------------------------------------
+
+\section{Introduction}
+
+\subsection{Context and Motivation}
+
+Games played on graphs provide a foundational framework for the formal specification, verification, and synthesis of reactive systems. In this context, the interaction between a system controller and an adversarial environment is framed as an infinite-duration game over an arena. Recent literature has explored various extensions across qualitative objectives, quantitative payoffs, and multi-objective specifications~\cite{ChatterjeeHJ05,Chatterjee:2010:GMaE,Chatterjee:2010EP,Velner:2015,Bouyer:2022}.
+
+\subsection{Aim and Problem Statement}
+
+\wregulargames are defined purely using utility functions, and usually modeled and solved using rigid methods that do not allow for modifications to the game without necessitating changes to the method itself. 
+
+\textit{Games} in \constraintform, on the other hand, offer richer modelling functionality by supporting global constraints that are common to all players.
+
+The objective of this project is to enhance the expressivity of \wregulargames with parity conditions, improve the efficiency of solving methods, and integrate \wregulargames into \constraintgames to fully leverage the advantages of constraint approaches.
+
+\subsection{Refined Research Questions}\label{sec:rq}
+
+Building on the research questions defined in my first year, we have refined our focus to games with parity conditions, which were further explored during my second year. As part of my third-year work, we aim to extend this scope to stochastic games. The refined research questions are as follows:
+
+\begin{itemize}[left=1.2cm]
+    \item[\textbf{RQ1}] How can games in \wregularform with parity conditions be systematically translated into a \constraintform to enable the effective use of constraint-solving techniques?
+
+    \item[\textbf{RQ2}] How can solvers based on constraint technologies effectively and efficiently address the performance challenges of solving \wregulargames with parity conditions?
+
+    \item[\textbf{RQ3}] How can the proposed modelling framework for solving \wregulargames be extended to address games with multiconditions?
+
+    \item[\textbf{RQ4}] How can the CP-based modelling framework for \wregulargames be further extended to handle stochastic parity games?
+\end{itemize}
+
+\subsection{Summary of Contributions and Publications}
+
+\begin{itemize}
+  \item We have developed a method for modeling and solving \wregulargames with parity conditions through the application of constraint technologies [\hyperref[sec:rq]{RQ1, RQ2}].
+  \item We have published our method in CPAIOR~2026~\cite{Hernandez:2026:noc}.
+  \item We have submitted an extension of our method encompassing multiconditions to CAV~2026 and ATVA~2026, both of which provided valuable feedback utilized to refine [\hyperref[sec:rq]{RQ3}].
+  \item We have developed constraint formulations for stochastic \wregulargames, encompassing both MDPs and Simple Stochastic Games [\hyperref[sec:rq]{RQ4}].
+  \item In addition to the refined research questions, we have proposed a novel method for solving games using clause learning, guided by \textit{utility}. This line of work remains ongoing as a parallel branch of my research.
+\end{itemize}
+
+% -----------------------------------------------------------------------------
+
+\section{Research Methodology and Progress}
+
+\subsection{Constraint Solving for Deterministic Parity Games [\hyperref[sec:rq]{RQ1, RQ2}]}\label{sec:paritygames}
+
+Parity games are two-player, zero-sum games played on a directed graph called the \textit{arena}. Two players, \textit{Even} and \textit{Odd} (denoted~\even{} or $0$, and~\odd{} or $1$, respectively), move a token along outgoing edges depending on who controls the current vertex, generating an infinite path of visited states. Every path is winning for exactly one player, and each player's objective is to force a path that satisfies their winning parity condition.
+
+\subsubsection{Boolean Arena Formulation and Propagator Design}
+In~\cite{Hernandez:2026:noc}, we introduced a Constraint Programming (CP) model for parity games using Boolean decision variables. The formulation employs a custom propagator to evaluate parity conditions by systematically ruling out subgraphs (traps) where the opponent has a winning strategy. To exploit the game's inherent asymmetry, the model is solved in parallel from both players' perspectives. As a result, this method outperforms existing CP approaches and remains highly competitive against specialized state-of-the-art parity game solvers.
+
+\subsubsection{The Integer Formulation (\nooppc-Int)}\label{sec:noc_int}
+The Boolean encoding introduced in~\cite{Hernandez:2026:noc} translates naturally to standard SAT solvers, enabling straightforward implementation via state-of-the-art SAT solvers, where constraints $\mathcal{C}_{v_0}, \mathcal{C}_{\player}, \mathcal{C}_{\opponent}$, and $\mathcal{C}_{E}$ are naturally expressed as clauses. Furthermore, modern SAT solvers such as CaDiCaL provide external propagator interfaces to implement $\mathcal{C}_{\noc}$ \cite{Fazekas:2023}.
+
+However, to exploit higher-level domain filtering algorithms (e.g., bounds and domain consistency) available in native CP solvers, we generalize this formulation into an integer-based model. While preserving the core relational logic of the original definition in~\cite{Hernandez:2026:noc}, the domain representations and constraint definitions are updated accordingly. A comprehensive specification of this integer model---prepared for submission to the \textit{Artificial Intelligence} journal---is provided in Appendix~\ref{apx:integer}.
+
+\subsubsection{Search Strategies and Game-Specific Heuristics}\label{sec:search_heuristics}
+In addition to the integer model, we refine the search procedure by introducing custom variable and value ordering heuristics. These strategies exploit the asymmetric decision scope of the player of interest and employ reachability-guided branching to prioritize influential plays. Full technical details of these search heuristics, also included in our journal submission, are provided in Appendix~\ref{apx:heuristics}.
+
+% -----------------------------------------------------------------------------
+
+\subsection{Multi-Condition $\omega$-Regular Games [\hyperref[sec:rq]{RQ3}]}\label{sec:multicondition_modelling}
+
+Extending parity games to multi-objective settings enables the formal specification of complex reactive systems requiring simultaneous qualitative and quantitative guarantees. In this context, the player of interest must enforce multiple concurrent criteria along an infinite play. Extending our constraint programming (CP) framework to multi-condition games requires addressing several fundamental challenges regarding condition types, operator duality, memory bounds, and graph-structural dependencies.
+
+\subsubsection{Qualitative and Quantitative Conditions}
+Winning objectives in two-player games fall broadly into two primary categories:
+\begin{itemize}
+    \item \textbf{Qualitative conditions} specify regular $\omega$-languages characterizing the sequence of visited states or priorities (e.g., Büchi, co-Büchi, Rabin, Streett, and Parity). These objectives are determined purely by recurring discrete state occurrences and priority values along the infinite path.
+    \item \textbf{Quantitative conditions} evaluate numerical metrics accumulated along a play, including Mean-Payoff~\cite{Daviaud:2018}, Energy~\cite{Chatterjee:2010EP}, and Discounted-Sum criteria. Extending these to multi-objective settings yields Generalized/Multi-Mean-Payoff and Multi-Energy games~\cite{Chatterjee:2010:GMaE,Velner:2015}, where players must maintain non-negative resource balances or asymptotic reward vectors across multiple dimensions.
+\end{itemize}
+
+\subsubsection{Multi-Condition Operators: Conjunction vs. Disjunction}
+In a multi-objective formulation, the aggregate winning condition is formed via logical operations over a set of individual criteria $\{\Phi_1, \dots, \Phi_k\}$:
+\begin{itemize}
+    \item \textbf{Player perspective ($\player$):} The player of interest typically aims to satisfy a \textit{conjunction} of objectives ($\bigwedge_{i=1}^k \Phi_i$), requiring the synthesized strategy to enforce all specified properties simultaneously.
+    \item \textbf{Opponent perspective ($\opponent$):} Under zero-sum duality, the opponent's objective becomes a \textit{disjunction} ($\bigvee_{i=1}^k \neg\Phi_i$), where violating any single constituent condition guarantees an opponent win.
+\end{itemize}
+Within the CP model, this asymmetry requires the custom propagator to simultaneously verify all conjuncts for $\player$ while isolating minimal subgraphs where $\opponent$ can enforce at least one refutation.
+
+\subsubsection{Memory Requirements and Arena-Dependency}
+While single parity, mean-payoff, and energy games are positionally (memorylessly) determined~\cite{ChatterjeeHJ05,Chatterjee:2010EP}, combining multiple objectives typically demands memory-dependent strategies:
+\begin{itemize}
+    \item \textbf{Memoryless (Positional):} A strategy $\sigma: V_{\player} \to V$ depending solely on the current vertex. Positional determinacy holds for single-condition games and restricted hybrid combinations such as Parity $\land$ Mean-Payoff~\cite{ChatterjeeHJ05}.
+    \item \textbf{Finite-Memory:} A strategy requiring an internal controller state space $M$ to switch decisions dynamically along a play. As characterized by Bouyer et al.~\cite{Bouyer:2022}, finite memory bounds fall into two distinct structural classes:
+    \begin{itemize}
+        \item \textit{Arena-independent memory:} The memory size bound $|M| \le f(k, d)$ depends solely on the specification formula (e.g., number of objectives $k$ or priority range $d$), remaining constant with respect to the arena size $|V|$. Typical examples include Generalized Büchi ($|M| = k$) and Multi-Parity ($\mathcal{O}(d^k)$).
+        \item \textit{Arena-dependent memory:} The memory size bound $|M| \le f(|V|, W_{\max})$ scales with graph characteristics (number of vertices $|V|$ and maximum edge weights $W_{\max}$), as observed in Multi-Energy games~\cite{Velner:2015}.
+    \end{itemize}
+    \item \textbf{Infinite-Memory:} Necessary for non-regular objectives, such as exact multi-mean-payoff games with Pareto-optimal trade-offs~\cite{Velner:2015}.
+\end{itemize}
+
+A structural and computational comparison of these game classes is summarized in Table~\ref{tab:game_conditions_comparison}.
+
+\begin{table}[t]
+\centering
+\caption{Comparison of Qualitative, Quantitative, and Multi-Objective Game Classes}
+\label{tab:game_conditions_comparison}
+\small
+\setlength{\tabcolsep}{1pt}
+\begin{tabular}{@{}llllll@{}}
+\toprule
+\textbf{Condition Type} & \textbf{Criterion} & \textbf{Player ($\player$)} & \textbf{Opponent ($\opponent$)} & \textbf{Memory Bound} & \textbf{Complexity} \\ 
+\midrule
+\textbf{Reachability / Safety} & Qualitative & Positional & Positional & Memoryless & $\text{P}$-complete \\
+\textbf{Büchi / co-Büchi} & Qualitative & Positional & Positional & Memoryless & $\text{P}$-complete \\
+\textbf{Parity} & Qualitative & Positional & Positional & Memoryless & $\text{NP} \cap \text{co-NP}$ \\
+\textbf{Energy} & Quantitative & Positional & Positional & Memoryless & $\text{NP} \cap \text{co-NP}$~\cite{Chatterjee:2010EP} \\
+\textbf{Mean-Payoff} & Quantitative & Positional & Positional & Memoryless & $\text{NP} \cap \text{co-NP}$~\cite{ChatterjeeHJ05} \\ 
+\midrule
+\textbf{Parity $\land$ Reachability} & Hybrid & Finite ($|M|=2$) & Positional & Arena-Indep. & $\text{NP} \cap \text{co-NP}$ \\
+\textbf{Parity $\land$ Safety}       & Hybrid & Positional        & Positional & Memoryless   & $\text{NP} \cap \text{co-NP}$ \\
+\textbf{Gen. Büchi ($\bigwedge \text{Büchi}$)} & Qual. Comb. & Finite ($\mathcal{O}(k)$) & Positional & Arena-Indep.~\cite{Bouyer:2022} & $\text{P}$-complete \\
+\textbf{Multi-Parity ($\bigwedge \text{Parity}$)} & Qual. Comb. & Finite ($\mathcal{O}(d^k)$) & Positional & Arena-Indep.~\cite{Bouyer:2022} & $\text{co-NP}$-complete \\
+\textbf{Parity $\land$ Mean-Payoff} & Hybrid & Positional & Positional & Memoryless & $\text{NP} \cap \text{co-NP}$~\cite{ChatterjeeHJ05} \\
+\textbf{Parity $\land$ Energy} & Hybrid & Finite & Positional & Arena-Dep. & $\text{NP} \cap \text{co-NP}$~\cite{Chatterjee:2010EP} \\
+\textbf{Multi-Energy ($\bigwedge \text{Energy}$)} & Quant. Comb. & Finite & Finite & Arena-Dep. & $\text{co-NP}$-complete~\cite{Velner:2015} \\
+\textbf{Multi-Mean-Payoff ($\bigwedge \text{MP}$)} & Quant. Comb. & Infinite & Positional & Unbounded & $\text{co-NP}$-complete~\cite{Velner:2015} \\ 
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsubsection{Scope Delimitation: Arena-Independent Finite-Memory Games}
+While arena-dependent games (e.g., Multi-Energy) require dynamic resource intervals or pseudo-polynomial expansions scaling with $|V| \cdot W_{\max}$, arena-independent games induce a compact, compile-time static memory structure. In practice, system specifications typically involve a small number of concurrent criteria ($k \ll |V|$), meaning formula-dependent bounds like $\mathcal{O}(k)$ or $\mathcal{O}(d^k)$ introduce minimal state duplication compared to the graph size.
+
+Therefore, we delimit the implementation scope of \textbf{RQ3} to \textbf{qualitative multi-condition games with arena-independent finite memory bounds}.
+
+\subsubsection{CP Encoding via Product Arena Augmentation}
+To synthesize finite-memory strategies within a static CP formulation, we construct a synchronized product arena $\mathcal{A} \times \mathcal{M}$, where $\mathcal{M} = \{m_1, \dots, m_K\}$ is a deterministic finite-state controller whose bound $K = |\mathcal{M}|$ is fixed \textit{a priori} by the arena-independent specification bound~\cite{Bouyer:2022}:
+
+\begin{itemize}
+    \item \textbf{Decision Variables:} The variable set is given by $\mathcal{X} = (\mathcal{V}^m_v)_{v \in V, m \in \mathcal{M}} \cup (\mathcal{E}^m_e)_{e \in E, m \in \mathcal{M}}$, where all variables remain Boolean ($\mathcal{D} = \{\bot, \top\}$):
+    \begin{itemize}
+        \item $\mathcal{V}^m_v = \top$ denotes that vertex $v$ is reachable under memory mode $m$ in $\player$'s winning sub-arena.
+        \item $\mathcal{E}^m_e = \top$ denotes that edge $e \in E$ is selected while in memory mode $m$.
+    \end{itemize}
+
+    \item \textbf{Initial Configuration ($\mathcal{C}_{v_0}^\times$):} The play originates at initial vertex $v_0$ in the default initial memory state $m_0 = 1$:
+    \begin{equation}
+        \mathcal{V}^{m_0}_{v_0} = \top
+    \end{equation}
+
+    \item \textbf{Player Strategy Selection ($\mathcal{C}_{\player}^\times$):} For each reachable state owned by $\player$ at layer $m$, exactly one outgoing edge is selected:
+    \begin{equation}
+        \bigwedge_{v \in V_{\player}, m \in \mathcal{M}} \left( \mathcal{V}^m_v \to \left( \sum_{w \in vE} \mathcal{E}^m_{(v,w)} = 1 \right) \right)
+    \end{equation}
+
+    \item \textbf{Opponent Expansion ($\mathcal{C}_{\opponent}^\times$):} For each reachable state owned by $\opponent$ at layer $m$, all outgoing transitions are preserved:
+    \begin{equation}
+        \bigwedge_{v \in V_{\opponent}, m \in \mathcal{M}} \left( \mathcal{V}^m_v \to \bigwedge_{w \in vE} \mathcal{E}^m_{(v,w)} \right)
+    \end{equation}
+
+    \item \textbf{Reachability Propagation ($\mathcal{C}_{\!E}^\times$):} Activating an edge $\mathcal{E}^m_{(v,w)}$ enforces the activation of the target vertex $w$ at the updated layer $m' = \mu(m, v)$:
+    \begin{equation}
+        \bigwedge_{w \in V, m' \in \mathcal{M}, (w, m') \neq (v_0, m_0)} \left( \left( \bigvee_{\substack{v \in Ew, m \in \mathcal{M} \\ \text{s.t. } \mu(m, v) = m'}} \mathcal{E}^m_{(v,w)} \right) \to \mathcal{V}^{m'}_w \right)
+    \end{equation}
+\end{itemize}
+
+\subsubsection{Multi-Objective Propagator Design and Compound Traps}
+Filtering subgraphs in multi-condition CP models requires reasoning about compound winning conditions under zero-sum duality. For a conjunctive objective $\bigwedge_{i=1}^k \Phi_i$ for player $\player$, a candidate winning region must simultaneously satisfy every constituent condition, whereas player $\opponent$ wins if they can enforce the disjunction $\bigvee_{i=1}^k \neg \Phi_i$.
+
+To enforce this efficiently without combinatorial explosion, the custom propagator $\mathcal{C}_{\text{multi}}$ operates across two complementary filtering phases:
+\begin{enumerate}
+    \item \textbf{Independent Dimension Filtering:} During each propagation step, the propagator executes single-condition trap finders for each dimension $\Phi_i$ independently. If a subgraph $U \subseteq V \times \mathcal{M}$ is identified as a winning trap for $\opponent$ under any single refutation $\neg \Phi_i$, $U$ is immediately pruned from $\player$'s candidate winning domain.
+    \item \textbf{Coupled SCC Multi-Trap Decomposition:} For subgraphs surviving independent filtering, the propagator evaluates the strongly connected components (SCCs) in the augmented graph $\mathcal{A} \times \mathcal{M}$. An SCC is valid for $\player$ if and only if every maximal end component within it satisfies the joint condition $\bigwedge_{i=1}^k \Phi_i$. Any SCC that allows $\opponent$ to force a cycle violating at least one conjunct is pruned as a compound trap.
+\end{enumerate}
+This decoupled architecture allows the solver to exploit rapid polynomial-time pruning in individual objective dimensions before triggering more expensive coupled-consistency checks.
+
+% -----------------------------------------------------------------------------
+
+\subsection{Stochastic Games and CP Formulations [\hyperref[sec:rq]{RQ4}]}\label{sec:stochastic_games}
+
+Game-theoretic frameworks over graphs are fundamentally categorized by the nature of control and uncertainty governing state transitions, typically classified into three distinct paradigms~\cite{Chatterjee:2012Survey}:
+\begin{itemize}
+    \item \textbf{2-Player Games (Deterministic):} Transitions are governed entirely by two adversarial players as presented in Sections~\ref{sec:paritygames} and~\ref{sec:multicondition_modelling}.
+    \item \textbf{$1\frac{1}{2}$-Player Games (Markov Decision Processes):} A single player interacts with a stochastic environment. The state space is partitioned between player-controlled vertices and probabilistic (nature/random) vertices, modeling decision-making under stochastic uncertainty without an active adversary.
+    \item \textbf{$2\frac{1}{2}$-Player Games (Stochastic Games):} Both competitive strategic interaction and environmental stochasticity are present. The state space is partitioned among Player~1, Player~2, and probabilistic vertices, requiring strategies that account for both adversarial behavior and random fluctuations.
+\end{itemize}
+
+\subsubsection{Single-Player Stochastic Games (MDPs / $1\frac{1}{2}$-Player)}\label{sec:mdps}
+
+To solve infinite-horizon discounted Markov Decision Processes (MDPs)~\cite{Puterman:1994Markov} within a declarative constraint programming paradigm, we directly encode the system of Bellman optimality equations~\cite{Bellman:1957:dynamic} as a constraint satisfaction problem. Traditional approaches typically solve these systems via iterative numerical approximation (Value Iteration) or by framing them as an optimization problem over a system of inequalities (Linear Programming). In contrast, our formulation treats the value function over all states as a vector of continuous decision variables bounded by the theoretical reward extrema. Under this formulation, the core Bellman operators are mapped to declarative constraints over the state-transition graph:
+\begin{itemize}
+    \item \textit{Terminal States:} Enforce boundary conditions where state values are fixed directly to their immediate terminal payoff.
+    \item \textit{Stochastic States:} Enforce linear expectation constraints computing the discounted transition-probability-weighted sum over successor states.
+    \item \textit{Decision States:} Enforce non-linear maximization constraints over outgoing transitions to capture optimal action selection.
+\end{itemize}
+By finding a feasible assignment for this system of constraints, the solver directly identifies the unique fixed point of the Bellman optimality operator $V^* = \mathcal{T}(V^*)$. Once the value assignments are established, the optimal deterministic policy $\pi^*$ is extracted by greedily selecting the successor transitions that maximize expected return at each decision node.
+
+\paragraph{Formal Model Specification}
+We formalize the decision process over a graph-based Markov Decision Process (or turn-based probabilistic game graph) as a tuple:
+\begin{equation}
+\mathcal{M} = \langle V, E, V_{\text{sink}}, \tau, R, P_0, \gamma \rangle
+\end{equation}
+where:
+\begin{itemize}
+    \item $V = V_{\text{dec}} \uplus V_{\text{prob}}$ is a finite set of states partitioned into player-controlled decision states $V_{\text{dec}}$ and stochastic (probabilistic) states $V_{\text{prob}}$.
+    \item $V_{\text{sink}} \subseteq V$ is a non-empty set of absorbing terminal (sink) states.
+    \item $E \subseteq V \times V$ is the set of directed transitions, with $E(u) = \{ (u, v) \in E \}$ denoting outgoing edges from vertex $u \in V$.
+    \item $\tau : V \to \{\text{DEC}, \text{PROB}\}$ assigns each vertex to its corresponding type.
+    \item $P_0 : E \to [0, 1]$ defines the transition probability distribution over outgoing edges for stochastic states, satisfying:
+    \begin{equation}
+    \sum_{(u, v) \in E(u)} P_0(u, v) = 1 \quad \forall u \in V_{\text{prob}} \setminus V_{\text{sink}}
+    \end{equation}
+    \item $R : V \to \mathbb{R}$ is the immediate reward function associated with state occupancy.
+    \item $\gamma \in [0, 1)$ is the discount factor ensuring geometric convergence of infinite-horizon returns.
+\end{itemize}
+
+\paragraph{Declarative Bellman CP Encoding}
+In our CP formulation, each vertex $v \in V$ is associated with a continuous decision variable $\mathbf{P}_v \in [\underline{B}, \overline{B}]$, representing the expected value function at state $v$. Theoretical bounds $\underline{B}$ and $\overline{B}$ are derived from reward extrema:
+\begin{equation}
+\overline{B} = 
+\begin{cases} 
+\frac{\max_{v \in V} R(v)}{1 - \gamma} & \text{if } \max_{v \in V} R(v) > 0 \\ 
+\max_{v \in V} R(v) & \text{otherwise} 
+\end{cases}
+\qquad
+\underline{B} = 
+\begin{cases} 
+\frac{\min_{v \in V} R(v)}{1 - \gamma} & \text{if } \min_{v \in V} R(v) < 0 \\ 
+\min_{v \in V} R(v) & \text{otherwise} 
+\end{cases}
+\end{equation}
+The system of constraints enforcing Bellman optimality~\cite{Bellman:1957:dynamic,Puterman:1994Markov} is defined as:
+\begin{enumerate}
+    \item \textbf{Terminal Boundary Conditions:}
+    \begin{equation}
+    \forall v \in V_{\text{sink}}, \quad \mathbf{P}_v = R(v)
+    \end{equation}
+    
+    \item \textbf{Stochastic Expectation Constraints:}
+    \begin{equation}
+    \forall v \in V_{\text{prob}} \setminus V_{\text{sink}}, \quad \mathbf{P}_v = R(v) + \gamma \sum_{(v, u) \in E(v)} P_0(v, u) \cdot \mathbf{P}_u
+    \end{equation}
+    
+    \item \textbf{Optimal Decision Constraints:}
+    \begin{equation}
+    \forall v \in V_{\text{dec}} \setminus V_{\text{sink}}, \quad \mathbf{P}_v = R(v) + \gamma \max_{(v, u) \in E(v)} \mathbf{P}_u
+    \end{equation}
+\end{enumerate}
+
+\paragraph{Optimal Policy Extraction}
+Upon finding a feasible assignment satisfying the system of constraints, the optimal deterministic policy $\pi^* : V_{\text{dec}} \to E$ maps each decision vertex to its optimal successor transition:
+\begin{equation}
+\pi^*(v) = \operatorname{arg\,max}_{(v, u) \in E(v)} \mathbf{P}_u \quad \forall v \in V_{\text{dec}} \setminus V_{\text{sink}}
+\end{equation}
+For stochastic and terminal states ($v \in V_{\text{prob}} \cup V_{\text{sink}}$), $\pi^*(v) = \bot$.
+
+\subsubsection{Adversarial Simple Stochastic Games (SSGs / $2\frac{1}{2}$-Player)}\label{sec:ssgs}
+
+Simple Stochastic Games (SSGs), introduced by Condon~\cite{Condon:1992:complexity}, represent the fundamental class of two-player zero-sum turn-based stochastic games with reachability objectives ($2\frac{1}{2}$-player games). In this framework, Player~1 ($\text{MAX}$) aims to maximize the probability of reaching a designated target/winning sink state, while Player~2 ($\text{MIN}$) acts adversarially to minimize this reachability probability. Because SSGs model qualitative reachability rather than geometric discounted cumulative payoffs, the discount factor is set to $\gamma = 1.0$, and state evaluations directly represent values $\mathbf{P}_v \in [0, 1]$.
+
+\paragraph{Formal Model Specification}
+We formalize a Simple Stochastic Game as a tuple:
+\begin{equation}
+\mathcal{G} = \langle V, E, V_{\text{sink}}, \tau, R, P_0 \rangle
+\end{equation}
+where:
+\begin{itemize}
+    \item $V = V_{\text{MAX}} \uplus V_{\text{MIN}} \uplus V_{\text{RND}} \uplus V_{\text{sink}}$ is the finite state space partitioned into Player~1 decision nodes ($V_{\text{MAX}}$), Player~2 decision nodes ($V_{\text{MIN}}$), stochastic average nodes ($V_{\text{RND}}$), and terminal sinks ($V_{\text{sink}}$).
+    \item $\tau : V \to \{\text{MAX}, \text{MIN}, \text{RND}, \text{SNK}\}$ defines the node typology.
+    \item $E \subseteq V \times V$ is the transition relation, with $E(u) = \{(u, v) \in E\}$ denoting outgoing moves from state $u$.
+    \item $P_0 : E \to [0, 1]$ specifies the probability distribution over successors for random nodes, satisfying $\sum_{(u, v) \in E(u)} P_0(u, v) = 1$ for all $u \in V_{\text{RND}}$.
+    \item $R : V_{\text{sink}} \to \{0, 1\}$ assigns characteristic reachability payoffs to terminal vertices (typically $R(v) = 1$ for the target/winning sink and $R(v) = 0$ for dead-end sinks; intermediate states carry $R(v) = 0$).
+\end{itemize}
+
+\paragraph{Declarative Bellman-Shapley CP Encoding}
+In our MiniZinc encoding, each state $v \in V$ is associated with a continuous probability variable $\mathbf{P}_v \in [0, 1]$, representing the value of the game under optimal adversarial play. The system is governed by the undiscounted Bellman-Shapley fixed-point equations:
+\begin{enumerate}
+    \item \textbf{Boundary Sinks:}
+    \begin{equation}
+    \forall v \in V_{\text{sink}}, \quad \mathbf{P}_v = R(v)
+    \end{equation}
+    
+    \item \textbf{Stochastic (Average) Transitions:}
+    \begin{equation}
+    \forall v \in V_{\text{RND}} \setminus V_{\text{sink}}, \quad \mathbf{P}_v = \sum_{(v, u) \in E(v)} P_0(v, u) \cdot \mathbf{P}_u
+    \end{equation}
+    
+    \item \textbf{Player 2 (Adversarial Minimization):}
+    \begin{equation}
+    \forall v \in V_{\text{MIN}} \setminus V_{\text{sink}}, \quad \mathbf{P}_v = \min_{(v, u) \in E(v)} \mathbf{P}_u
+    \end{equation}
+    
+    \item \textbf{Player 1 (Reachability Maximization):}
+    \begin{equation}
+    \forall v \in V_{\text{MAX}} \setminus V_{\text{sink}}, \quad \mathbf{P}_v = \max_{(v, u) \in E(v)} \mathbf{P}_u
+    \end{equation}
+\end{enumerate}
+
+\paragraph{Least Fixed-Point Resolution via Optimization}
+Because undiscounted reachability systems ($\gamma = 1.0$) can admit multiple fixed points in the presence of 0-reward cycles, the declarative formulation is coupled with an optimization objective:
+\begin{equation}
+\text{minimize} \quad \sum_{v \in V} \mathbf{P}_v
+\end{equation}
+This objective forces the solver to break cyclic symmetries and isolate the least fixed point, corresponding to the true reachability probabilities without spurious non-terminating probability mass.
+
+\paragraph{Equilibrium Policy Synthesis}
+Following fixed-point resolution, the positional optimal strategies for both players $\pi^* : (V_{\text{MAX}} \cup V_{\text{MIN}}) \to E$ are extracted greedily:
+\begin{equation}
+\pi^*(v) = 
+\begin{cases}
+\operatorname{arg\,max}_{(v, u) \in E(v)} \mathbf{P}_u & \text{if } v \in V_{\text{MAX}} \\
+\operatorname{arg\,min}_{(v, u) \in E(v)} \mathbf{P}_u & \text{if } v \in V_{\text{MIN}} \\
+\bot & \text{otherwise}
+\end{cases}
+\end{equation}
+
+\subsubsection{Connection to Stochastic Parity Games}
+It is worth noting from a theoretical standpoint that general stochastic parity games admit polynomial-time reductions to simple stochastic games with reachability objectives, as established by Berthon~\cite{Berthon:2017:reduction}. While this reduction demonstrates that SSG solvers can, in principle, serve as backend engines for qualitative and quantitative stochastic $\omega$-regular verification, our immediate focus remains on solving the core reachability semantics directly within the constraint satisfaction framework. We treat full algorithmic integration with parity reductions as an orthogonal consideration outside the scope of this baseline model.
+
+% -----------------------------------------------------------------------------
+
+\section{Plan for Completion}
+
+\subsection{Remaining Research Tasks}
+
+In the final 6 months of candidature, the following key milestones will be addressed:
+\begin{itemize}
+    \item Complete the multi-condition CP evaluation on the comprehensive benchmark suites, consolidating the final tool and journal submission for [\hyperref[sec:rq]{RQ3}].
+    \item Finalize the empirical comparison of the declarative SSG and MDP CP formulations against dedicated probabilistic model checkers (e.g., PRISM) to conclude [\hyperref[sec:rq]{RQ4}].
+    \item Complete drafting and internal review of all thesis chapters.
+\end{itemize}
+
+\subsection{Timeline and Milestone Schedule}
+
+Table~\ref{tab:planning} presents the revised timeline outlining the planned completion of each research task.
+
+\begin{table}[H]\centering
+    \newcommand{\y}{\cellcolor{black!50}}
+    \newcommand{\n}{\cellcolor{white!100}}
+    \newcolumntype{:}{!{\color{gray!20}\vrule}}
+    \begin{tabular}{|r p{7.9cm}|l:l|l:l:l:l|l:l:l:l|l:l:l:l|l:l|}
+        \hline
+            & \textbf{Activities} 
+            & \multicolumn{4}{c|}{\textbf{2023}} & \multicolumn{4}{c|}{\textbf{2024}} 
+            & \multicolumn{4}{c|}{\textbf{2025}} & \multicolumn{4}{c|}{\textbf{2026}} \\
+        \hline
+            & Literature review
+            & \n & \n & \y & \y & \y & \n & \n & \n & \n & \n & \n & \n & \n & \n & \n & \n \\
+        \arrayrulecolor{gray!20}\hline
+        \hyperref[sec:rq]{RQ1}
+            & Encoding \wregulargames into \constraintgames
+            & \n & \n & \n & \n & \n & \n & \y & \y & \y & \y & \y & \n & \n & \n & \n & \n \\
+        \hline
+        \hyperref[sec:rq]{RQ2}
+            & Solving Games with new constraint technologies
+            & \n & \n & \n & \y & \y & \y & \n & \y & \y & \y & \y & \n & \n & \n & \n & \n \\
+        \hline
+        \hyperref[sec:rq]{RQ3}
+            & Enhancing model with multiconditions
+            & \n & \n & \n & \n & \n & \n & \n & \n & \n & \y & \y & \y & \y & \y & \y & \y \\
+        \hline
+        \hyperref[sec:rq]{RQ4}
+            & Extending to stochastic \wregulargames
+            & \n & \n & \n & \n & \n & \n & \n & \n & \n & \n & \y & \y & \n & \n & \y & \y \\
+        \hline
+            & Thesis Writing
+            & \n & \n & \n & \n & \n & \n & \n & \n & \n & \n & \n & \n & \n & \y & \y & \y \\
+        \arrayrulecolor{black}\hline
+    \end{tabular}
+    \caption{Activity planning}
+    \label{tab:planning}
+\end{table}
+
+\subsection{Proposed Thesis Structure}
+
+The planned structure of the final PhD thesis is organized as follows:
+\begin{itemize}
+    \item \textbf{Chapter 1: Introduction} (Motivation, Problem Statement, and Research Objectives)
+    \item \textbf{Chapter 2: Preliminaries and Literature Review} ($\omega$-Regular Games, Constraint Programming, and Game Reductions)
+    \item \textbf{Chapter 3: Constraint Solving for Deterministic Parity Games} (Covering RQ1 and RQ2; Boolean/Integer Encodings, Custom Propagators, and Heuristics)
+    \item \textbf{Chapter 4: Multi-Condition $\omega$-Regular Games} (Covering RQ3; Product Arena Augmentation and Compound Trap Decomposition)
+    \item \textbf{Chapter 5: Stochastic Games in Constraint Programming} (Covering RQ4; Bellman Encodings for MDPs and Fixed-Point SSG Optimization)
+    \item \textbf{Chapter 6: Conclusions and Future Research Directions}
+\end{itemize}
+
+% -----------------------------------------------------------------------------
+
+\bibliographystyle{acm}
+\bibliography{main}
+
+\newpage
+
+\begin{appendices}
+\addtocontents{toc}{\protect\setcounter{tocdepth}{0}}
+
+\section{Detailed Specification: The Integer Formulation (\nooppc-Int)}\label{apx:integer}
+
+\section{Detailed Specification: Search Strategies and Heuristics}\label{apx:heuristics}
+\addtocontents{toc}{\protect\setcounter{tocdepth}{2}}
+\end{appendices}
+
+\end{document}

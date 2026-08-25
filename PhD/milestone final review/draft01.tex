@@ -27,6 +27,10 @@
 
 \input{macros}
 
+\hypersetup{
+    pdftitle={PhD Final Review Report},
+    pdfauthor={Gonzalo Hernandez}
+}
 
 \makeatletter
 
@@ -112,7 +116,7 @@ Building on the research questions defined in my first year, we have refined our
 
 \section{Methodology and Progress}
 
-\subsection{Modelling [\hyperref[sec:rq]{RQ1, RQ2}]}
+\subsection{Modelling [\hyperref[sec:rq]{RQ1, RQ2}]}\label{sec:paritygames}
 
 Parity games are two-player, zero-sum games played on a directed graph called the \textit{arena}. Two players, \textit{Even} and \textit{Odd} (denoted~\even{} or $0$, and~\odd{} or $1$, respectively), move a token along outgoing edges depending on who controls the current vertex, generating an infinite path of visited states. Every path is winning for exactly one player, and each player's objective is to force a path that satisfies their winning parity condition.
 
@@ -187,7 +191,10 @@ A structural and computational comparison of these game classes is summarized in
 \textbf{Parity} & Qualitative & Positional & Positional & Memoryless & $\text{NP} \cap \text{co-NP}$ \\
 \textbf{Energy} & Quantitative & Positional & Positional & Memoryless & $\text{NP} \cap \text{co-NP}$~\cite{Chatterjee:2010EP} \\
 \textbf{Mean-Payoff} & Quantitative & Positional & Positional & Memoryless & $\text{NP} \cap \text{co-NP}$~\cite{ChatterjeeHJ05} \\ 
+
 \midrule
+\textbf{Parity $\land$ Reachability} & Hybrid & Finite ($|M|=2$) & Positional & Arena-Indep. & $\text{NP} \cap \text{co-NP}$ \\
+\textbf{Parity $\land$ Safety}       & Hybrid & Positional        & Positional & Memoryless   & $\text{NP} \cap \text{co-NP}$ \\
 \textbf{Gen. Büchi ($\bigwedge \text{Büchi}$)} & Qual. Comb. & Finite ($\mathcal{O}(k)$) & Positional & Arena-Indep.~\cite{Bouyer:2022} & $\text{P}$-complete \\
 \textbf{Multi-Parity ($\bigwedge \text{Parity}$)} & Qual. Comb. & Finite ($\mathcal{O}(d^k)$) & Positional & Arena-Indep.~\cite{Bouyer:2022} & $\text{co-NP}$-complete \\
 \textbf{Parity $\land$ Mean-Payoff} & Hybrid & Positional & Positional & Memoryless & $\text{NP} \cap \text{co-NP}$~\cite{ChatterjeeHJ05} \\
@@ -249,13 +256,153 @@ This decoupled architecture allows the solver to exploit rapid polynomial-time p
 
 \subsection{Stochastic \wregulargames [\hyperref[sec:rq]{RQ4}]}
 
-\subsubsection{Single-Agent Stochastic Games (MDPs)}
+Game-theoretic frameworks over graphs are fundamentally categorized by the nature of control and uncertainty governing state transitions, typically classified into three distinct paradigms~\cite{Chatterjee:2012Survey}:
 
-\todo{Complement with my current work}
+2-Player Games (Deterministic): Transitions are governed entirely by two adversarial players as presented in Section~\ref{sec:paritygames} to \ref{sec:multicondition_modelling}.
 
-\subsubsection{Two-Player Adversarial Stochastic Games (Simple Games)}
+$1\frac{1}{2}$-Player Games (Markov Decision Processes): A single player interacts with a stochastic environment. The state space is partitioned between player-controlled vertices and probabilistic (nature/random) vertices, modeling decision-making under stochastic uncertainty without an active adversary.
 
-\todo{Complement with my current work}
+$2\frac{1}{2}$-Player Games (Stochastic Games): Both competitive strategic interaction and environmental stochasticity are present. The state space is partitioned among Player~1, Player~2, and probabilistic vertices, requiring strategies that account for both adversarial behavior and random fluctuations.
+
+\subsubsection{Single-Player Stochastic Games (MDPs)}
+
+To solve infinite-horizon discounted Markov Decision Processes (MDPs) \cite{Puterman:1994Markov} within a declarative constraint programming paradigm, we directly encode the system of Bellman optimality equations \cite{Bellman:1957:dynamic} as a constraint satisfaction problem. Traditional approaches typically solve these systems via iterative numerical approximation (Value Iteration) or by framing them as an optimization problem over a system of inequalities (Linear Programming). In contrast, our formulation treats the value function over all states as a vector of continuous decision variables bounded by the theoretical reward extrema. Under this formulation, the core Bellman operators are mapped to declarative constraints over the state-transition graph:
+
+Terminal States: Enforce boundary conditions where state values are fixed directly to their immediate terminal payoff.
+
+Stochastic States: Enforce linear expectation constraints computing the discounted transition-probability-weighted sum over successor states.
+
+Decision States: Enforce non-linear maximization constraints over outgoing transitions to capture optimal action selection.By finding a feasible assignment for this system of constraints, the solver directly identifies the unique fixed point of the Bellman optimality operator $V^* = \mathcal{T}(V^*)$. Once the value assignments are established, the optimal deterministic policy $\pi^*$ is extracted by greedily selecting the successor transitions that maximize expected return at each decision node.
+
+\subsubsection{Formal Model Specification}
+
+We formalize the decision process over a graph-based Markov Decision Process (or turn-based probabilistic game graph) as a tuple:
+\begin{equation}
+\mathcal{M} = \langle V, E, V_{\text{sink}}, \tau, R, P_0, \gamma \rangle
+\end{equation}
+where:
+\begin{itemize}
+    \item $V$ is a finite set of states partitioned into player-controlled decision states $V_{\text{dec}}$ and stochastic (probabilistic) states $V_{\text{prob}}$, such that $V = V_{\text{dec}} \uplus V_{\text{prob}}$.
+    \item $V_{\text{sink}} \subseteq V$ is a non-empty set of absorbing terminal (sink) states.
+    \item $E \subseteq V \times V$ is the set of directed transitions. We denote the set of outgoing edges from a vertex $u \in V$ as $E(u) = \{ (u, v) \in E \}$.
+    \item $\tau : V \to \{\text{DEC}, \text{PROB}\}$ assigns each vertex to its corresponding type.
+    \item $P_0 : E \to [0, 1]$ defines the transition probability distribution over outgoing edges for stochastic states, satisfying:
+    \begin{equation}
+    \sum_{(u, v) \in E(u)} P_0(u, v) = 1 \quad \forall u \in V_{\text{prob}} \setminus V_{\text{sink}}
+    \end{equation}
+    \item $R : V \to \mathbb{R}$ is the immediate reward function associated with state occupancy.
+    \item $\gamma \in [0, 1)$ is the discount factor ensuring the geometric convergence of infinite-horizon returns.
+\end{itemize}
+
+\subsubsection{Constraint-Based Bellman Formulation}
+
+In our declarative constraint programming formulation, each vertex $v \in V$ is associated with a continuous decision variable $\mathbf{P}_v \in [\underline{B}, \overline{B}]$, representing the expected value function at state $v$. 
+
+The theoretical bounds $\underline{B}$ and $\overline{B}$ are derived from the reward extrema:
+\begin{equation}
+\overline{B} = 
+\begin{cases} 
+\frac{\max_{v \in V} R(v)}{1 - \gamma} & \text{if } \max_{v \in V} R(v) > 0 \\ 
+\max_{v \in V} R(v) & \text{otherwise} 
+\end{cases}
+\qquad
+\underline{B} = 
+\begin{cases} 
+\frac{\min_{v \in V} R(v)}{1 - \gamma} & \text{if } \min_{v \in V} R(v) < 0 \\ 
+\min_{v \in V} R(v) & \text{otherwise} 
+\end{cases}
+\end{equation}
+
+The system of constraints enforcing Bellman optimality~\cite{Bellman:1957:dynamic,Puterman:1994Markov} is defined as follows:
+
+\begin{enumerate}
+    \item \textbf{Terminal Boundary Conditions:}
+    \begin{equation}
+    \forall v \in V_{\text{sink}}, \quad \mathbf{P}_v = R(v)
+    \end{equation}
+    
+    \item \textbf{Stochastic Expectation Constraints:}
+    \begin{equation}
+    \forall v \in V_{\text{prob}} \setminus V_{\text{sink}}, \quad \mathbf{P}_v = R(v) + \gamma \sum_{(v, u) \in E(v)} P_0(v, u) \cdot \mathbf{P}_u
+    \end{equation}
+    
+    \item \textbf{Optimal Decision Constraints:}
+    \begin{equation}
+    \forall v \in V_{\text{dec}} \setminus V_{\text{sink}}, \quad \mathbf{P}_v = R(v) + \gamma \max_{(v, u) \in E(v)} \mathbf{P}_u
+    \end{equation}
+\end{enumerate}
+
+\subsubsection{Policy Extraction}
+
+Upon finding a feasible assignment satisfying the system of constraints, the optimal deterministic policy $\pi^* : V_{\text{dec}} \to E$ maps each decision vertex to its optimal successor transition:
+\begin{equation}
+\pi^*(v) = \operatorname{arg\,max}_{(v, u) \in E(v)} \mathbf{P}_u \quad \forall v \in V_{\text{dec}} \setminus V_{\text{sink}}
+\end{equation}
+For stochastic and terminal states ($v \in V_{\text{prob}} \cup V_{\text{sink}}$), $\pi^*(v) = \bot$.
+
+\subsubsection{Two-Player Adversarial Stochastic Games (Simple Stochastic Games)}
+
+Simple Stochastic Games (SSGs), introduced by Condon~\cite{Condon:1992:complexity}, represent the fundamental class of two-player zero-sum turn-based stochastic games with reachability objectives ($2\frac{1}{2}$-player games). In this framework, Player~1 ($\text{MAX}$) aims to maximize the probability of reaching a designated target/winning sink state, while Player~2 ($\text{MIN}$) acts adversarially to minimize this reachability probability. Because SSGs model qualitative reachability rather than geometric discounted cumulative payoffs, the discount factor is set to $\gamma = 1.0$, and state evaluations directly represent values $\mathbf{P}_v \in [0, 1]$.
+
+\paragraph{Formal Model Specification}
+We formalize a Simple Stochastic Game as a tuple:
+\begin{equation}
+\mathcal{G} = \langle V, E, V_{\text{sink}}, \tau, R, P_0 \rangle
+\end{equation}
+where:
+\begin{itemize}
+    \item $V = V_{\text{MAX}} \uplus V_{\text{MIN}} \uplus V_{\text{RND}} \uplus V_{\text{sink}}$ is the finite state space partitioned into Player~1 decision nodes ($V_{\text{MAX}}$), Player~2 decision nodes ($V_{\text{MIN}}$), stochastic average nodes ($V_{\text{RND}}$), and terminal sinks ($V_{\text{sink}}$).
+    \item $\tau : V \to \{\text{MAX}, \text{MIN}, \text{RND}, \text{SNK}\}$ defines the node typology.
+    \item $E \subseteq V \times V$ is the transition relation, with $E(u) = \{(u, v) \in E\}$ denoting outgoing moves from state $u$.
+    \item $P_0 : E \to [0, 1]$ specifies the probability distribution over successors for random nodes, satisfying $\sum_{(u, v) \in E(u)} P_0(u, v) = 1$ for all $u \in V_{\text{RND}}$.
+    \item $R : V_{\text{sink}} \to \{0, 1\}$ assigns characteristic reachability payoffs to terminal vertices (typically $R(v) = 1$ for the target/winning sink and $R(v) = 0$ for dead-end sinks; intermediate states carry $R(v) = 0$).
+\end{itemize}
+
+\paragraph{Constraint Programming Encoding}
+In our MiniZinc encoding, each state $v \in V$ is associated with a continuous probability variable $\mathbf{P}_v \in [0, 1]$, representing the value of the game under optimal adversarial play. The system is governed by the undiscounted Bellman-Shapley fixed-point equations:
+
+\begin{enumerate}
+    \item \textbf{Boundary Sinks:}
+    \begin{equation}
+    \forall v \in V_{\text{sink}}, \quad \mathbf{P}_v = R(v)
+    \end{equation}
+    
+    \item \textbf{Stochastic (Average) Transitions:}
+    \begin{equation}
+    \forall v \in V_{\text{RND}} \setminus V_{\text{sink}}, \quad \mathbf{P}_v = \sum_{(v, u) \in E(v)} P_0(v, u) \cdot \mathbf{P}_u
+    \end{equation}
+    
+    \item \textbf{Player 2 (Adversarial Minimization):}
+    \begin{equation}
+    \forall v \in V_{\text{MIN}} \setminus V_{\text{sink}}, \quad \mathbf{P}_v = \min_{(v, u) \in E(v)} \mathbf{P}_u
+    \end{equation}
+    
+    \item \textbf{Player 1 (Reachability Maximization):}
+    \begin{equation}
+    \forall v \in V_{\text{MAX}} \setminus V_{\text{sink}}, \quad \mathbf{P}_v = \max_{(v, u) \in E(v)} \mathbf{P}_u
+    \end{equation}
+\end{enumerate}
+
+\paragraph{Fixed-Point Resolution and Optimization}
+Because undiscounted reachability systems ($\gamma = 1.0$) can admit multiple fixed points in the presence of 0-reward cycles, the declarative formulation is coupled with an optimization objective:
+\begin{equation}
+\text{minimize} \quad \sum_{v \in V} \mathbf{P}_v
+\end{equation}
+This objective forces the solver to break cyclic symmetries and isolate the least fixed point, corresponding to the true reachability probabilities without spurious non-terminating probability mass.
+
+\paragraph{Adversarial Policy Synthesis}
+Following fixed-point resolution, the positional optimal strategies for both players $\pi^* : (V_{\text{MAX}} \cup V_{\text{MIN}}) \to E$ are extracted greedily:
+\begin{equation}
+\pi^*(v) = 
+\begin{cases}
+\operatorname{arg\,max}_{(v, u) \in E(v)} \mathbf{P}_u & \text{if } v \in V_{\text{MAX}} \\
+\operatorname{arg\,min}_{(v, u) \in E(v)} \mathbf{P}_u & \text{if } v \in V_{\text{MIN}} \\
+\bot & \text{otherwise}
+\end{cases}
+\end{equation}
+
+\paragraph{Connection to Stochastic Parity Games}
+It is worth noting from a theoretical standpoint that general stochastic parity games admit polynomial-time reductions to simple stochastic games with reachability objectives, as established by Berthon~\cite{Berthon:2017:reduction}. While this reduction demonstrates that SSG solvers can, in principle, serve as backend engines for qualitative and quantitative stochastic $\omega$-regular verification, our immediate focus remains on solving the core reachability semantics directly within the constraint satisfaction framework. We treat full algorithmic integration with parity reductions as an orthogonal consideration outside the scope of this baseline model.
 
 \section{Future Plan and Next Steps}
 
