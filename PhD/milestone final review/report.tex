@@ -75,19 +75,19 @@
 
 \subsection{Context and Motivation}
 
-Games played on graphs provide a foundational framework for the formal specification, verification, and synthesis of reactive systems. In this context, the interaction between a system controller and an adversarial environment is framed as an infinite-duration game over an arena. Recent literature has explored extensive formulations across qualitative criteria, quantitative payoff metrics, and multi-objective specifications~\cite{ChatterjeeHJ05,Chatterjee:2010:GMaE,Chatterjee:2010EP,Velner:2015,Bouyer:2022}. Moving beyond deterministic play, addressing environmental uncertainty brings stochastic $\omega$-regular games and probabilistic models into focus~\cite{Bellman:1957:dynamic,Puterman:1994Markov,Condon:1992:complexity,Chatterjee:2012Survey,Berthon:2017:reduction}.
+Games played on graphs provide a foundational framework for the formal specification, verification, and synthesis of reactive systems. In this context, the interaction between a system controller and an adversarial environment is framed as an infinite-duration game over these graphs, usually called \textit{arena}. Recent literature has explored extensive formulations across qualitative criteria, quantitative payoff metrics, and multi-objective specifications~\cite{ChatterjeeHJ05,Chatterjee:2010:GMaE,Chatterjee:2010EP,Velner:2015,Bouyer:2022}. Moving beyond deterministic play, addressing environmental uncertainty brings stochastic $\omega$-regular games and probabilistic models into focus~\cite{Bellman:1957:dynamic,Puterman:1994Markov,Condon:1992:complexity,Chatterjee:2012Survey,Berthon:2017:reduction}.
 
 \subsection{Aim and Problem Statement}
 
-\wregulargames are defined purely using utility functions, and usually modeled and solved using rigid methods that do not allow for modifications to the game without necessitating changes to the method itself. 
+Standard \wregulargames are typically defined with fixed winning conditions and solved using specialized algorithms that do not easily accommodate structural modifications or additional constraints without necessitating changes to the underlying solving method.
 
 \textit{Games} in \constraintform, on the other hand, offer richer modelling functionality by supporting global constraints that are common to all players.
 
-The objective of this project is to enhance the expressivity of \wregulargames with parity conditions, improve the efficiency of solving methods, and integrate \wregulargames into \constraintgames to fully leverage the advantages of constraint approaches.
+The objective of this project is to enhance the expressivity of \wregulargames, improve the efficiency of solving methods, and integrate \wregulargames into \constraintgames to fully leverage the advantages of constraint approaches.
 
 \subsection{Refined Research Questions}\label{sec:rq}
 
-Building on the research questions defined in my first year, we have refined our focus to games with parity conditions, which were further explored during my second year. As part of my third-year work, we aim to extend this scope to stochastic games. The refined research questions are as follows:
+Building on the research questions defined in my first year, we have refined our focus to games with parity conditions, which were further explored during my second year. As part of my third-year work, we aim to extend this scope to additional conditions and also stochastic \wregulargames. The refined research questions are as follows:
 
 \begin{itemize}[left=1.2cm]
     \item[\textbf{RQ1}] How can games in \wregularform with parity conditions be systematically translated into a \constraintform to enable the effective use of constraint-solving techniques?
@@ -96,7 +96,7 @@ Building on the research questions defined in my first year, we have refined our
 
     \item[\textbf{RQ3}] How can the proposed modelling framework for solving \wregulargames be extended to address games with multiconditions?
 
-    \item[\textbf{RQ4}] How can the CP-based modelling framework for \wregulargames be further extended to handle stochastic parity games?
+    \item[\textbf{RQ4}] How can the CP-based modelling framework for \wregulargames be further extended to handle stochastic \wregulargames?
 \end{itemize}
 
 \subsection{Summary of Contributions and Publications}
@@ -106,24 +106,24 @@ Building on the research questions defined in my first year, we have refined our
   \item We have published our method in CPAIOR~2026~\cite{Hernandez:2026:noc}.
   \item We have submitted an extension of our method encompassing multiconditions to CAV~2026 and ATVA~2026, both of which provided valuable feedback utilized to refine [\hyperref[sec:rq]{RQ3}].
   \item We have modeled stochastic \wregulargames within a constraint programming framework, encompassing both MDPs and Simple Stochastic Games [\hyperref[sec:rq]{RQ4}].
-  \item In addition to the refined research questions, we have proposed a novel method for solving games in normal form using clause learning, guided by \textit{utility}. This line of work remains ongoing as a parallel branch of my research.
+  \item In addition to the refined research questions, during the first year I proposed a novel method for solving normal-form games using clause learning, guided by \textit{utility}. This line of work remains ongoing as a parallel branch of my research
 \end{itemize}
 
 % -----------------------------------------------------------------------------
 
 \section{Research Methodology and Progress}
 
-\subsection{Constraint Solving for Deterministic Parity Games [\hyperref[sec:rq]{RQ1, RQ2}]}\label{sec:paritygames}
+The work presented in Section~\ref{sec:paritygames} has been completed and published, while the research described in Sections~\ref{sec:multicondition_modelling} and~\ref{sec:stochastic_games} is currently in progress and expected to be completed within the next four months.
 
-Parity games are two-player, zero-sum games played on a directed graph called the \textit{arena}. Two players, \textit{Even} and \textit{Odd} (denoted~\even{} or $0$, and~\odd{} or $1$, respectively), move a token along outgoing edges depending on who controls the current vertex, generating an infinite path of visited states. Every path is winning for exactly one player, and each player's objective is to force a path that satisfies their winning parity condition.
+\subsection{Constraint Solving for \wregulargames with parity conditions [\hyperref[sec:rq]{RQ1, RQ2}]}\label{sec:paritygames}
+
+These games, also known as Parity Games, are two-player, zero-sum games played on a directed graph called the \textit{arena}. Two players, \textit{Even} and \textit{Odd} (denoted~\even{} or $0$, and~\odd{} or $1$, respectively), move a token along outgoing edges depending on who controls the current vertex, generating an infinite path of visited states. Every path is winning for exactly one player, and each player's objective is to force a path to reach a trap where the the infinite play satisfies their winning parity condition.
 
 \subsubsection{Boolean Arena Formulation and Propagator Design}
 In~\cite{Hernandez:2026:noc}, we introduced a Constraint Programming (CP) model for parity games using Boolean decision variables. The formulation employs a custom propagator to evaluate parity conditions by systematically ruling out subgraphs (traps) where the opponent has a winning strategy. To exploit the game's inherent asymmetry, the model is solved in parallel from both players' perspectives. As a result, this method outperforms existing CP approaches and remains highly competitive against specialized state-of-the-art parity game solvers.
 
 \subsubsection{The Integer Formulation (\nooppc-Int)}\label{sec:noc_int}
-The Boolean encoding introduced in~\cite{Hernandez:2026:noc} translates naturally to standard SAT solvers, enabling straightforward implementation via state-of-the-art SAT solvers, where constraints $\mathcal{C}_{v_0}, \mathcal{C}_{\player}, \mathcal{C}_{\opponent}$, and $\mathcal{C}_{E}$ are naturally expressed as clauses. Furthermore, modern SAT solvers such as CaDiCaL provide external propagator interfaces to implement $\mathcal{C}_{\noc}$ \cite{Fazekas:2023}.
-
-However, to exploit higher-level domain filtering algorithms (e.g., bounds and domain consistency) available in native CP solvers, we generalize this formulation into an integer-based model. While preserving the core relational logic of the original definition in~\cite{Hernandez:2026:noc}, the domain representations and constraint definitions are updated accordingly. A comprehensive specification of this integer model---prepared for submission to the \textit{Artificial Intelligence} journal---is provided in Appendix~\ref{apx:integer}.
+To exploit higher-level domain filtering algorithms (e.g., bounds and domain consistency) available in native CP solvers, we generalize the boolean formulation into an integer-based model. While preserving the core relational logic of the original definition in~\cite{Hernandez:2026:noc}, the domain representations and constraint definitions are updated accordingly. A comprehensive specification of this integer model---prepared for submission to the \textit{Artificial Intelligence} journal---is provided in Appendix~\ref{apx:integer}.
 
 \subsubsection{Search Strategies and Game-Specific Heuristics}\label{sec:search_heuristics}
 In addition to the integer model, we refine the search procedure by introducing custom variable and value ordering heuristics. These strategies exploit the asymmetric decision scope of the player of interest and employ reachability-guided branching to prioritize influential plays. Full technical details of these search heuristics, also included in our journal submission, are provided in Appendix~\ref{apx:heuristics}.
@@ -239,7 +239,7 @@ This decoupled architecture allows the solver to exploit rapid polynomial-time p
 
 % -----------------------------------------------------------------------------
 
-\subsection{Stochastic Games and CP Formulations [\hyperref[sec:rq]{RQ4}]}\label{sec:stochastic_games}
+\subsection{Stochastic \wregulargames and CP Formulations [\hyperref[sec:rq]{RQ4}]}\label{sec:stochastic_games}
 
 Game-theoretic frameworks over graphs are fundamentally categorized by the nature of control and uncertainty governing state transitions, typically classified into three distinct paradigms~\cite{Chatterjee:2012Survey}:
 \begin{itemize}
@@ -408,26 +408,26 @@ Table~\ref{tab:planning} presents the revised timeline outlining the planned com
             & \multicolumn{4}{c|}{\textbf{2025}} & \multicolumn{4}{c|}{\textbf{2026}} \\
         \hline
             & Literature review
-            & \n & \n & \y & \y & \y & \n & \n & \n & \n & \n & \n & \n & \n & \n & \n & \n \\
+            & \n&\n&\y&\y&\y&\n&\n&\n&\n&\n&\n&\n&\n&\n&\n&\n \\
         \arrayrulecolor{gray!20}\hline
         \hyperref[sec:rq]{RQ1}
             & Encoding \wregulargames into \constraintgames
-            & \n & \n & \n & \n & \n & \n & \y & \y & \y & \y & \y & \n & \n & \n & \n & \n \\
+            & \n&\n&\n&\n&\n&\n&\y&\y&\y&\y&\y&\n&\n&\n&\n&\n \\
         \hline
         \hyperref[sec:rq]{RQ2}
             & Solving Games with new constraint technologies
-            & \n & \n & \n & \y & \y & \y & \n & \y & \y & \y & \y & \n & \n & \n & \n & \n \\
+            & \n&\n&\n&\y&\y&\y&\n&\y&\y&\y&\y&\n&\n&\n&\n&\n \\
         \hline
         \hyperref[sec:rq]{RQ3}
             & Enhancing model with multiconditions
-            & \n & \n & \n & \n & \n & \n & \n & \n & \n & \y & \y & \y & \y & \y & \y & \y \\
+            & \n&\n&\n&\n&\n&\n&\n&\n&\n&\y&\y&\y&\y&\y&\y&\y \\
         \hline
         \hyperref[sec:rq]{RQ4}
             & Extending to stochastic \wregulargames
-            & \n & \n & \n & \n & \n & \n & \n & \n & \n & \n & \y & \y & \n & \n & \y & \y \\
+            & \n&\n&\n&\n&\n&\n&\n&\n&\n&\n&\y&\y&\n&\n&\y&\n \\
         \hline
             & Thesis Writing
-            & \n & \n & \n & \n & \n & \n & \n & \n & \n & \n & \n & \n & \n & \y & \y & \y \\
+            & \n&\n&\n&\n&\n&\n&\n&\n&\n&\n&\n&\n&\n&\y&\y&\y \\
         \arrayrulecolor{black}\hline
     \end{tabular}
     \caption{Activity planning}
