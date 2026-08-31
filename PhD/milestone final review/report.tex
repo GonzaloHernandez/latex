@@ -24,6 +24,16 @@
 \usepackage{booktabs}
 \usepackage[toc,page]{appendix}
 
+\usepackage{tocloft}
+
+% Reduce vertical space before section/chapter entries
+\setlength{\cftbeforesecskip}{16pt}       % For article class (default is ~1em)
+\setlength{\cftbeforesubsecskip}{9pt}    % Subsections
+\setlength{\cftbeforesubsubsecskip}{9pt} % Subsubsections
+
+% If using 'report' or 'book' class, adjust chapter spacing:
+% \setlength{\cftbeforechapskip}{4pt}
+
 \input{macros}
 
 \hypersetup{
@@ -243,7 +253,7 @@ This decoupled architecture allows the solver to exploit rapid polynomial-time p
 
 Game-theoretic frameworks over graphs are fundamentally categorized by the nature of control and uncertainty governing state transitions, typically classified into three distinct paradigms~\cite{Chatterjee:2012Survey}:
 \begin{itemize}
-    \item \textbf{2-Player Games (Deterministic):} Transitions are governed entirely by two adversarial players as presented in Sections~\ref{sec:paritygames} and~\ref{sec:multicondition_modelling}.
+    \item \textbf{$2$-Player Games (Deterministic):} Transitions are governed entirely by two adversarial players as presented in Sections~\ref{sec:paritygames} and~\ref{sec:multicondition_modelling}.
     \item \textbf{$1\frac{1}{2}$-Player Games (Markov Decision Processes):} A single player interacts with a stochastic environment. The state space is partitioned between player-controlled vertices and probabilistic (nature/random) vertices, modeling decision-making under stochastic uncertainty without an active adversary.
     \item \textbf{$2\frac{1}{2}$-Player Games (Stochastic Games):} Both competitive strategic interaction and environmental stochasticity are present. The state space is partitioned among Player~1, Player~2, and probabilistic vertices, requiring strategies that account for both adversarial behavior and random fluctuations.
 \end{itemize}
@@ -378,7 +388,7 @@ Following fixed-point resolution, the positional optimal strategies for both pla
 \end{equation}
 
 \subsubsection{Connection to Stochastic Parity Games}
-It is worth noting from a theoretical standpoint that general stochastic parity games admit polynomial-time reductions to simple stochastic games with reachability objectives, as established by Berthon~\cite{Berthon:2017:reduction}. While this reduction demonstrates that SSG solvers can, in principle, serve as backend engines for qualitative and quantitative stochastic $\omega$-regular verification, our immediate focus remains on solving the core reachability semantics directly within the constraint satisfaction framework. We treat full algorithmic integration with parity reductions as an orthogonal consideration outside the scope of this baseline model.
+It is worth noting from a theoretical standpoint that general stochastic parity games admit polynomial-time reductions to simple stochastic games with reachability objectives, as established by Berthon~\cite{Berthon:2017:reduction}. While this reduction demonstrates that SSG solvers can, in principle, serve as backend engines for stochastic $\omega$-regular verification, our immediate focus remains on solving the core reachability semantics directly within the constraint satisfaction framework. We treat full algorithmic integration with parity reductions as an orthogonal consideration outside the scope of this baseline model.
 
 % -----------------------------------------------------------------------------
 
@@ -446,6 +456,12 @@ The planned structure of the final PhD thesis is organized as follows:
     \item \textbf{Chapter 6: Conclusions and Future Research Directions}
 \end{itemize}
 
+\section{Declaration of Generative AI Use}
+
+Generative Artificial Intelligence (GenAI) tools (specifically Google Gemini) were used solely for editorial assistance, grammar checking, and refining sentence structure during the preparation of this report.
+
+No GenAI tools were used to generate primary ideas, conduct research, generate data, or write core technical arguments. The author reviewed, verified, and takes full responsibility for all content, text, data, and conclusions presented in this document.
+
 % -----------------------------------------------------------------------------
 
 \bibliographystyle{acm}
@@ -456,9 +472,176 @@ The planned structure of the final PhD thesis is organized as follows:
 \begin{appendices}
 \addtocontents{toc}{\protect\setcounter{tocdepth}{0}}
 
-\section{Detailed Specification: The Integer Formulation (\nooppc-Int)}\label{apx:integer}
+\section{Detailed Specification: The Integer Formulation}\label{apx:integer}
+
+Definition in~\cite{Hernandez:2026:noc} introduces a Boolean encoding of the arena, enabling straightforward implementation via state-of-the-art SAT solvers, where constraints $\mathcal{C}_{v_0}, \mathcal{C}_{\player}, \mathcal{C}_{\opponent}$, and $\mathcal{C}_{E}$ are naturally expressed as clauses. Furthermore, modern SAT solvers such as CaDiCaL provide external propagator interfaces to implement $\mathcal{C}_{\noc}$ \cite{Fazekas:2023}.
+
+However, to leverage higher abstraction level filtering algorithms (e.g., maintaining bounds consistency) in CP solvers, we extend this formulation to an integer-based model. The variable structure and constraint logic remain identical to Definition in~\cite{Hernandez:2026:noc}, with the following updates:
+
+\paragraph{Variable Domains.} The variable set $\mathcal{X}$ defines a decision variable $x_v$ for each node $v \in V$ over an integer domain $\mathcal{D}_{\mathbb{Z}}(v)$, where $0$ indicates that a vertex is inactive ($\bot$). Specifically:
+\[
+\mathcal{D}_{\mathbb{Z}}(v) = 
+\begin{cases} 
+    \{0, \dots, d_v\} & \text{if } v \in V_{\player}, \text{ where } x_v = i > 0 \text{ selects the } i\text{-th successor } vE[i], \\
+    \{0, 1\} & \text{if } v \in V_{\opponent}, \text{ where } 1 \text{ denotes that every successor is selected,}
+\end{cases}
+\]
+where $d_v = |vE|$ represents the out-degree of vertex $v$.
+
+A key advantage of the integer formulation is the unification of node activation and outgoing edge selection into a single decision. For player vertices ($v \in V_{\player}$), the domain value $\mathcal{V}_v = i$ directly encodes the selected successor edge $(v, vE[i])$. For opponent vertices ($v \in V_{\opponent}$), the Boolean flag $\mathcal{V}_v = 1$ inherently implies that all outgoing edges are active. This reduces the total number of variables from $\mathcal{O}(|V| + |E|)$ to strictly $\mathcal{O}(|V|)$, drastically shrinking the solver's search space and the number of constraint clauses.
+
+\paragraph{Constraint Updates.} 
+By leveraging the integer domain encoding, edge variables are eliminated. The original constraint $\mathcal{C}_{\player}$ ($\sum \mathcal{E}_{(v,w)} = 1$) is subsumed by domain construction, while edge-to-vertex reachability ($\mathcal{C}_{E}$) is folded directly into $\mathcal{C}_{\player}$ and $\mathcal{C}_{\opponent}$:
+
+\begin{itemize}[leftmargin=3.0cm, labelwidth=2.8cm, align=right, itemsep=1.0ex, parsep=0pt]
+
+    \item [$\mathcal{C}_{v_0}$ :] $\mathcal{V}_{v_0} > 0$
+
+    \item [$\mathcal{C}_{\player}$ :] $\bigwedge_{v \in V_{\player}} \bigwedge_{i=1}^{d_v} \left( (\mathcal{V}_v = i) \rightarrow (\mathcal{V}_{vE[i]} > 0) \right)$
+
+    \item [$\mathcal{C}_{\opponent}$ :] $\bigwedge_{v \in V_{\opponent}} \left( \mathcal{V}_v > 0 \rightarrow \bigwedge_{w \in vE} \mathcal{V}_w > 0 \right)$
+
+    \item [$\mathcal{C}_{NOC}(f)$ :] $\bigwedge_{v_0, \dots, v_k} \left( \left( \bigwedge_{j=0}^{k-1} \text{Active}(v_j, v_{j+1}) \right) \to \bigwedge_{j=0}^{k-1} ((v_j = v_k) \to f(v_j, \dots, v_k)) \right)$
+
+\end{itemize}
+\noindent where the edge activation predicate $\text{Active}(v, w)$ for $w \in vE$ is defined as:
+\[
+\text{Active}(v, w) \equiv 
+\begin{cases} 
+    \mathcal{V}_v = \text{idx}_v(w) & \text{if } v \in V_{\player} \\
+    \mathcal{V}_v > 0 & \text{if } v \in V_{\opponent}
+\end{cases}
+\]
+\noindent where $\text{idx}_v(w) \in \{1, \dots, d_v\}$ denotes the unique index of successor $w$ in $vE$ (i.e., $vE[\text{idx}_v(w)] = w$).
+
+\begin{figure}
+    \centering
+    \includegraphics[width=0.35\textwidth]{images/game03.pdf}
+    \caption{Integer variable representation of the search state from Example in~\cite{Hernandez:2026:noc}. Domain values $\mathcal{V}_v = i$ directly designate the selected $i$-th successor $vE[i]$ for player vertices.}
+    \label{fig:game03}
+\end{figure}
+
+\paragraph{Revisiting Example of ~\cite{Hernandez:2026:noc} under Integer Variables.}
+To illustrate the difference in variable representation, consider the assignments described in Example in~\cite{Hernandez:2026:noc} and Figure~\ref{fig:game03}.  In \textit{Boolean/SAT Formulation}, The initial failing search state required assigning over  distinct Boolean variables: three vertex variables ($\mathcal{V}_0 = \mathcal{V}_1 = \mathcal{V}_2 = \top$) and four explicit edge variables ($\mathcal{E}_0 = \mathcal{E}_1 = \mathcal{E}_2 = \mathcal{E}_3 = \top$).  In \textit{Integer Formulation}, the explicit edge variables ($\mathcal{E}_e$) are eliminated entirely. Assuming $vE[1]$ corresponds to edge $\mathcal{E}_0$ for vertex $v_0$, the same initial state is encoded using only three vertex domain assignments:
+\[
+    \mathcal{V}_0 = \textcolor{blue}{1}, \quad \mathcal{V}_1 = \textcolor{blue}{1}, \quad \mathcal{V}_2 = \textcolor{blue}{1}
+\]
+Similarly, the second (satisfiable) assignment—which previously required setting 9 Boolean variables ($\mathcal{V}_0, \dots, \mathcal{V}_3$ and $\mathcal{E}_0, \mathcal{E}_1, \mathcal{E}_2, \mathcal{E}_4, \mathcal{E}_6$)—is now completely captured by assigning just four integer vertex variables:
+\[
+    \mathcal{V}_0 = \textcolor{blue}{1}, \quad \mathcal{V}_1 = \textcolor{blue}{1}, \quad \mathcal{V}_2 = \textcolor{blue}{2}, \quad \mathcal{V}_3 = \textcolor{blue}{1}
+\]
+
+The integer model replaces redundant edge choices with direct index selections, reducing both the number of active decision variables and the depth of the search tree.
+
+\begin{algorithm}[htb]
+\small
+\caption{\textbf{\textit{NOCEagerInt}}}
+\textbf{Input}: Vertex list $path_V$,\ Current vertex $v$,\ Former vertex $\textit{last}$,\ Flag $\textit{defined}$ \\
+\textbf{Output}: $\top$ is valid; $\bot$ otherwise
+\begin{algorithmic}[1]
+    \IF{$v \in path_V$} \label{alg:noc-eager-int:pathcheck}
+        \STATE $i_v \gets \textit{index}(v, path_V)$
+        \STATE $m \gets \max\{f(v') \mid v' \in path_V[i_v:]\}$
+        \IF{$m \text{ mod } 2 = \opponent$} \label{alg:noc-eager-int:checkopponent}
+            \STATE $\textit{reason} \gets \textit{clausify}(\neg path_V)$ \label{alg:noc-eager-int:reason}
+
+            \IF{$\textit{owner}(last)=\player$} \label{alg:noc-eager-int:filtering}
+            \STATE $index \gets \textit{idx}_{\textit{last}}(v)$
+            \STATE \textbf{if }not ($\mathcal{V}_{\textit{last}} \gets (\neq index, \textit{reason}))$ \textbf{then return $\bot$} \label{alg:noc-eager-int:filtering-player}
+            \ELSE
+                \STATE \textbf{if }not ($\mathcal{V}_{\textit{last}} \gets (0, \textit{reason}))$ \textbf{then return $\bot$} \label{alg:noc-eager-int:filtering-opponent}
+            \ENDIF
+        \ENDIF
+    \ELSIF{$\textit{defined}$} \label{alg:noc-eager-int:defcheck}
+        \IF{$\textit{owner}(v)=\player$}
+            \STATE $\textit{targetSet} \gets \{vE[\mathcal{V}_v]\}$ \label{alg:noc-eager-int:traversal-player}
+        \ELSE
+            \STATE $\textit{targetSet} \gets vE$ \label{alg:noc-eager-int:traversal-opponent}
+        \ENDIF
+
+        \FOR{$w \in \textit{targetSet}$} \label{alg:noc-eager-int:edgecheck}
+            \STATE $p_V \gets path_V \cup \{v\}$
+            \STATE $\textit{def} \gets \mathcal{V}[w] > 0$ \label{alg:noc-eager-int:def}
+            \STATE \textbf{if }not \textit{NOCEagerInt}(
+                $p_V$,
+                $w$,
+                $v$,
+                $\textit{def}$\ ) \textbf{then return $\bot$}
+        \ENDFOR
+    \ENDIF
+    \RETURN $\top$
+\end{algorithmic}
+\label{alg:noc-eager-int}
+\end{algorithm}
+
+\paragraph{\nooppc Updated:}
+
+Algorithm~\ref{alg:noc-eager-int} updates the eager propagator (\textit{NOCEager}) to operate directly over integer vertex domains ($\mathcal{V}$), eliminating all references to explicit edge variables ($\mathcal{E}$). The core modifications from Algorithm \noceager in~\cite{Hernandez:2026:noc} focus on conflict propagation and path exploration:
+
+When an illegal opponent cycle is detected, conflict clauses are framed over vertex variables ($\neg path_V$) rather than edge variables ($\neg path_E$). Instead of setting a single Boolean edge variable to false ($\mathcal{E}[e] \gets \bot$), propagation directly prunes the domain of the predecessor vertex $\textit{last}$ based on its owner where for vertices controlled by $\player$ the propagator prunes only the specific index corresponding to the offending successor ($\mathcal{V}_{\textit{last}} \neq \textit{idx}_{\textit{last}}(v)$) (Line~\ref{alg:noc-eager-int:filtering-player}), leaving other outgoing choices open. For opponent vertices, it invalidates the whole outgoing successor vertex, setting $\mathcal{V}_{\textit{last}} \gets 0$ (Line~\ref{alg:noc-eager-int:filtering-opponent}).
+
+Furthermore, instead of iterating over all non-false outgoing edges $e' \in \textit{edges}(v)$, line~\ref{alg:noc-eager-int:defcheck} constructs a candidate successor set ($\textit{targetSet}$) based on node ownership:
+For player nodes ($v \in V_{\player}$), traversal is restricted solely to the single successor $vE[\mathcal{V}_v]$ designated by the integer variable (Line~\ref{alg:noc-eager-int:traversal-player}) and for opponent nodes ($v \in V_{\opponent}$), the algorithm branches across all outgoing successors $vE$ (Line~\ref{alg:noc-eager-int:traversal-opponent}).
+
+Additionally, vertex assignment status ($\textit{def}$) is determined by verifying whether the target node is active ($\mathcal{V}[w] > 0$), replacing the Boolean edge evaluation ($\mathcal{E}[e'] = \top$) (Line~\ref{alg:noc-eager-int:def}).
 
 \section{Detailed Specification: Search Strategies and Heuristics}\label{apx:heuristics}
+
+Standard general-purpose search heuristics (such as VSIDS or $\text{dom}/\text{wdeg}$) branch indiscriminately across all unassigned variables in the solver's model. In parity games, this leads to redundant decision-making on unreached graph components or opponent vertices where no strategy choice is required. To overcome this, we design a customized, reachability-guided branching strategy (\nocbrancher) that focuses decisions exclusively on active, player-controlled choices.
+
+\paragraph{Player-Restricted Decision Scope.}
+
+Strategy synthesis requires determining choices solely for the searching player $\player$. For the opponent $\opponent$, vertex activation is deterministic: once an opponent node is active, constraint propagation automatically enforces that all of its outgoing edges are active. Consequently, the solver does not need to make decision steps on $\opponent$ vertices, as their outgoing transitions are fully determined by propagation once paths are established.
+
+Consequently, \nocbrancher redefines search termination (\textsf{finished}): search terminates as soon as all \emph{active} $\player$ choices are resolved.
+
+\paragraph{Reachability-Guided Branching Mechanism.}
+The brancher selects decision variables dynamically by following graph reachability top-down from active paths: 
+%
+Over \textit{Boolean Formulation} (see Algorithm~\ref{alg:brancher-bool}), edge decisions are strictly gated by vertex reachability. An outgoing edge $e \in \text{outs}(v)$ is eligible for branching if and only if its source player vertex $v \in V_{\player}$ has already been fixed as active ($\mathcal{V}_v = \top$). Unfixed outgoing edges $\mathcal{E}_e$ are then assigned sequentially. This prevents the solver from making arbitrary edge assignments in disconnected regions of the arena.
+%
+Over \textit{Integer Formulation} (see Algorithm~\ref{alg:brancher-int}), for player vertices $v \in V_{\player}$, decisions are made directly on the integer variable $\mathcal{V}_v$. The brancher scans candidate vertices and selects the first unfixed $\mathcal{V}_v$ whose inactive state $0$ has been pruned by reachability propagation ($\min(\mathcal{D}(\mathcal{V}_v)) > 0$). Assigning an integer value directly selects the successor edge $(v, vE[i])$, allowing reachability propagation to immediately activate target node domains before the next decision step.
+
+\begin{algorithm}[htb]
+\small
+\caption{\textbf{\textit{NOCBrancherBool}}}
+\textbf{Input}: Game graph $G$, vertex variables $\mathcal{V}$, edge variables $\mathcal{E}$, target player $\player$ \\
+\textbf{Output}: Decision variable $\mathcal{E}_e$ to branch on, or $\text{null}$ if finished
+\begin{algorithmic}[1]
+    \FOR{$v \in V$}
+        \IF{$\textit{owner}(v) = \player \textbf{ and } \textit{isFixed}(\mathcal{V}_v) \textbf{ and } \mathcal{V}_v = \top$}
+            \FOR{$e \in \textit{outs}(v)$}
+                \IF{\textbf{not } $\textit{isFixed}(\mathcal{E}_e)$}
+                    \RETURN $\mathcal{E}_e$
+                \ENDIF
+            \ENDFOR
+        \ENDIF
+    \ENDFOR
+    \RETURN $\text{null}$
+\end{algorithmic}
+\label{alg:brancher-bool}
+\end{algorithm}
+
+\begin{algorithm}[htb]
+\small
+\caption{\textbf{\textit{NOCBrancherInt}}}
+\textbf{Input}: Game graph $G$, vertex integer variables $\mathcal{V}$, target player $\player$ \\
+\textbf{Output}: Decision variable $\mathcal{V}_v$ to branch on, or $\text{null}$ if finished
+\begin{algorithmic}[1]
+    \FOR{$v \in V$}
+        \IF{$\textit{owner}(v) = \player \textbf{ and } \textbf{not } \textit{isFixed}(\mathcal{V}_v)$}
+            \IF{$\min(\mathcal{D}(\mathcal{V}_v)) > 0$} 
+                \RETURN $\mathcal{V}_v$
+            \ENDIF
+        \ENDIF
+    \ENDFOR
+    \RETURN $\text{null}$
+\end{algorithmic}
+\label{alg:brancher-int}
+\end{algorithm}
+
+By coupling decision variable selection directly with reachability, \nocbrancher ensures that search tree exploration constructs a memoryless winning strategy outward from $v_0$, drastically pruning irrelevant search subtrees.
+
 \addtocontents{toc}{\protect\setcounter{tocdepth}{2}}
 \end{appendices}
 
