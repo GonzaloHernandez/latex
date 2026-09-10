@@ -53,21 +53,21 @@
 \def\textpagefraction{.001}
 
 % Short title
-\shorttitle{}    
+\shorttitle{Constraint Parity Games}
 
 % Short author
-\shortauthors{}  
+\shortauthors{H. Gonzalo et al.}  
 
 % Main title of the paper
-\title [mode = title]{A Constraint-base approach for solving Parity Games}  
+\title [mode = title]{A Constraint-based Approach for Solving Parity Games}  
 
 % Title footnote mark
 % eg: \tnotemark[1]
-\tnotemark[1] 
+% \tnotemark[1] 
 
 % Title footnote 1.
 % eg: \tnotetext[1]{Title footnote text}
-\tnotetext[1]{} 
+% \tnotetext[1]{} 
 
 % First author
 %
@@ -82,69 +82,60 @@
 %       twitter=<twitter id>,
 %       linkedin=<linkedin id>,
 %       gplus=<gplus id>]
+% Short author running head (up top with \shorttitle)
+\shortauthors{G. Hernandez et al.}
 
-\author[1]{}%[<options>]
-
-% Corresponding author indication
+% First Author (Dual affiliation [1,2], Corresponding Author)
+\author[1,2]{Gonzalo Hernandez}[orcid=0000-0002-9740-2625]
 \cormark[1]
+\ead{gonzalo.hernandez@udenar.edu.co}
+\credit{Conceptualization, Methodology, Software, Writing - original draft}
 
-% Footnote of the first author
-\fnmark[1]
+% Second Author
+\author[1]{Julian Garcia}
+\ead{Julian.Garcia@monash.edu}
+\credit{Writing - review \& editing}
 
-% Email id of the first author
-\ead{}
+% Third Author
+\author[3]{Julian Gutierrez}
+\ead{J.Gutierrez@sussex.ac.uk}
+\credit{Writing - review \& editing}
 
-% URL of the first author
-\ead[url]{}
+% Fourth Author
+\author[1]{Jip Dekker}
+\ead{Jip.Dekker@monash.edu}
+\credit{Software, Writing - review \& editing}
 
-% Credit authorship
-% eg: \credit{Conceptualization of this study, Methodology, Software}
-\credit{}
+% Fifth Author
+\author[1]{Guido Tack}
+\ead{guido.tack@monash.edu}
+\credit{Supervision, Methodology, Writing - review \& editing}
 
-% Address/affiliation
-\affiliation[1]{organization={},
-            addressline={}, 
-            city={},
-%          citysep={}, % Uncomment if no comma needed between city and postcode
-            postcode={}, 
-            state={},
-            country={}}
 
-\author[2]{}%[]
+\affiliation[1]{organization={Faculty of Information Technology, Monash University},
+            state={Victoria},
+            country={Australia}}
 
-% Footnote of the second author
-\fnmark[2]
+\affiliation[2]{organization={Departamento de Sistemas, Universidad de Nariño},
+            state={Nariño},
+            country={Colombia}}
 
-% Email id of the second author
-\ead{}
+\affiliation[3]{organization={Department of Informatics, University of Sussex},
+            state={Brighton},
+            country={United Kingdom}}
 
-% URL of the second author
-\ead[url]{}
 
-% Credit authorship
-\credit{}
-
-% Address/affiliation
-\affiliation[2]{organization={},
-            addressline={}, 
-            city={},
-%          citysep={}, % Uncomment if no comma needed between city and postcode
-            postcode={}, 
-            state={},
-            country={}}
-
-% Corresponding author text
 \cortext[1]{Corresponding author}
 
 % Footnote text
-\fntext[1]{}
+% \fntext[1]{}
 
 % For a title note without a number/mark
 %\nonumnote{}
 
-\newpage
-\tableofcontents
-\newpage
+% \newpage
+% \tableofcontents
+% \newpage
 
 % Here goes the abstract
 \begin{abstract}
@@ -159,11 +150,11 @@ Because extra constraints can be seamlessly integrated, our framework provides a
 %\end{graphicalabstract}
 
 % Research highlights
-\begin{highlights}
-\item 
-\item 
-\item 
-\end{highlights}
+% \begin{highlights}
+% \item 
+% \item 
+% \item 
+% \end{highlights}
 
 
 % Keywords
@@ -174,26 +165,153 @@ Constraint programming  \sep Parity games \sep Verification.
 
 \maketitle
 
-\newpage
+% \newpage
 \section{Introduction}
+%Parity games are two-player zero-sum infinite-duration games played on a labeled directed graph, where vertices represent states of the players in the game and edges represent their possible available actions at every state. Solving these games is central to several techniques in automated formal verification, in particular for solving model checking and automated synthesis problems.
+
+%Since parity games are zero-sum, perfect-information games, solving them amounts to finding which player (usually called Player Even, or $\even$, and Player Odd, or $\odd$) has a winning strategy from a given starting vertex in the graph. It is known that deciding the winner in parity games is an $\mathsf{NP} \cap \mathsf{co\textit{-}NP}$ problem~\cite{Jurdziński:1998}, but it is not known whether or not they can be solved in polynomial time; a problem that has remained open for nearly 50 years. 
+% Due to the importance of parity games in formal verification, several algorithms have been developed \cite{Aggarwal:2023,Benerecetti:2025,Jurdziński:2000,Jurdziński:2022,Zielonka:1998}, all of which suffer from exponential running time limitations for specific classes of games. One such approach involves reducing the solution of a parity game to the solution of a SAT instance representing the game. The generated SAT instance is satisfiable if and only if Player Even has a winning strategy in the original game. This idea has a lot of potential given the advances in SAT-solving technology, but, as we will show later, it suffers from poor scalability due to the large size of the generated CNF formula for a given game.
+
+%In this paper, we address these scalability issues by developing a specialised propagator that takes into account the structure of parity games, resulting in significant improvements in performance and modelling power. In particular, we show that our method outperforms all other state-of-the-art constraint-based solvers.
+% Specifically, we propose replacing the SAT-based encoding used to forbid cycles corresponding to Player Odd wins in the game graph \cite{Heljanko:2012} with a set of efficient global constraint propagators; this significantly reduces the encoding size of the problem. Two of the proposed propagators are based on depth-first search, and a third is a checker that analyses the strongly connected components (SCCs) of the game graph. These propagators filter edges that would close winning cycles for a selected opponent player and generate explanations for each filtering step, enabling their integration into a Lazy Clause Generation solver~\cite{DBLP:journals/constraints/OhrimenkoSC09}.
+
+%We show that our implementation not only outperforms existing SAT and CP-based approaches but also achieves performance comparable to that of state-of-the-art specialized non-CP-based algorithms, often matching or exceeding their results. This work contributes to establishing the CP framework as a practical tool for solving both general and specialized classes of parity games.
+
+%The remainder of this paper is organized as follows. We first present the theoretical foundations and necessary definitions used in further sections, and then introduce our proposed approach -- including the design and implementation of the \noc propagators. After that, we provide different experimental results, a comparative analysis against state-of-the-art solvers, and present the extension of our method with additional constraints. At the end of the paper, we focus on the presentation of a number of concluding remarks, a discussion of our main findings, and some proposals for potential future research directions.
+
+
 Parity games are two-player zero-sum infinite-duration games played on a labeled directed graph, where vertices represent states of the players in the game and edges represent their possible available actions at every state. 
 Solving these games is central to several techniques in automated formal verification, in particular for solving model checking and automated synthesis problems.
+%
+More broadly, parity games provide a canonical algorithmic representation of
+$\omega$-regular winning conditions and arise naturally in the analysis of
+systems whose specifications involve nested least and greatest fixpoints.
+In particular, solving parity games is closely connected to model checking
+for the modal $\mu$-calculus, automata-theoretic verification, and the
+synthesis of reactive systems~\cite{vanDijk:2018,Zielonka:1998,Luttenberger:2020}.
+This connection is especially useful because parity games admit
+\emph{memoryless} winning strategies: whenever a player can win from a
+vertex, it can do so using a strategy that depends only on the current
+vertex. Consequently, algorithms for parity games can serve both as decision
+procedures and as mechanisms for extracting finite witnesses that can be
+interpreted as strategies or controllers.
 
 Since parity games are zero-sum, perfect-information games, solving them amounts to finding which player (usually called Player Even, or $\even$, and Player Odd, or $\odd$) has a winning strategy from a given starting vertex in the graph. 
-It is known that deciding the winner in parity games is an $\mathsf{NP} \cap \mathsf{co\textit{-}NP}$ problem~\cite{Jurdziński:1998}, but it is not known whether or not they can be solved in polynomial time; a problem that has remained open for nearly 50 years. 
+It is known that deciding the winner in parity games belongs to
+$\mathsf{UP} \cap \mathsf{co\text{-}UP}$, and therefore also to
+$\mathsf{NP} \cap \mathsf{co\text{-}NP}$~\cite{Jurdziński:1998}, but it
+remains unknown whether parity games can be solved in polynomial time.
 %
-Due to the importance of parity games in formal verification, several algorithms have been developed \cite{Aggarwal:2023,Benerecetti:2025,Jurdziński:2000,Jurdziński:2022,Zielonka:1998}, all of which suffer from exponential running time limitations for specific classes of games. 
-One such approach involves reducing the solution of a parity game to the solution of a SAT instance representing the game. The generated SAT instance is satisfiable if and only if Player Even has a winning strategy in the original game. 
-This idea has a lot of potential given the advances in SAT-solving technology, but, as we will show later, it suffers from poor scalability due to the large size of the generated CNF formula for a given game.
+The complexity landscape nevertheless changed substantially with the
+development of the first quasi-polynomial-time algorithms for parity
+games~\cite{Calude:2017,JurdzinskiLazic:2017}. Several subsequent approaches
+have obtained quasi-polynomial bounds through different characterisations of
+the problem~\cite{Parys:2019,Jurdziński:2022}. At the same time, specialised
+algorithms such as progress measures, recursive algorithms, and priority
+promotion remain highly effective in practice~\cite{Jurdziński:2000,
+Benerecetti:2025,vanDijk:2018}. Thus, parity games present an interesting
+algorithmic situation: their precise polynomial-time complexity is unresolved,
+strong worst-case algorithms are known, and highly optimised specialised
+methods perform very well empirically. This makes them an informative
+case to determine if more general solving frameworks can achieve
+comparable performance while retaining greater modelling flexibility.
+
+A different approach consists of reducing the solution of a parity game to
+a constraint problem, for example to a SAT instance representing the game.
+The generated SAT instance is satisfiable if and only if Player Even has a
+winning strategy in the original game. 
+This idea has a lot of potential given the advances in SAT-solving technology,
+but, as we will show later, it suffers from poor scalability due to the large
+size of the generated CNF formula for a given game.
+
+This limitation raises a more general question in constraint processing and
+automated reasoning: how much of the structure of a problem should be exposed
+directly to the solver rather than compiled into a generic low-level
+representation? The parity condition provides a particularly clear instance
+of this question. It is inherently a global property of an infinite play:
+whether a play is winning depends on the priorities that recur indefinitely,
+rather than on any individual transition considered in isolation.
+Encoding such a property using large collections of low-level variables
+and constraints can obscure the graph structure from which the condition
+originates. Constraint Programming (CP), in contrast, allows domain-specific
+reasoning to be encapsulated within \emph{global constraints}, while
+specialised propagators can exploit the underlying combinatorial structure
+directly~\cite{Apt:2003,Rossi:2006}. When combined with Lazy Clause Generation
+(LCG), such propagators can additionally explain their inferences as clauses,
+combining problem-specific propagation with the conflict learning mechanisms
+that make modern SAT solving so incredibly effective in practice~\cite{DBLP:journals/constraints/OhrimenkoSC09,
+Stuckey:2010}.
 
 In this paper, we address these scalability issues by developing a specialised propagator that takes into account the structure of parity games, resulting in significant improvements in performance and modelling power. 
-In particular, we show that our method outperforms all other state-of-the-art constraint-based solvers.
-%
-Specifically, we propose replacing the SAT-based encoding used to forbid cycles corresponding to Player Odd wins in the game graph \cite{Heljanko:2012} with a set of efficient global constraint propagators; this significantly reduces the encoding size of the problem. Two of the proposed propagators are based on depth-first search, and a third is a checker that analyses the strongly connected components (SCCs) of the game graph. These propagators filter edges that would close winning cycles for a selected opponent player and generate explanations for each filtering step, enabling their integration into a Lazy Clause Generation solver~\cite{DBLP:journals/constraints/OhrimenkoSC09}.
+In particular, we show that our method {\em outperforms all other state-of-the-art constraint-based solvers} in the literature. 
 
-We show that our implementation not only outperforms existing SAT and CP-based approaches but also achieves performance comparable to that of state-of-the-art specialized non-CP-based algorithms, often matching or exceeding their results. This work contributes to establishing the CP framework as a practical tool for solving both general and specialized classes of parity games.
+The key observation underlying our approach is that, once the choices of a
+positional strategy are represented in the game graph, the parity condition
+can be characterised through its recurrent cycle structure. Since the arena
+is finite, every infinite play eventually revisits vertices, and the winner
+is determined by the highest priority occurring in the recurrent part of the
+play. From the perspective of one player, it is therefore sufficient to rule
+out reachable cycles whose highest priority favours the opponent. This gives
+a direct graph-theoretic interpretation of the winning condition and motivates
+our \emph{No-Opponent-Cycle} (\noc) constraint: rather than representing the
+parity condition indirectly through a large auxiliary encoding, the solver
+reasons directly about the cycles that would invalidate a candidate winning
+strategy.
 
-The remainder of this paper is organized as follows. We first present the theoretical foundations and necessary definitions used in further sections, and then introduce our proposed approach -- including the design and implementation of the \noc propagators. After that, we provide different experimental results, a comparative analysis against state-of-the-art solvers, and present the extension of our method with additional constraints. At the end of the paper, we focus on the presentation of a number of concluding remarks, a discussion of our main findings, and some proposals for potential future research directions.
+Specifically, we propose replacing the SAT-based encoding used to forbid cycles corresponding to Player Odd wins in the game graph~\cite{Heljanko:2012} with a set of efficient global constraint propagators; this significantly reduces the encoding size of the problem. Two of the proposed propagators are based on depth-first search, and a third is a checker that analyses the strongly connected components (SCCs) of the game graph. These propagators filter edges that would close winning cycles for a selected opponent player and generate explanations for each filtering step, enabling their integration into a Lazy Clause Generation solver~\cite{DBLP:journals/constraints/OhrimenkoSC09}.
+
+An additional feature of this formulation is that it treats the two players
+symmetrically. Because parity games are determined, proving that one player
+cannot satisfy its winning constraints establishes that the other player
+wins. The cost of finding a winning strategy and the cost of refuting one
+need not be symmetric on a particular instance. We therefore exploit this
+duality by solving the game from both players' perspectives, allowing the
+computation to terminate as soon as either search establishes the winner.
+As our experiments show, this is particularly effective in conjunction with
+LCG, where many instances are resolved through comparatively short
+unsatisfiability proofs.
+
+We show that our implementation not only outperforms existing SAT and CP-based approaches but also achieves performance comparable to that of state-of-the-art specialized non-CP-based algorithms, often matching or exceeding their results. This work contributes to establishing the CP framework as a practical tool for solving both general and specialized classes of parity games, as well as some extensions with quantitative features. 
+
+Indeed, the use of a general constraint framework also provides a second advantage
+that is largely orthogonal to raw solving performance. In verification and
+synthesis applications, one may be interested not only in whether a winning
+strategy exists, but in strategies satisfying additional structural or
+quantitative requirements. Examples include resource or energy constraints,
+cost bounds, or restrictions on the strategies that may be selected
+\cite{ChatterjeeD12,Fijalkow:2014,Weinert:2016}. Such requirements typically
+require modifications to specialised game-solving algorithms. In a CP model,
+by contrast, they can be expressed as additional constraints while retaining
+the same core parity-game propagator. We use this flexibility later in the
+paper to illustrate how the framework can be adapted to constrained synthesis
+and quantitative variants of parity games.
+
+More generally, the approach explored in this paper illustrates a broader
+methodology for symbolic AI and automated reasoning. Many combinatorial
+reasoning problems admit highly specialised algorithms that exploit their
+mathematical structure, while general-purpose declarative solvers offer
+greater modelling flexibility but may lose some of this structure when the
+problem is compiled into low-level constraints. Global constraints provide
+a way of bridging these two approaches: problem-specific reasoning can be
+encapsulated in specialised propagators while search, learning, and the
+interaction with additional constraints remain delegated to a general-purpose
+solver. Parity games provide a particularly demanding setting in which to
+study this trade-off, since highly optimised specialised algorithms are
+available and the winning condition has a rich global graph structure. Our
+results therefore investigate not only a new way of solving parity games in practice,
+but also the extent to which domain-specific symbolic reasoning can be
+integrated effectively within a general constraint-solving architecture.
+
+This article substantially extends our preliminary conference
+work~\cite{Hernandez:2026:noc}. In addition to a more detailed presentation
+of the \noc framework and its propagators, we investigate alternative
+constraint formulations and solver back ends, provide an expanded analysis
+of search strategies and the duality between the two players, study resource
+utilisation and scalability on larger instances, and examine how the same
+constraint-based framework can accommodate additional requirements on
+winning strategies.
+
+The remainder of this paper is organized as follows. We first present the theoretical foundations and necessary definitions used in further sections, and then introduce our proposed approach -- including the design and implementation of the \noc propagators. After that, we provide different experimental results, a comparative analysis against state-of-the-art solvers, and present the extension of our method with additional constraints. At the end of the paper, we focus on the presentation of a number of concluding remarks, a discussion of the main findings, and some proposals for potential future research directions.
 
 \section{Preliminaries and Related Work}
 
@@ -359,7 +477,7 @@ If, in the end, all remaining single vertices lack both self-loops and $\opponen
             \STATE $v \gets$ an arbitrary vertex in $bestSet$
             \STATE \textbf{if }$\textit{priority}(v) \bmod 2 = \opponent$ \textbf{then return $\bot$} \label{alg:noc-checker:opponent}  
 
-            \STATE \textit{NOCChecker}($G \setminus bestSet$) \label{alg:noc-checker:recursion}
+            \STATE \textbf{if }not \textit{NOCChecker}($G \setminus bestSet$) \textbf{then return $\bot$} \label{alg:noc-checker:recursion}
         \ENDIF
     \ENDFOR
     \RETURN $\top$
@@ -397,13 +515,13 @@ In addition to \nocchecker, we also propose a complete propagator based on Depth
             \STATE $p_E \gets path_E \cup \{e'\}$
             \STATE $w \gets \textit{target}(e')$
             \STATE $\textit{def} \gets \mathcal{E}[e'] = \top$
-            \STATE \textit{NOCEager}(
+            \STATE \textbf{if }not \textit{NOCEager}(
                 $p_V$,
                 $p_E$,
                 $w$,
                 $e'$,
                 $\mathcal{E}$,
-                $\textit{def}$\ )
+                $\textit{def}$\ ) \textbf{then return $\bot$}
         \ENDFOR
     \ENDIF
     \RETURN $\top$
@@ -453,13 +571,13 @@ Remembering cycles is particularly effective in games where the number of cycles
             \STATE $w \gets \textit{target}(e')$
             \STATE $\textit{def} \gets \mathcal{E}[e'] = \top$
 
-            \IF{$(v_v, m_{memo}) = (-1, -1)$}
-                \STATE \textit{NOCMemo}($p_V, p_E, w, e', \mathcal{E}, def , \textit{memo}$)\label{alg:noc-memo:check1}
+            \IF{$(v_memo, m_{memo}) = (-1, -1)$}
+                \STATE \textbf{if }not \textit{NOCMemo}($p_V, p_E, w, e', \mathcal{E}, def , \textit{memo}$) \textbf{then return $\bot$} \label{alg:noc-memo:check1}
             \ELSE
                 \STATE $i_v \gets \textit{index}(v_{memo},\ path_V)$
                 \STATE $m = \max\{f(v') \mid v' \in path_V[i_v:]\}$
                 \IF{$m  > m_{memo}$}
-                    \STATE \textit{NOCMemo}($p_V, p_E, w, e', \mathcal{E}, def , \textit{memo}$)\label{alg:noc-memo:check2}
+                    \STATE \textbf{if }not \textit{NOCMemo}($p_V, p_E, w, e', \mathcal{E}, def , \textit{memo}$) \textbf{then return $\bot$} \label{alg:noc-memo:check2}
                 \ELSE
                     \STATE $\textit{memo}[e] \gets \textit{memo}[e']$
                 \ENDIF
@@ -477,27 +595,51 @@ The three versions of the \noc propagator can be used to solve parity games, wit
 
 As our experiments will demonstrate, solver performance is heavily dependent on the game's underlying structure. A key observation is the asymmetry in computational cost inherent in game structure: properties that challenge $\player$'s solution often simplify $\opponent$'s, and vice versa. This problem duality allows us to transform and simplify the solution. By exploiting this, we can avoid a worst-case scenario for one player by solving the game from the opposite perspective. Consequently, solving the game from both perspectives in parallel significantly improves overall efficiency. This acceleration is largely attributed to the \noc propagator's capacity to rapidly prune the search space by eliminating $\opponent$'s winning options, effectively proving $\player$ has no winning strategy. We execute both perspectives concurrently and use the result obtained by the faster computation.
 
+\begin{example}\label{exa:parallel}
+Consider solving the parity game instance \texttt{cliquegame-2000.gm} from two different initial positions, node $0$ and node $123$:
+
+\begin{verbatim}
+nocq --gm cliquegame-2000.gm --init 0 --noc-even --print-time --print-sat
+35.2712 EVEN (SAT)
+
+nocq --gm cliquegame-2000.gm --init 0 --noc-odd --print-time --print-sat
+0.03481 EVEN (UNSAT)
+
+nocq --gm cliquegame-2000.gm --init 123 --noc-even --print-time --print-sat
+0.0362277 ODD (UNSAT)
+
+nocq --gm cliquegame-2000.gm --init 123 --noc-odd --print-time --print-sat
+36.4283 ODD (SAT)
+\end{verbatim}
+
+\noindent
+In Example~\ref{exa:parallel}, we observe a dramatic runtime asymmetry between the two perspectives:
+\begin{itemize}
+    \item \textbf{Initial node $0$:} Proving directly that \even has a winning strategy takes $\approx 35.27$\,s (\texttt{SAT}). In contrast, checking the complementary perspective for \odd determines that \odd has no winning strategy in just $0.035$\,s (\texttt{UNSAT}), indirectly proving \even's victory.
+    \item \textbf{Initial node $123$:} The reverse occurs. Proving directly that \odd wins takes $\approx 36.43$\,s (\texttt{SAT}), whereas refuting \even's winning strategy takes only $0.036$\,s (\texttt{UNSAT}).
+\end{itemize}
+By launching both queries concurrently in parallel, the winning player is determined by the fastest terminating query (the \texttt{UNSAT} run) in under $0.04$\,s in both instances—achieving an empirical speedup of nearly three orders of magnitude.
+\end{example}
+
 As confirmed by additional experiments, we confirm that state-of-the-art methods cannot exploit this duality, demonstrating consistent performance regardless of which player wins.
 
 \subsection{The Integer Formulation (\nooppc-Int)}\label{sec:noc_int}
 
-Definition~\ref{def:csp} introduces a Boolean encoding of the arena, enabling straightforward implementation via state-of-the-art SAT solvers, where constraints $\mathcal{C}_{v_0}, \mathcal{C}_{\player}, \mathcal{C}_{\opponent}$, and $\mathcal{C}_{E}$ are naturally expressed as clauses. Furthermore, modern SAT solvers such as CaDiCaL provide external propagator interfaces to implement $\mathcal{C}_{\noc}$.
+Definition~\ref{def:csp} introduces a Boolean encoding of the arena, enabling straightforward implementation via state-of-the-art SAT solvers, where constraints $\mathcal{C}_{v_0}, \mathcal{C}_{\player}, \mathcal{C}_{\opponent}$, and $\mathcal{C}_{E}$ are naturally expressed as clauses. Furthermore, modern SAT solvers such as CaDiCaL provide external propagator interfaces to implement $\mathcal{C}_{\noc}$ \cite{Fazekas:2023}.
 
-However, to leverage domain-specific filtering algorithms (e.g., bounds consistency) in CP solvers, we extend this formulation to an integer-based model. The variable structure and constraint logic remain identical to Definition~\ref{def:csp}, with the following updates:
+However, to leverage higher abstraction level filtering algorithms (e.g., maintaining bounds consistency) in CP solvers, we extend this formulation to an integer-based model. The variable structure and constraint logic remain identical to Definition~\ref{def:csp}, with the following updates:
 
-
-
-
-\paragraph{Variable Domains.} The variable set $\mathcal{X}$ is redefined over integer domains $\mathcal{D}_{\mathbb{Z}}(v) \in \{0, \dots, d_v\}$, where $d_v = |vE|$ represents the out-degree for vertex $v \in V$, and $0$ indicates that a vertex is inactive ($\bot$). Specifically:
+\paragraph{Variable Domains.} The variable set $\mathcal{X}$ defines a decision variable $x_v$ for each node $v \in V$ over an integer domain $\mathcal{D}_{\mathbb{Z}}(v)$, where $0$ indicates that a vertex is inactive ($\bot$). Specifically:
 \[
-\mathcal{D}_{\mathbb{Z}}(v) \in 
+\mathcal{D}_{\mathbb{Z}}(v) = 
 \begin{cases} 
-    \{0, \dots, d_v\} & \text{if } v \in V_{\player}, \text{ where } \mathcal{V}_v = i > 0 \text{ selects the } i\text{-th successor } vE[i], \\
-    \{0, 1\} & \text{if } v \in V_{\opponent}, \text{ where } 1 \text{ denotes that every successor is selected.}
+    \{0, \dots, d_v\} & \text{if } v \in V_{\player}, \text{ where } x_v = i > 0 \text{ selects the } i\text{-th successor } vE[i], \\
+    \{0, 1\} & \text{if } v \in V_{\opponent}, \text{ where } 1 \text{ denotes that every successor is selected,}
 \end{cases}
 \]
+where $d_v = |vE|$ represents the out-degree of vertex $v$.
 
-A key advantage of the integer formulation is that edge variables ($\mathcal{E}_e$) are no longer required. For player vertices ($v \in V_{\player}$), the domain value $\mathcal{V}_v = i$ directly encodes the selected successor edge $(v, vE[i])$. For opponent vertices ($v \in V_{\opponent}$), the Boolean flag $\mathcal{V}_v = 1$ inherently implies that all outgoing edges are active. This reduces the total number of variables from $\mathcal{O}(|V| + |E|)$ to strictly $\mathcal{O}(|V|)$, drastically shrinking the solver's search space and the number of constraint clauses.
+A key advantage of the integer formulation is the unification of node activation and outgoing edge selection into a single decision. For player vertices ($v \in V_{\player}$), the domain value $\mathcal{V}_v = i$ directly encodes the selected successor edge $(v, vE[i])$. For opponent vertices ($v \in V_{\opponent}$), the Boolean flag $\mathcal{V}_v = 1$ inherently implies that all outgoing edges are active. This reduces the total number of variables from $\mathcal{O}(|V| + |E|)$ to strictly $\mathcal{O}(|V|)$, drastically shrinking the solver's search space and the number of constraint clauses.
 
 \paragraph{Constraint Updates.} 
 By leveraging the integer domain encoding, edge variables are eliminated. The original constraint $\mathcal{C}_{\player}$ ($\sum \mathcal{E}_{(v,w)} = 1$) is subsumed by domain construction, while edge-to-vertex reachability ($\mathcal{C}_{E}$) is folded directly into $\mathcal{C}_{\player}$ and $\mathcal{C}_{\opponent}$:
@@ -531,7 +673,7 @@ By leveraging the integer domain encoding, edge variables are eliminated. The or
 \end{figure}
 
 \paragraph{Revisiting Example~\ref{exa:jurd-2-1-f0} under Integer Variables.}
-To illustrate the difference in variable representation, consider the assignments described in Example~\ref{exa:jurd-2-1-f0} and Figure~\ref{fig:game03}.  In \textit{Boolean/SAT Formulation} The initial failing search state required assigning over  distinct Boolean variables: three vertex variables ($\mathcal{V}_0 = \mathcal{V}_1 = \mathcal{V}_2 = \top$) and four explicit edge variables ($\mathcal{E}_0 = \mathcal{E}_1 = \mathcal{E}_2 = \mathcal{E}_3 = \top$).  In \textit{Integer Formulation} The explicit edge variables ($\mathcal{E}_e$) are eliminated entirely. Assuming $vE[1]$ corresponds to edge $\mathcal{E}_0$ for vertex $v_0$, the exact same initial state is encoded using only three vertex domain assignments:
+To illustrate the difference in variable representation, consider the assignments described in Example~\ref{exa:jurd-2-1-f0} and Figure~\ref{fig:game03}.  In \textit{Boolean/SAT Formulation}, The initial failing search state required assigning over  distinct Boolean variables: three vertex variables ($\mathcal{V}_0 = \mathcal{V}_1 = \mathcal{V}_2 = \top$) and four explicit edge variables ($\mathcal{E}_0 = \mathcal{E}_1 = \mathcal{E}_2 = \mathcal{E}_3 = \top$).  In \textit{Integer Formulation}, the explicit edge variables ($\mathcal{E}_e$) are eliminated entirely. Assuming $vE[1]$ corresponds to edge $\mathcal{E}_0$ for vertex $v_0$, the same initial state is encoded using only three vertex domain assignments:
 \[
     \mathcal{V}_0 = \textcolor{blue}{1}, \quad \mathcal{V}_1 = \textcolor{blue}{1}, \quad \mathcal{V}_2 = \textcolor{blue}{1}
 \]
@@ -571,11 +713,11 @@ The integer model replaces redundant edge choices with direct index selections, 
         \FOR{$w \in \textit{targetSet}$} \label{alg:noc-eager-int:edgecheck}
             \STATE $p_V \gets path_V \cup \{v\}$
             \STATE $\textit{def} \gets \mathcal{V}[w] > 0$ \label{alg:noc-eager-int:def}
-            \STATE \textit{NOCEagerInt}(
+            \STATE \textbf{if }not \textit{NOCEagerInt}(
                 $p_V$,
                 $w$,
                 $v$,
-                $\textit{def}$\ )
+                $\textit{def}$\ ) \textbf{then return $\bot$}
         \ENDFOR
     \ENDIF
     \RETURN $\top$
@@ -587,7 +729,7 @@ The integer model replaces redundant edge choices with direct index selections, 
 
 Algorithm~\ref{alg:noc-eager-int} updates the eager propagator (\textit{NOCEager}) to operate directly over integer vertex domains ($\mathcal{V}$), eliminating all references to explicit edge variables ($\mathcal{E}$). The core modifications from Algorithm~\ref{alg:noc-eager} focus on conflict propagation and path exploration:
 
-When an illegal opponent cycle is detected, conflict clauses are framed over vertex variables ($\neg path_V$) rather than edge variables ($\neg path_E$). Instead of setting a single Boolean edge variable to false ($\mathcal{E}[e] \gets \bot$), propagation directly prunes the domain of the predecessor vertex $\textit{last}$ based on its owner where for vertices controled by $\player$ the propagator prunes only the specific index corresponding to the offending successor ($\mathcal{V}_{\textit{last}} \neq \textit{idx}_{\textit{last}}(v)$) (Line~\ref{alg:noc-eager-int:filtering-player}), leaving other outgoing choices open. For opponent vertices it invalidates the whole outgoing succesor vertex, setting $\mathcal{V}_{\textit{last}} \gets 0$ (Line~\ref{alg:noc-eager-int:filtering-opponent}).
+When an illegal opponent cycle is detected, conflict clauses are framed over vertex variables ($\neg path_V$) rather than edge variables ($\neg path_E$). Instead of setting a single Boolean edge variable to false ($\mathcal{E}[e] \gets \bot$), propagation directly prunes the domain of the predecessor vertex $\textit{last}$ based on its owner where for vertices controlled by $\player$ the propagator prunes only the specific index corresponding to the offending successor ($\mathcal{V}_{\textit{last}} \neq \textit{idx}_{\textit{last}}(v)$) (Line~\ref{alg:noc-eager-int:filtering-player}), leaving other outgoing choices open. For opponent vertices, it invalidates the whole outgoing successor vertex, setting $\mathcal{V}_{\textit{last}} \gets 0$ (Line~\ref{alg:noc-eager-int:filtering-opponent}).
 
 Furthermore, instead of iterating over all non-false outgoing edges $e' \in \textit{edges}(v)$, line~\ref{alg:noc-eager-int:defcheck} constructs a candidate successor set ($\textit{targetSet}$) based on node ownership:
 For player nodes ($v \in V_{\player}$), traversal is restricted solely to the single successor $vE[\mathcal{V}_v]$ designated by the integer variable (Line~\ref{alg:noc-eager-int:traversal-player}) and for opponent nodes ($v \in V_{\opponent}$), the algorithm branches across all outgoing successors $vE$ (Line~\ref{alg:noc-eager-int:traversal-opponent}).
@@ -640,7 +782,6 @@ Over \textit{Integer Formulation} (see Algorithm~\ref{alg:brancher-int}), for pl
     \FOR{$v \in V$}
         \IF{$\textit{owner}(v) = \player \textbf{ and } \textbf{not } \textit{isFixed}(\mathcal{V}_v)$}
             \IF{$\min(\mathcal{D}(\mathcal{V}_v)) > 0$} 
-            % \COMMENT{$v$ is active; inactive value $-1$ is pruned}
                 \RETURN $\mathcal{V}_v$
             \ENDIF
         \ENDIF
@@ -654,7 +795,7 @@ By coupling decision variable selection directly with reachability, \nocbrancher
 
 \section{Experiments and Evaluation}\label{sec:experiments}
 
-To evaluate our approach, we implemented the \noc propagators using the Constraint Programming (CP) solver Chuffed (version 0.12.1) \cite{chuffed:2018}. We used MiniZinc \cite{DBLP:conf/cp/NethercoteSBBDT07} to model additional constraints in selected experiments.
+To evaluate our approach, we implemented our method based on \noc propagators using the Constraint Programming (CP) solver Chuffed (version 0.12.1)~\cite{chuffed:2018} and Google OR-Tools (version 9.15)~\cite{Perron:2024}. We used MiniZinc~\cite{DBLP:conf/cp/NethercoteSBBDT07} to model additional constraints across selected experiments.
 
 For comparison, we employed several external state-of-the-art solvers: 
 \begin{itemize}
@@ -662,18 +803,21 @@ For comparison, we employed several external state-of-the-art solvers:
     \item State-of-the-Art (SOTA) Parity Game Solvers: We incorporated Oink (fresh GitHub version) \cite{vanDijk:2018}, which includes several high-performance algorithms like Priority Promotion ($\textbf{PP}$ and $\textbf{PP+}$) and Parys' improvements ($\textbf{PAR}$). We also included the Zielonka Recursive Algorithm ($\textbf{ZRA}$), with an improved attractor strategy as detailed in \cite{Aggarwal:2023}, which offers better performance. 
 \end{itemize}
 
-All experiments were conducted on an benchmarking cluster Intel Xeon 8260 CPU (24 cores, non-hyperthreaded) with 268.55 GB of RAM, running Linux, however our Slurm execution scripts strictly limit each instance to 8 GB of RAM and 1 Core. The complete source code, including implementations and experimental setups, is available at \todo{source code}.
+All experiments were conducted on an benchmarking cluster Intel Xeon 8260 CPU (24 cores, non-hyperthreaded) with 268.55 GB of RAM, running Linux, however our Slurm execution scripts strictly limit each instance to 8 GB of RAM and 1 Core. The complete source code, including implementations and experimental setups, is available at \cite{Hernandez:Github:NoOppnentCycle:2026}.
 
 We evaluated all algorithms using a standard benchmark set commonly employed in parity game research, drawing from the PGSolver Library \cite{Friedmann:2017} and the Benchmarks for Parity Games \cite{Keiren:2015}. The games were classified into four categories:
 
 \begin{itemize}
     \item Equivalence Checking ($\textbf{EqC}$): This group contains 69 games derived from formal equivalence checking problems, including strong bisimulation, weak bisimulation, and stuttering equivalence. These games are characterized by complex, structured connectivity patterns reflecting system design.
     \item Model Checking ($\textbf{MoC}$): This set consists of 90 games originating from temporal logic model checking ($\mu$-calculus) against system models. These instances are considered organic and reflect real-world verification challenges.
-    \item PGSolver Collection ($\textbf{PGS}$): This collection comprises 78 games sourced from the hardest known families of parity games, including ladder games, recursive ladder games, elevator verification, clique games, steady games, and Jurdziński games \cite{Benerecetti:2016}, likely to expose some of the worst performance.
+    \item PGSolver Collection ($\textbf{PGS}$): This collection comprises 76 games sourced from the hardest known families of parity games, including ladder games, recursive ladder games, elevator verification, clique games, steady games, and Jurdziński games \cite{Benerecetti:2016}, likely to expose some of the worst performance.
     \item Random Games ($\textbf{RaG}$): This category includes 75 randomly generated games with varying sizes and priority distributions, designed primarily to test the general robustness and average-case performance of solving algorithms.
 \end{itemize}
 
-The benchmark sets were partitioned into two distinct size categories for evaluation, optimizing for the feasibility of the Reduction to SAT approach on smaller instances and focusing on scalability for larger instances:
+To evaluate both the feasibility of the SAT reduction on smaller instances and solver scalability on larger ones, we partitioned the benchmark sets into two distinct size categories based on maximum vertex count. The smaller set consists of instances with up to $\approx 10^6$ vertices for \textit{Equivalence Checking} / \textit{Model Checking} and $\approx 10^3$ for \textit{PGSolver} / \textit{Random Games}. The larger set evaluates scalability with up to $\approx 3.5 \times 10^7$ vertices for \textit{Equivalence Checking} / \textit{Model Checking} and $\approx 10^5$ for \textit{PGSolver} / \textit{Random Games}.
+
+
+\subsection{Benchmarking against other state of the art algorithms}
 
 \begin{table}[ht]
 \centering
@@ -691,7 +835,8 @@ Oink(PP)        & 0.645         & 33/33 & 0.305         & 57/57 & 0.007         
 Oink(PP+)       & 0.644         & 33/33 & 0.305         & 57/57 & \textbf{0.007}& 23/23 &  0.001         & 25/25 \\
 Oink(PAR)       & 0.541         & 33/33 & 0.277         & 57/57 & 0.036         & 23/23 &  0.001         & 25/25 \\
 ZRA(ImpAttr)    & 0.539         & 33/33 & 0.266         & 57/57 & 0.154         & 23/23 & \textbf{0.001} & 25/25 \\
-\nocq(Ours)     & \textbf{0.398}& 33/33 & \textbf{0.201}& 57/57 & 0.016         & 23/23 &  0.003         & 25/25 \\
+\rowcolor{gray!20}
+\noc(Ours)      & \textbf{0.398}& 33/33 & \textbf{0.201}& 57/57 & 0.016         & 23/23 &  0.003         & 25/25 \\
 SAT(CaDiCaL)    & 60.732        & 19/33 & 75.560        & 23/57 & 6.815         & 22/23 &  2.086         & 25/25 \\
 SAT(Kissat)     & 113.050       &  2/33 & 79.001        & 21/57 & 6.064         & 22/23 &  2.628         & 25/25 \\
 SAT(MiniSat)    & 79.766        & 17/33 & 79.639        & 22/57 & 6.491         & 22/23 &  2.806         & 25/25 \\
@@ -716,11 +861,12 @@ Overall, \noc substantially outperforms all SAT-based methods, achieving up to t
 \textbf{Algorithm} & \multicolumn{2}{c|}{\textbf{EquivalenceCh}} & \multicolumn{2}{c|}{\textbf{ModelCh}} & \multicolumn{2}{c|}{\textbf{PGSolver}} & \multicolumn{2}{c}{\textbf{RandomG}} \\
  & Time & Solved & Time & Solved & Time & Solved & Time & Solved \\
 \midrule
-Oink(PP)        & 29.375         & 30/36 & 9.003         & 33/33 & 8.369         & 50/55 & 0.039         & 50/50 \\
-Oink(PP+)       & 29.392         & 30/36 & 8.986         & 33/33 & 8.371         & 50/55 & \textbf{0.039}& 50/50 \\
-Oink(PAR)       & 28.525         & 30/36 & 8.345         & 33/33 & 16.798        & 43/55 & 0.043        & 50/50 \\
-ZRA(ImpAttr)    & 21.249         & 35/36 & 8.606         & 33/33 & 16.632        & 43/55 & 0.042         & 50/50 \\
-\nocq(Ours)     & \textbf{13.502}& 36/36 & \textbf{3.838}& 33/33 & \textbf{5.659}& 54/55 & 0.081         & 50/50 \\
+Oink(PP)        & 29.375         & 30/36 & 9.003         & 33/33 & 8.293         & 48/53 & 0.039         & 50/50 \\
+Oink(PP+)       & 29.392         & 30/36 & 8.986         & 33/33 & 8.295         & 48/53 & \textbf{0.039}& 50/50 \\
+Oink(PAR)       & 28.525         & 30/36 & 8.345         & 33/33 & 16.536        & 42/53 & 0.043        & 50/50 \\
+ZRA(ImpAttr)    & \textbf{21.249}& 35/36 & 8.606         & 33/33 & 16.372        & 42/53 & 0.042         & 50/50 \\
+\rowcolor{gray!20}
+\noc(Ours)     & 22.049          & 36/36 & \textbf{7.719}& 33/33 & \textbf{7.984}& 52/53 & 0.383         & 50/50 \\
 \bottomrule
 \end{tabular}
 }
@@ -729,11 +875,158 @@ ZRA(ImpAttr)    & 21.249         & 35/36 & 8.606         & 33/33 & 16.632       
 
 Table~\ref{tab:biggames} presents the evaluation on large-scale benchmark instances, assessing the scalability of \noc against \zra and the Oink solver suite. SAT-based methods are omitted from this comparison, as they failed to scale to these instance sizes within feasible resource limits. 
 
-Overall, \noc exhibits superior scalability and solves the highest total number of instances across all benchmark suites ($173/174$). Crucially, on both \textsf{EquivalenceCh} and \textsf{ModelCh}, \noc achieves the best performance overall—outperforming \zra by over $1.5\times$ and $2.2\times$ in runtime, respectively, while being the only method to solve all 36 \textsf{EquivalenceCh} instances. On the \textsf{PGSolver} collection, \noc also delivers the top performance, cutting runtimes by up to $3\times$ compared to PAR/\zra and solving $54/55$ instances (compared to $50/55$ for Oink PP/PP+). Finally, while all solvers handle \textsf{RandomG} in under $0.1$ seconds, \noc maintains robust sub-second efficiency across the board, demonstrating that constraint-based propagators can outperform dedicated solvers on massive instances with up to 35 million vertices.
+Overall, \noc exhibits superior scalability and solves the highest total number of instances across all benchmark suites ($171/172$). Crucially, on \textsf{EquivalenceCh}, \noc is the only method to solve all 36 instances while maintaining runtime performance competitive with \zra. On \textsf{ModelCh}, \noc achieves the best overall runtime ($7.719$\,s). On the \textsf{PGSolver} collection, \noc also delivers top performance, cutting runtimes by over $2\times$ compared to Oink(PAR) and \zra while solving $52/53$ instances (compared to $48/53$ for Oink PP/PP+). Finally, while all solvers handle \textsf{RandomG} in under $0.4$ seconds, \noc maintains robust sub-second efficiency across the board, demonstrating that constraint-based propagators can outperform dedicated solvers on massive instances with up to 35 million vertices.
 
 The runtime metrics for the \noc and \zra approaches include both the solver execution time and the internal problem-preparation time (excluding I/O operations such as file reading). In contrast, for the SAT-based approaches we report only the solving time. This distinction is made because the preparation phase for the SAT-based methods—particularly the encoding generation—is substantially more expensive and was not a primary target of optimization in this work. 
 
-% Additional experiments comparing \noceager, \nocmemo, \nocchecker with \zra, together with their statistical analysis (AVG, SD, WR) presented in the online appendix \cite{Hernandez:Appendix:2025}, indicate that the \nocmemo implementation does not provide a significant performance advantage over the \noceager implementation on these benchmark instances.
+\subsection{Comparison between different versions of \noc}
+\begin{table}[ht]
+\centering
+\caption{Performance comparison between Boolean and Integer encodings of \noc using Chuffed and OR-Tools. Same configuration as Table~\ref{tab:biggames}.}
+\setlength{\tabcolsep}{1.2mm}
+{\small 
+\begin{tabular}{cl|rrr|rrr|rrr|rrr}
+\toprule
+\multicolumn{2}{c|}{\textbf{Solver}} & \multicolumn{3}{c|}{\textbf{EquivalenceCh}} & \multicolumn{3}{c|}{\textbf{ModelCh}} & \multicolumn{3}{c|}{\textbf{PGSolver}} & \multicolumn{3}{c}{\textbf{RandomG}} \\
+& & PTime & STime & Solved & PTime & STime & Solved & PTime & STime & Solved & PTime & STime & Solved \\
+\midrule
+\multirow{2}{*}{\rotatebox[origin=c]{90}{\textbf{Bool}}} 
+& Chuffed & 21.936 & \textbf{ 0.113} & 36/36 
+          &  7.689 & \textbf{ 0.030} & 33/33 
+          &  3.006 & \textbf{ 4.978} & 52/53 
+          &  0.289 & \textbf{ 0.094} & 50/50 \\
+& ORTools & 41.576 & 28.391 & 36/36 
+          & 14.472 & 13.246 & 32/33 
+          &  3.578 & 43.513 & 34/53 
+          &  0.296 &  3.027 & 49/50 \\
+\midrule
+\multirow{2}{*}{\rotatebox[origin=c]{90}{\textbf{Int}}} 
+& Chuffed & \textbf{16.107} & 99.565 &  8/36 
+          & \textbf{ 6.225} & 66.405 & 17/33 
+          & \textbf{ 1.357} &  7.436 & 51/53 
+          & \textbf{ 0.141} &  1.176 & 50/50 \\
+& ORTools & 73.646 & 99.406 & 32/36 
+          & 25.097 &  6.386 & 33/33 
+          &  4.320 &  9.995 & 49/53 
+          &  0.405 &  2.847 & 49/50 \\
+\bottomrule
+\end{tabular}
+}
+\label{tab:bool_int}
+\end{table}
+
+In the context of competitive parity game solving against state-of-the-art tools, the primary evaluation metric is the total execution time ($\textsf{TTime} = \textsf{PTime} + \textsf{STime}$). Our experimental evaluation proceeds in two phases: comparing the encoding paradigms and assessing the underlying solver engines.
+
+The Boolean formulation consistently outperforms the Integer encoding in solving tractability and overall coverage. On structured instances (\textbf{EquivalenceCh} and \textbf{ModelCh}), the Boolean model allows the solver to find solutions almost immediately ($\textsf{STime} < 0.12\,\text{s}$ with Chuffed). Conversely, the Integer model causes severe thrashing during search, driving Chuffed's $\textsf{STime}$ up to $99.565\,\text{s}$ and resulting in widespread timeouts. Although the Integer model yields slight reductions in preparation overhead ($\textsf{PTime}$) for Chuffed, this gain is negligible compared to the resulting penalty in search time. Consequently, the Boolean encoding provides the lowest end-to-end $\textsf{TTime}$.
+
+The performance of the solvers depends heavily on the chosen encoding. Chuffed is clearly superior for the Boolean model, achieving faster compilation times and orders-of-magnitude lower solving times than OR-Tools across all suites (solving $171/172$ vs.\ $151/172$ instances). However, OR-Tools displays higher robustness over the Integer representation, successfully solving $163/172$ instances compared to Chuffed's $126/172$, and maintaining a low $\textsf{STime}$ of $6.386\,\text{s}$ on \textbf{ModelCh}. Nonetheless, because OR-Tools consistently introduces higher $\textsf{PTime}$ overhead, the combination of the \textbf{Boolean encoding with Chuffed} delivers the best overall competitive performance.
+
+\def\sat#1{\sathelper#1\relax}
+\def\sathelper#1 #2 #3\relax{%
+  \textnormal{%
+    \makebox[1.0em][r]{#1}$|$\makebox[1.0em][r]{#2}$|$\makebox[1.0em][l]{#3}%
+  }%
+}
+
+\begin{table}[ht]
+\centering
+\caption{Performance comparison of \noc across three heuristic search strategies under Boolean and Integer encodings using Chuffed and OR-Tools. Same configuration as Table~\ref{tab:bool_int}.}
+
+\setlength{\tabcolsep}{3.8pt}
+
+\begin{tabular}{cc|l|rrr|rrr|rrr|rrr}
+\toprule
+\multicolumn{2}{c|}{\textbf{Solver}} & \textbf{Strategy} & 
+        \multicolumn{3}{c|}{\textbf{EquivalenceCh}($N{=}36$)} & 
+        \multicolumn{3}{c|}{\textbf{ModelCh}($N{=}33$)} & 
+        \multicolumn{3}{c|}{\textbf{PGSolver}($N{=}53$)} & 
+        \multicolumn{3}{c}{\textbf{RandomG}($N{=}50$)} \\
+& & 
+  & \multicolumn{1}{c}{\even} & \multicolumn{1}{c}{\odd} & \multicolumn{1}{r|}{\sat{S U T}} 
+  & \multicolumn{1}{c}{\even} & \multicolumn{1}{c}{\odd} & \multicolumn{1}{r|}{\sat{S U T}} 
+  & \multicolumn{1}{c}{\even} & \multicolumn{1}{c}{\odd} & \multicolumn{1}{r|}{\sat{S U T}} 
+  & \multicolumn{1}{c}{\even} & \multicolumn{1}{c}{\odd} & \multicolumn{1}{r}{\sat{S U T}}  \\
+\midrule
+\multirow{6}{*}{\rotatebox[origin=c]{90}{\textbf{Boolean}}} 
+& \multirow{3}{*}{\rotatebox[origin=c]{90}{Chuffed}} 
+& ValMin  & 19 & 17 & \sat{0 36 0} 
+          &  6 & 28 & \sat{0 33 0} 
+          & 31 & 45 & \sat{2 50 1} 
+          & 46 & 47 & \sat{5 45 0} \\
+
+& & Reach   & \textbf{36} & \textbf{36} & \sat{0 36 0} 
+            & \textbf{33} & \textbf{33} & \sat{0 33 0} 
+            & \textbf{31} & \textbf{47} & \sat{3 49 1} 
+            & 32 & 37 & \sat{0 49 1} \\
+            
+& & Rand    & 19 & 17 & \sat{0 36 0} 
+            &  6 & 27 & \sat{0 33 0} 
+            & 28 & 30 & \sat{1 36 16} 
+            & \textbf{49} & \textbf{48} & \sat{3 47 0} \\
+
+\cmidrule{2-15}
+& \multirow{3}{*}{\rotatebox[origin=c]{90}{ORTools}} 
+& ValMin    & 28 & 28 & \sat{0 36 0} 
+            & 30 & 31 & \sat{0 32 1} 
+            & \textbf{27} & 32 & \sat{0 34 19}
+            & \textbf{46} & 38 & \sat{3 46 1} \\
+
+& & Reach   & \textbf{36} & \textbf{36} & \sat{9 27 0} 
+            & \textbf{32} & \textbf{32} & \sat{13 19 1}
+            &         21  & \textbf{39} & \sat{7 39 7}
+            & 16 & 34 & \sat{0 49 1} \\
+            
+& & Rand    & 13 & 12 & \sat{0 21 15}
+            & 12 & 27 & \sat{0 31 2}
+            & 25 & 28 & \sat{0 34 19}
+            & 40 & \textbf{43} & \sat{3 46 1} \\
+\midrule
+\multirow{6}{*}{\rotatebox[origin=c]{90}{\textbf{Integer}}} 
+& \multirow{3}{*}{\rotatebox[origin=c]{90}{Chuffed}} 
+& ValMin    &  8 &  0 & \sat{0 8 28} 
+            &  3 & 15 & \sat{0 17 16} 
+            & 29 & \textbf{48} & \sat{3 48 2}
+            & 47 & 46 & \sat{6 44 0} \\
+
+& & Reach   & \textbf{ 9} & \textbf{ 9} & \sat{1 8 27} 
+            & \textbf{22} & \textbf{22} & \sat{16 17 0}
+            & \textbf{29} & 47 & \sat{9 41 3}
+            & 32 & 37 & \sat{0 49 1} \\
+            
+& & Rand    &  8 &  1 & \sat{0 9 27}
+            &  4 & 19 & \sat{0 23 10}
+            & 31 & 32 & \sat{5 30 18}
+            & \textbf{48} & \textbf{48} & \sat{4 46 0} \\
+
+\cmidrule{2-15}
+& \multirow{3}{*}{\rotatebox[origin=c]{90}{ORTools}} 
+& ValMin    & 25 & 30 & \sat{0 32 4}
+            & 31 & \textbf{32} & \sat{0 33 0} 
+            & \textbf{27} & 47 & \sat{5 44 4}
+            & \textbf{47} & \textbf{41} & \sat{3 46 1} \\
+
+& & Reach   & \textbf{31} & \textbf{32} & \sat{6 26 4}
+            & \textbf{33} & 31 & \sat{9 24 0}
+            & 25 & \textbf{48} & \sat{8 42 3} 
+            & 17 & 34 & \sat{0 49 1} \\
+            
+& & Rand    & 13 & 12 & \sat{0 21 15}
+            & 16 & 26 & \sat{0 31 2} 
+            & 27 & 28 & \sat{1 31 21}
+            & 44 & 37 & \sat{2 46 2} \\
+\bottomrule
+\end{tabular}
+\label{tab:branch_bool}
+\end{table}
+
+\subsection{Analysis of Search Strategies and Player Duality}
+Table~\ref{tab:branch_bool} breaks down the parallel execution of \noc into its dual search threads ($\even$ and $\odd$) and details the terminal resolution status \textbf{Satisfiable | Unsatisfiable | Timeout} ($\textsf{S}|\textsf{U}|\textsf{T}$).
+
+\paragraph{Player Duality and UNSAT-Driven Resolution.}
+Across all benchmark suites, problem resolution is overwhelmingly driven by unsatisfiability refutations ($\textsf{U}$) rather than direct satisfiable assignments ($\textsf{S}$). For instance, in \textsc{EquivalenceCh} and \textsc{ModelCh}, all completed instances under Boolean Chuffed are resolved exclusively through unsatisfiability proofs ($\textsf{U} = 36$ and $\textsf{U} = 33$, respectively, with $\textsf{S} = 0$). In two-player zero-sum parity games, establishing that one player cannot satisfy their winning condition immediately confirms the opponent's victory. Because refutation complexity varies depending on which player's winning condition is formulated, executing the $\even$ and $\odd$ perspectives in parallel ensures the solver terminates as soon as the faster UNSAT proof is established. Solvers equipped with lazy clause generation (such as Chuffed) exploit this asymmetry effectively by learning compact nogoods from conflict subtrees, yielding zero timeouts ($\textsf{T}{=}0$) across multiple benchmark sets.
+
+\paragraph{Heuristic Specialization.}
+The structural reachability heuristic (\textsf{Reach}) provides the highest consistency on structured benchmarks, resolving $100\%$ of \textbf{EquivalenceCh} and \textbf{ModelCh} instances in the Boolean setting. Crucially, while refutation via unsatisfiability remains the predominant resolution pathway across all suites, the reachability heuristic significantly enhances the solver's ability to identify direct satisfying assignments ($\textsf{S}$). By guiding search decisions along feasible game transitions rather than relying on arbitrary value orderings, \textsf{Reach} constructs valid winning strategies far more effectively—evident in \textbf{EquivalenceCh} and \textbf{ModelCh} under OR-Tools, where SAT-derived solutions increase noticeably (e.g., reaching $\textsf{S} = 9$ and $\textsf{S} = 13$, compared to $\textsf{S} = 0$ under \textsf{ValMin}). Conversely, randomized branching (\textsf{Rand}) proves superior on unstructured topologies (\textbf{RandomG}), effectively avoiding pathological search traps in dense random graphs where topological reachability offers little guidance.
 
 \subsection{Resource Utilization Analysis}
 
@@ -742,16 +1035,16 @@ We also evaluated the memory consumption of \noc compared to other methods.
 
 The results of these additional experiments are summarised in Figure~\ref{fig:peakofmemory}. While \noc requires at most 700MB of memory for games with 13 thousand vertices, and \zra up to 17MB, the SAT-based approaches consume significantly more. In particular, we see that CaDiCaL, MiniSat, and Kissat report memory usage exceeding 39~GB for the same instances.
 
-\begin{figure}
-    \centering
-    \includegraphics[width=0.7\textwidth]{images/peakmemory.pdf} 
-    \caption{Memory usage on Gb for solving  Jurdziński parity games (one of the hardest games in the PGSolver collection), constrained to 13 thousand vertices.}
-    \label{fig:peakofmemory}
-\end{figure}
-
 \section{Games with Additional Constraints}
 
 As we will see in this section, our method flexibly integrates additional constraints—such as quantitative or structural requirements—without any modification to the core algorithm. This inherent adaptability to various constraints is a decisive advantage over non-CP approaches, which necessitate custom adaptations for every additional set of constraints in the problem.
+
+\begin{figure}
+    \centering
+    \includegraphics[width=0.7\textwidth]{images/peakmemory.pdf} 
+    \caption{Memory usage in Gb for solving  Jurdziński parity games (one of the hardest games in the PGSolver collection), constrained to 13 thousand vertices.}
+    \label{fig:peakofmemory}
+\end{figure}
 
 \subsection{Automated Synthesis of Reactive Systems}
 
@@ -770,19 +1063,19 @@ To extract individual winning plays, we extend the CSP with variables and constr
 We then introduce three new constraints:
 \begin{itemize}
 \item ($\mathcal{C}_{\textit{path}}$): 
-$\mathsf{t} \in \{0..\mid V \mid -1\} \wedge \bigwedge_{s \in \{1..\mathsf{t}\}} \bigvee_{e=(v,w) \in E} (\mathcal{E}_e \wedge \mathcal{P}_{s-1} = v \wedge \mathcal{P}_s = w)$;
+$\mathsf{t} \in \{0 \dots |V| -1\} \wedge \bigwedge_{s \in \{1..\mathsf{t}\}} \bigvee_{e=(v,w) \in E} (\mathcal{E}_e \wedge \mathcal{P}_{s-1} = v \wedge \mathcal{P}_s = w)$;
 This ensures each step follows a valid edge;
 \end{itemize}
 
 \begin{itemize}
 \item ($\mathcal{C}_{\textit{cycle}}$): 
-$\mathsf{h} \in \{0..\mathsf{t}\} \wedge \mathcal{P}_{\mathsf{t}+1} = \mathcal{P}_\mathsf{h}$; \\
+$\mathsf{h} \in \{0 \dots \mathsf{t}\} \wedge \mathcal{P}_{\mathsf{t}+1} = \mathcal{P}_\mathsf{h}$; \\
 It ensures the cycle closes at position $\mathsf{t} + 1$;
 \end{itemize}
 
 \begin{itemize}
 \item ($\mathcal{C}_{\textit{unique}}$): 
-$\bigwedge_{i \neq j \in \{0..\mathsf{t}\}} (\mathcal{P}_i \neq \mathcal{P}_j)$; \\
+$\bigwedge_{i \neq j \in \{0 \dots \mathsf{t}\}} (\mathcal{P}_i \neq \mathcal{P}_j)$; \\
 This constraint enforces only one cycle.
 \end{itemize} 
 
@@ -809,15 +1102,14 @@ While a complete model would also enforce energy constraints over all finite pre
 Many other extensions---such as multi-dimensional energy bounds and other quantitative payoff constraints---can be modelled similarly using additional constraints or objective functions~\cite{bozzelly:2020,Fijalkow:2014,Mogavero:2015,Weinert:2016}. Further work is needed to precisely define each requirement and establish the appropriate constraints.
 
 \section{Conclusions}
-We have introduced a novel constraint-based approach for parity games which does not require integer-based progress measures. The experiments show that our method significantly outperforms existing constraint-based approaches, significantly reducing runtime and improving memory consumption by over 95\% on large instances, and it is competitive against non-CP-based solvers. 
+We have introduced a novel constraint-based approach for parity games which does not require integer-based progress measures. The experiments show that our method significantly outperforms existing constraint-based approaches, reducing runtime and improving memory consumption by over 95\% on large instances, while remaining competitive against state-of-the-art specialized non-CP solvers. 
 
-Our key innovation, replacing a SAT encoding with a global constraint, not only improves performance but also provides a flexible framework that can be easily extended to accommodate additional constraints, and therefore more complex requirements.  In this paper, we have shown that these improvements can enable practical verification of large-scale systems while maintaining the modularity and expressiveness of modern CP-based methods. 
+Our investigation into different modeling paradigms and search strategies highlights key trade-offs in constraint-based game solving. While the integer formulation substantially reduces the total variable count and compilation overhead by eliminating explicit edge variables, our empirical results demonstrate that the Boolean formulation coupled with Lazy Clause Generation provides superior solving tractability, enabling rapid nogood learning and immediate refutations. Furthermore, our customized reachability-guided branching heuristic (\nocbrancher) effectively confines the search space to active, player-controlled decisions, dramatically outperforming standard general-purpose variable selection on structured verification benchmarks, while randomized branching provides robustness on dense topologies. Exploiting player duality through concurrent bidirectional search proves crucial, consistently allowing the solver to terminate via the faster unsatisfiability proof.
 
-Our work goes beyond parity games by easily enabling new solutions to synthesis and providing the flexibility to adapt our core to solve multiplayer games, including more general games (e.g.,  \wregulargames \cite{Chatterjee:2012}). Our results demonstrate that constraint-based approaches with carefully designed global constraints offer a promising direction for practical formal verification tools that balance expressiveness and computational efficiency.
-
+Our key innovation—encapsulating cycle elimination within a specialized global constraint rather than a large static SAT encoding—not only improves performance but also provides a flexible framework that seamlessly accommodates additional structural and quantitative requirements, such as path extraction for reactive synthesis and energy constraints. This work demonstrates that constraint programming with domain-specific global propagators offers a practical, highly expressive, and computationally efficient foundation for modern formal verification tools.
 
 % To print the credit authorship contribution details
-\printcredits
+% \printcredits
 
 \newpage
 
