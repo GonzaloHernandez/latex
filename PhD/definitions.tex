@@ -1,5 +1,6 @@
-\documentclass{article}
-\usepackage[letterpaper, margin=1in]{geometry}
+\documentclass[12pt]{extarticle}
+% \documentclass{article}
+\usepackage[letterpaper, margin=0.2in]{geometry}
 \setlength{\parskip}{1em}
 \usepackage{graphicx}
 \setlength\parindent{0pt}
@@ -91,7 +92,7 @@ These types of Games are played on a directed graph called \textit{Arena}, with 
 
 \subsection{Arena}
 \definition{\textit{G} &$ =(V,E,f)$} 
-The Arena  $G$ is defined as a directed graph where vertices $V$ are connected by edges $E$, and each vertex has an additional property mapped by the function $f$.
+The Arena  $G$ is defined as a directed graph where a finite set of vertices $V$ are connected by edges $E$, and each vertex has an additional property mapped by the function $f$.
 
 \definition{\textit{uE} &$ :=\{v \in V \mid (u,v) \in E \} \neq \emptyset\ $ for all $u \in V$}
 Every vertex has at least one edge directed away from it. Therefore, we can infer that the graph must contain at least one cycle or infinite path.
@@ -107,13 +108,13 @@ In a \textit{omega-regular Game} $\Gamma^\omega$, played over a graph $G$, each 
 \definition{
     $\omega$ &$ = \langle t_0,t_1,\ldots,t_h,\ldots \rangle$ for all $h \geqslant 0$, where $(t_k,t_{k+1}) \in E$ for all $k \geqslant 0$
 }
-A play $\omega$ corresponds to an infinite path in $G$, where the initial $h$ states constitute a finite initial segment referred to as the \textit{history}, preceding the infinite segment.  $\Omega$ corresponds to every set of plays over $G$. 
+A play $\omega$ corresponds to an infinite path in $G$, where the initial $h$ states constitute a finite initial segment referred to as the \textit{history}, preceding the infinite segment.  $\Omega$ corresponds to the set of all plays over $G$. 
 
 \definition{$\sigma_i $&$ :V^*V_i \rightarrow V$}
-The function $\sigma$ over a $\omega$-regular game determines a \textit{Pure Strategy} for \textit{Player} $i$, assigning to each vertex $v \in V_i$ the next state $\sigma(v)$ such that $(v, \sigma(v)) \in S$.  This \textit{Strategy} is called \textit{positional} when $\sigma$ is calculated only taking account the current vertex, that is the case in \textit{Memory-less Games.} A \textit{Strategy Profile} $(\sigma_i)_{i \in \Pi}$ is a tuple consisting of every \textit{Strategy} chosen by each \textit{Player} $i$.
+The function $\sigma$ over a $\omega$-regular game determines a \textit{Pure Strategy} for \textit{Player} $i$, assigning to each vertex $v \in V_i$ the next state $\sigma(v)$ such that $(v, \sigma(v)) \in E$.  This \textit{Strategy} is called \textit{positional} when $\sigma$ is calculated only taking account the current vertex, that is the case in \textit{Memory-less Games.} A \textit{Strategy Profile} $(\sigma_i)_{i \in \Pi}$ is a tuple consisting of every \textit{Strategy} chosen by each \textit{Player} $i$.
 
 \definition{
-    $O_i $&$ = \{ O_i \in \Omega \mid O_i = W_i $ for all $i \in N$, where ($O_i \cap O_j) \neq \emptyset$ for all ($i \neq j) \in N \}$
+    $O_i $&$ = \{ O_i \in \Omega \mid O_i = W_i $ for all $i \in N$, where ($O_i \cap O_j) = \emptyset$ for all ($i \neq j) \in N \}$
 }
 The set $O_i$ correspond to the \textit{Objective} of \textit{Player} $i$, it contains the set of paths or plays where \textit{Player} $i$ wins $W_i$.  The \textit{Objectives} of every \textit{Player} are mutually exclusive.
 
@@ -125,6 +126,8 @@ In terms of applicability, we are focusing on \textit{Two-player Turn-based} mul
 
 \subsection{Winning conditions}
 
+The following conditions are stated as sets of plays won by Player 0; the objective of Player 1 is the complement $\Omega \setminus W_0$.
+
 \definition{
     \textit{Reach(M)} &$ = \{\langle t_0,t_1,\ldots \rangle \in \Omega \mid t_k \in M$ for some $k \geqslant 0\}$
     \\ & \textit{Safe(M)} &$ = \{\langle t_0,t_1,\ldots \rangle \in \Omega \mid t_k \in M$ for all $k \geqslant 0\}$
@@ -132,36 +135,38 @@ In terms of applicability, we are focusing on \textit{Two-player Turn-based} mul
 \textit{Reachability} condition requires that some states in the set $M \subseteq V$ be visited. Similarly, \textit{Safety} condition requires that only the states in the set $M \subseteq V$ be visited.
 
 \definition{
-    \textit{Inf($\omega$)} &$ = \{t \in \langle t_0,t_1,\ldots \rangle \in \Omega \mid t_k = t$ for infinitely many $k \geqslant 0\}$
-    \\ & \textit{B\"uchi(M)} &$ = \{\omega \in \Omega \mid Inf(\omega) \cap M \neq \emptyset\}$
-    \\ & \textit{coB\"uchi(M)} &$ = \{\omega \in \Omega \mid Inf(\omega) \cap M = \emptyset\}$
+    \textit{Inf($\omega$)} &$ = \{v \in V \mid t_k = v$ for infinitely many $k \geqslant 0\}$, where $\omega = \langle t_0,t_1,\ldots \rangle$
+    \\ & \textit{B\"uchi(M)} &$ = \{\omega \in \Omega \mid \mathrm{Inf}(\omega) \cap M \neq \emptyset\}$
+    \\ & \textit{coB\"uchi(M)} &$ = \{\omega \in \Omega \mid \mathrm{Inf}(\omega) \cap M = \emptyset\}$
 }
 
-% The \textit{B\"uchi} condition requires that some state $B \subseteq S$ be visited infinitely often. On the opposite,  \textit{coB\"uchi} condition requires the any state $C \subseteq S$ be visited infinitely often.
+% The \textit{B\"uchi} condition requires that some state in $B \subseteq V$ be visited infinitely often. On the opposite,  \textit{coB\"uchi} condition requires that no state in $C \subseteq V$ be visited infinitely often.
 
-Having a set vertices that are reached infinitely many times, \textit{Inf($\omega$)}, a \textit{B\"uchi} condition requires that some states in the set $M \subseteq V$ be visited infinitely often. Conversely, the \textit{coB\"uchi} condition requires that any state in the set $M \subseteq V$ be visited infinitely often.
+Given the set of vertices visited infinitely often, \textit{Inf($\omega$)}, a \textit{B\"uchi} condition requires that some state in the set $M \subseteq V$ be visited infinitely often. Conversely, the \textit{coB\"uchi} condition requires that no state in the set $M \subseteq V$ be visited infinitely often (equivalently, $M$ is visited only finitely many times). Some authors (e.g.\ Chatterjee and Henzinger) state \textit{coB\"uchi} with the complementary set $C = V \setminus M$ as $\mathrm{Inf}(\omega) \subseteq C$, i.e.\ the play eventually remains in $C$ forever; both formulations define the same condition.
 
 \definition{
-    \textit{Pairs} &$ = \{(B_1,F_1),\ldots,(B_d,F_d)\}$ where $1 \leqslant j \leqslant d $
-    \\ & \textit{Rabin(Pairs)} &$ = \{\omega \in \Omega \mid  \exists 1 \leqslant j \leqslant d (Inf(\omega) \cap B_j = \emptyset \wedge Inf(\omega) \cap F_j \neq \emptyset)\}$
-    \\ & \textit{Streett(Pairs)} &$ = \{\omega \in \Omega \mid  \forall 1 \leqslant j \leqslant d (Inf(\omega) \cap B_j \neq \emptyset \vee Inf(\omega) \cap F_j = \emptyset)\}$
+    \textit{Pairs} &$ = \{(B_1,F_1),\ldots,(B_d,F_d)\}$ where $B_j, F_j \subseteq V$
+    \\ & \textit{Rabin(Pairs)} &$ = \{\omega \in \Omega \mid  \exists 1 \leqslant j \leqslant d (\mathrm{Inf}(\omega) \cap B_j = \emptyset \wedge \mathrm{Inf}(\omega) \cap F_j \neq \emptyset)\}$
+    \\ & \textit{Streett(Pairs)} &$ = \{\omega \in \Omega \mid  \forall 1 \leqslant j \leqslant d (\mathrm{Inf}(\omega) \cap B_j \neq \emptyset \vee \mathrm{Inf}(\omega) \cap F_j = \emptyset)\}$
 }
 
-Given a set of vertex pairs $(B,F)$ where $B \subseteq V$ and $F \subseteq V$, a \textit{Rabin} condition requires that no vertex in $B$ is visited infinitely often and at least one vertex in $F$ is visited infinitely often. Contrarily, (in the context of $\neg p \vee q \equiv p \rightarrow q$) a \textit{Streett} condition requires that if some vertex in $B$ is visited infinitely often, then at least one vertex in $F$ must be visited infinitely often.
+Given a set of vertex pairs $(B_j,F_j)$ where $B_j \subseteq V$ and $F_j \subseteq V$, a \textit{Rabin} condition requires that, for some pair, no vertex in $B_j$ is visited infinitely often and at least one vertex in $F_j$ is visited infinitely often. Contrarily, (in the context of $\neg p \vee q \equiv p \rightarrow q$) a \textit{Streett} condition requires, for every pair, that if some vertex in $F_j$ is visited infinitely often, then at least one vertex in $B_j$ must be visited infinitely often. Hence $\textit{Streett(Pairs)} = \Omega \setminus \textit{Rabin(Pairs)}$. In the request--response formulation common in synthesis, $F_j$ plays the role of the \textit{request} and $B_j$ the role of the \textit{response}.
 
 \definition{
     \textit{priority} &$ : V \rightarrow \mathbb{N}_0 $
-    \\ & \textit{Parity} &$ =\{ \omega \in \Omega \mid max\{priority(t) \mid t \in $ \textit{Inf($\omega$)}$\}$ is even$\}$
+    \\ & \textit{Parity} &$ =\{ \omega \in \Omega \mid \max\{priority(t) \mid t \in $ \textit{Inf($\omega$)}$\}$ is even$\}$
 }
 
-Given a function \textit{prior} that assigns a non-negative integer $\mathbb{N}_0$ label to each vertex, the \textit{Parity} condition requires that the highest priority that is reached infinitely often must be \textit{even}.
+Given a function \textit{priority} that assigns a non-negative integer $\mathbb{N}_0$ label to each vertex, the \textit{Parity} condition requires that the highest priority that is visited infinitely often must be \textit{even} (\textit{max-even} convention). The \textit{min-even} convention, where the lowest priority visited infinitely often must be even, is also standard; the two are interconvertible by reversing the priorities.
 
 \definition{
-    \textit{M\"uller(M)} &$ =  \{\omega \in \Omega \mid $ \textit{Inf($\omega$)} $\in M$ where $M \subseteq 2^S \}$ 
+    \textit{Muller($\mathcal{F}$)} &$ =  \{\omega \in \Omega \mid \mathrm{Inf}(\omega) \in \mathcal{F}\}$ where $\mathcal{F} \subseteq 2^V$ 
 }
-The \textit{M\"uller} condition requires that the set of vertices visited infinitely often must be one of the sets of vertices specified in \textit{M}.
+The \textit{Muller} condition requires that the set of vertices visited infinitely often be exactly one of the sets in the family $\mathcal{F}$, called the \textit{Muller table}. Many authors define it over colours instead, as $\mathrm{Inf}(f(\omega)) \in \mathcal{F}$ with $\mathcal{F} \subseteq 2^L$.
 
-\subsection{Techniques for resolving}
+These conditions form a hierarchy: \textit{Reachability} and \textit{Safety} conditions can be reduced to \textit{B\"uchi} and \textit{coB\"uchi} conditions, which are special cases of \textit{Parity}; \textit{Parity} is a special case of both \textit{Rabin} and \textit{Streett}; and every condition above can be expressed as a \textit{Muller} condition. Regarding memory, both players have positional (memoryless) winning strategies for \textit{Reachability}, \textit{Safety}, \textit{B\"uchi}, \textit{coB\"uchi} and \textit{Parity}; in \textit{Rabin} games the \textit{Rabin} player has positional strategies while the \textit{Streett} player may require memory; \textit{Muller} games require finite memory in general. All these games are determined (Martin's Borel determinacy theorem), so the winning regions of the two players partition $V$.
+
+\section{Solving Deterministic \wregulargames}
 
 \definition{
     \textit{$Attr_i(Z)$} &$ =  \{v \in V_i \mid E(v) \cap Z \ne \emptyset\} \cup \{v \in V_{-i} \mid E(v) \cap Z \subseteq Z \}$ for all $Z \subseteq V$ and $i \in N$
@@ -198,8 +203,10 @@ Given a set of vertex $Z$ the attractor of $Z$ refers to a set of vertex that pl
     \\ & $\mathcal{C}_{\player} : \bigwedge_{v \in V_{\player}} (\mathcal{V}_v \rightarrow (\sum_{w \in vE} \mathcal{E}_{(v,w)}= 1))$
     \\ & $\mathcal{C}_{\opponent} : \bigwedge_{v \in V_{\opponent}} (\mathcal{V}_v \rightarrow \bigwedge_{w \in vE} \mathcal{E}_{(v,w)})$
     \\ & $\mathcal{C}_{\!E} : \bigwedge_{w \in V, w \neq v_0} ((\bigvee_{v \in Ew} \mathcal{E}_{(v,w)}) \rightarrow \mathcal{V}_w)$
-    \\ & $\mathcal{C}_{\subnoc} : \bigwedge_{v_0, \dots, v_k} ((\bigwedge_{i\in 0\dots k-1} \mathcal{E}_{(v_i,v_{i+1})}) \rightarrow \bigwedge_{j\in 0\dots k-1} (v_j=v_k \rightarrow \max\{\Omega(v_i) \mid i\in j\dots k\} \bmod 2 \ne \opponent))$
+    \\ & $\mathcal{C}_{\subnoc}(f) : \bigwedge_{v_0, \dots, v_k} \left( \left(\bigwedge_{i=0}^{k-1} \mathcal{E}_{(v_i,v_{i+1})}\right) \to \bigwedge_{j=0}^{k-1} ((v_j = v_k) \to f(v_j, \dots, v_k)) \right)$
+    \\ & $f(v_j, \dots, v_k) = \max\{\Omega(v_i) \mid i\in j\dots k\} \bmod 2 \ne \opponent$
 }
+The CSP for an arena $G$, starting vertex $v_0$ and searching from the perspective of player $\player \in \{0,1\}$ (with opponent $\opponent \neq \player$) has variables $\mathcal{X} = (\mathcal{V}_v)_{v \in V} \cup (\mathcal{E}_e)_{e \in E}$, all Boolean, so $\mathcal{D} = \{\bot,\top\}$. Constraints $\mathcal{C}_{v_0}$, $\mathcal{C}_{\opponent}$ and $\mathcal{C}_{\!E}$ correspond to $S_{v_0}$, $\Phi_\forall$ and $\Phi_V$ of the SAT reduction; $\mathcal{C}_{\player}$ adapts $\Phi_\exists$ to enforce \textit{exactly one} active outgoing edge for each vertex of $\player$. The progress measure $\Phi_A$ is replaced by the global constraint $\mathcal{C}_{\subnoc}$ (\noc), which holds iff for every path $v_0,\ldots,v_k$ with $1 \leq k \leq |V|$, whenever a cycle is formed by $v_j = v_k$ (for any $j < k$), $f$ validates that the parity of the maximum priority on that cycle differs from $\opponent$. That is, it forbids any active cycle won by the opponent, so $\player$ wins from $v_0$ iff the CSP is satisfiable.
 
 \subsection{NOCQ}
 
@@ -216,6 +223,42 @@ Given a set of vertex $Z$ the attractor of $Z$ refers to a set of vertex that pl
     \\ & $f_\eta(v_j, \dots, v_k) = \sum_{i=j}^{k-1} Q(v_i, v_{i+1}) \ge 0$
     \\ & $f_\mu(v_j, \dots, v_k) = \frac{1}{k-j} \sum_{i=j}^{k-1} Q(v_i, v_{i+1}) \ge \nu$
 }
+
+\subsection{MNOC}
+
+\definition{
+    \textit{GenB\"uchi($B_1,\ldots,B_m$)} &$ = \bigcap_{\ell=1}^{m} \textit{B\"uchi}(B_\ell) = \{\omega \in \Omega \mid \mathrm{Inf}(\omega) \cap B_\ell \neq \emptyset$ for all $1 \leqslant \ell \leqslant m\}$
+}
+A \textit{generalized B\"uchi} condition is a conjunction of $m$ B\"uchi conditions: Player \even must visit every set $B_1,\ldots,B_m \subseteq V$ infinitely often. The objective of Player \odd is the dual disjunction of \textit{coB\"uchi} conditions: eventually avoid some $B_j$ forever. Player \odd has positional winning strategies, while Player \even needs memory in general.
+
+\definition{
+    $G=(V,E,B_1,\ldots,B_m)$, $\mathcal{CSP = (X, D, C)}$, $\player = \even$, for all $1 \leqslant \ell \leqslant m$:
+    \\ & $\mathcal{C}^{\ell}_{v_0} : \mathcal{V}^{\ell}_{v_0} = \top$
+    \\ & $\mathcal{C}^{\ell}_{\player} : \bigwedge_{v \in V_{\player}} (\mathcal{V}^{\ell}_v \rightarrow (\sum_{w \in vE} \mathcal{E}^{\ell}_{(v,w)}= 1))$
+    \\ & $\mathcal{C}^{\ell}_{\opponent} : \bigwedge_{v \in V_{\opponent}} (\mathcal{V}^{\ell}_v \rightarrow \bigwedge_{w \in vE} \mathcal{E}^{\ell}_{(v,w)})$
+    \\ & $\mathcal{C}^{\ell}_{\!E} : \bigwedge_{(u,w) \in E} (\mathcal{E}^{\ell}_{(u,w)} \rightarrow \mathcal{V}^{\ell}_w)$
+    \\ & $\mathcal{C}^{\ell}_{\subnoc}(f_\ell) : \bigwedge_{v_0, \dots, v_k} \left( \left(\bigwedge_{i=0}^{k-1} \mathcal{E}^{\ell}_{(v_i,v_{i+1})}\right) \to \bigwedge_{j=0}^{k-1} ((v_j = v_k) \to f_\ell(v_j, \dots, v_k)) \right)$
+    \\ & $f_\ell(v_j, \dots, v_k) = \{v_j, \dots, v_k\} \cap B_\ell \neq \emptyset$
+}
+The \textit{multi-layer} CSP (MNOC) has one \textit{layer} per condition $B_\ell$, with variables $\mathcal{X} = \bigcup_{\ell=1}^{m} \left((\mathcal{V}^{\ell}_v)_{v \in V} \cup (\mathcal{E}^{\ell}_e)_{e \in E}\right)$, all Boolean. Each layer is a copy of the NOC encoding for the single B\"uchi condition $B_\ell$ (B\"uchi seen as parity: $f_\ell$ forbids active cycles that miss $B_\ell$). Layers are independent, i.e.\ a layer never switches to another during a play. Since each layer carries a positional condition for Player \even, enforcing \textit{exactly one} edge per layer loses no completeness and bounds the number of edges selected per vertex by $m$.
+
+\definition{
+    $\textit{sel}(v)$ &$ = \{w \in vE \mid \mathcal{V}^{\ell}_v \wedge \mathcal{E}^{\ell}_{(v,w)}$ for some $1 \leqslant \ell \leqslant m\}$ for all $v \in V_{\player}$
+    \\ & $R$ &$ = $ vertices reachable from $v_0$ via $(v,w)$ with $w \in \textit{sel}(v)$ if $v \in V_{\player}$, $w \in vE$ if $v \in V_{\opponent}$
+}
+The \textit{selection} $\textit{sel}(v)$ joins the edges chosen at $v$ by all layers, so $1 \leqslant |\textit{sel}(v)| \leqslant m$ for every reached vertex $v \in V_{\player}$. $R$ is the set of vertices that a play can visit when Player \even only uses selected edges and Player \odd moves freely.
+
+\definition{
+    $\textit{Closed}(X)$ &$ \iff \textit{sel}(v) \subseteq X$ for all $v \in X \cap V_{\player}$, and $vE \cap X \neq \emptyset$ for all $v \in X \cap V_{\opponent}$, where $X \subseteq V$
+    \\ & $\mathcal{C}_{M\!S\!C\!C}$ &$ : \bigwedge_{j=1}^{m} \neg \exists X \neq \emptyset \left(X \subseteq R \setminus B_j \wedge \textit{Closed}(X)\right)$
+}
+A set $X$ is \textit{closed} when the selected edges of Player \even cannot leave it and Player \odd can always stay inside it. A closed set inside $R \setminus B_j$ is a \textit{trap}: Player \odd can keep the play there forever and never visit $B_j$. The layers alone are unsound for conjunctions, since the union of individually winning layers may contain such a trap; $\mathcal{C}_{M\!S\!C\!C}$ forbids them. It is enforced by \textit{peeling} $R \setminus B_j$: repeatedly remove a vertex $v \in V_{\player}$ that has an edge leaving the current set that can still be selected (not $\bot$ in some layer), and a vertex $v \in V_{\opponent}$ with no successor left in the set. A non-empty remainder $S_j$ is a trap and raises a conflict, whose reason is the $\top$ path literals from $v_0$ into $S_j$ together with the $\bot$ escape literals $\mathcal{V}^{\ell}_v$ or $\mathcal{E}^{\ell}_{(v,w)}$ of every $v \in S_j \cap V_{\player}$ and edge leaving $S_j$. Peeling never removes a closed set, so it applies to partial assignments (\textit{eager} mode) as well as complete ones (\textit{lazy} mode).
+
+\definition{
+    $c_v$ &$ \in \{0,\ldots,|\textit{sel}(v)|-1\}$, $\textit{sel}(v) = \{w_0,\ldots,w_{|\textit{sel}(v)|-1}\}$ for all $v \in V_{\player}$
+    \\ & $\sigma_{\player}(v, c)$ &$ = w_{c_v}$, then $c_v := (c_v + 1) \bmod |\textit{sel}(v)|$
+}
+The strategy of Player \even is read off a solution with a \textit{round-robin} policy: every vertex $v \in V_{\player}$ keeps a counter $c_v$ over a fixed order of $\textit{sel}(v)$, and each visit to $v$ moves to $w_{c_v}$ and advances the counter. The memory is one counter per vertex of Player \even. Soundness: if $\mathcal{C}_{M\!S\!C\!C}$ holds, every round-robin play from $v_0$ belongs to \textit{GenB\"uchi($B_1,\ldots,B_m$)} against any strategy of Player \odd. A \textit{configuration} (current vertex, all counters) determines the move of Player \even, and there are finitely many of them; if a play avoided $B_j$ from some point on, a configuration would repeat, and the vertices visited between the repetitions form a non-empty closed set inside $R \setminus B_j$, contradicting $\mathcal{C}_{M\!S\!C\!C}$. The proof uses only $\mathcal{C}^{\ell}_{v_0}, \mathcal{C}^{\ell}_{\player}, \mathcal{C}^{\ell}_{\opponent}, \mathcal{C}^{\ell}_{\!E}$ and $\mathcal{C}_{M\!S\!C\!C}$; the layer constraints $\mathcal{C}^{\ell}_{\subnoc}$ act as guidance. Completeness: if Player \even wins from $v_0$, setting every layer to the winning region $W$ with a positional attractor strategy to $B_\ell \cap W$ satisfies all constraints, so UNSAT means Player \odd wins.
 
 \subsection{CrossNOCQ}
 
@@ -251,6 +294,10 @@ A cycle in G is defined as $C = (e_0, e_1, \dots, e_{k-1}) \textit{ where } e_i 
     $f_\omega(C) = \max\{\Omega(v) \mid v \in V(C)\} \bmod 2 \ne \opponent$
     \\ & $f_\eta(C) = \sum_{e \in C} Q(e) \ge 0$
     \\ & $f_\mu(C) = \frac{1}{|C|} \sum_{e \in C} Q(e) \ge \nu$}
+
+
+
+\section{Solving Stochastic \wregulargames}
 
 \subsection{MDPs}
 
@@ -292,8 +339,6 @@ $\mathcal{X} =
     \\ & $\mathcal{C}_{9}$ : $\bigwedge_{v \in V_{\rand}} (\mathcal{P}_v = (\sum_{w \in vE} C_{(v,w)} \times \mathcal{P}_{w}))$
 
 }
-
-
 
 
 

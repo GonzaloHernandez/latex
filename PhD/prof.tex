@@ -1,0 +1,249 @@
+\documentclass{article}
+\usepackage[letterpaper, margin=1in]{geometry}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{enumitem}
+
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
+\newtheorem{corollary}{Corollary}
+\newtheorem{fact}{Fact}
+\theoremstyle{definition}
+\newtheorem{definition}{Definition}
+\theoremstyle{remark}
+\newtheorem*{remark}{Remark}
+
+\newcommand{\Even}{\textsc{Even}}
+\newcommand{\Odd}{\textsc{Odd}}
+\newcommand{\vinit}{v_{\mathrm{init}}}
+\newcommand{\sel}{\mathit{sel}}
+\newcommand{\CNOC}{C_{\mathrm{NOC}}}
+\newcommand{\CTrap}{C_{\mathrm{Trap}}}
+
+\begin{document}
+
+\section*{Correctness of the layered model}
+
+\subsection*{Statement}
+
+Let $M$ be the full model: for every layer $k$, the NOC clauses, the
+exactly-one constraint and $\CNOC^{k}$, together with $\CTrap$.
+
+\begin{definition}
+Fix an assignment of $M$.
+\begin{itemize}
+  \item For an \Even{} vertex $v$, $\sel(v)$ is the set of edges of $v$
+    selected in some layer, i.e.\ edges $v \to w$ such that
+    $V_k[v] \wedge E_k[v \to w]$ is true for some $k$.
+  \item $R$ is the set of vertices reachable from $\vinit$ using selected
+    edges and all \Odd{} edges.
+  \item A set $X$ of vertices is \emph{closed} if every \Even{} vertex
+    $v \in X$ has $\sel(v) \subseteq X$, and every \Odd{} vertex $v \in X$ has
+    a successor in $X$.
+  \item A \emph{trap for $B_j$} is a closed set $X \subseteq R \setminus B_j$.
+    $\CTrap$ is satisfied if and only if no trap exists for any $j$.
+\end{itemize}
+\end{definition}
+
+We prove both directions: soundness (SAT $\Rightarrow$ \Even{} wins,
+Theorem~\ref{thm:soundness}) and completeness (\Even{} wins $\Rightarrow$ SAT,
+Theorem~\ref{thm:completeness}).
+
+\begin{corollary}\label{cor:equiv}
+\Even{} wins from $\vinit$ for $B_1 \wedge \dots \wedge B_k$ if and only if
+$M$ is satisfiable. By determinacy, if $M$ is unsatisfiable then \Odd{} wins
+from $\vinit$.
+\end{corollary}
+
+%======================================================================
+\section*{Soundness without a policy (SAT $\Rightarrow$ \Even{} wins)}
+
+\begin{theorem}[Soundness]\label{thm:soundness}
+If $M$ is satisfiable, then \Even{} has a winning strategy from $\vinit$ for
+$B_1 \wedge \dots \wedge B_k$.
+\end{theorem}
+
+\begin{proof}
+Take a solution of $M$, so $\CTrap$ finds no trap. Suppose, for a
+contradiction, that \Even{} does not win from $\vinit$.
+
+\begin{enumerate}[label=\arabic*.]
+  \item \textbf{\Odd{} has a positional strategy $\tau$.} By determinacy,
+    \Odd{} wins. Since \Odd{}'s objective is a disjunction of co-B\"uchi
+    conditions (a Rabin-type objective), \Odd{} can win positionally.
+
+  \item \textbf{Build a finite graph $G$.} Restrict \Even{} to her selected
+    edges and \Odd{} to $\tau$, keeping only vertices reachable from $\vinit$.
+    Every vertex of $G$ is in $R$, because its edges are selected edges or
+    \Odd{} edges.
+
+  \item \textbf{Take a bottom SCC $C$ of $G$}, reachable from $\vinit$ and with
+    no edges leaving it.
+    \begin{itemize}
+      \item Every \Even{} vertex in $C$ has all its selected edges inside $C$,
+        because no edge leaves $C$.
+      \item Every \Odd{} vertex in $C$ has its $\tau$-successor inside $C$.
+    \end{itemize}
+    So $C$ is closed, and $C \subseteq R$.
+
+  \item \textbf{$C$ misses some $B_j$.} \Even{} can play a strategy that
+    reaches $C$ and then tours all of $C$ forever. This is possible because
+    $C$ is strongly connected and uses only selected edges; at \Odd{}
+    vertices the only edge in $G$ is the one chosen by $\tau$, so the play is
+    consistent with $\tau$. Against this play, the set of vertices visited
+    infinitely often is exactly $C$. Since $\tau$ wins against every \Even{}
+    strategy, $C$ misses some $B_j$.
+
+  \item \textbf{Contradiction.} $C$ is closed and
+    $C \subseteq R \setminus B_j$, so $C$ is a trap, and $\CTrap$ would have
+    reported it. \qedhere
+\end{enumerate}
+\end{proof}
+
+%======================================================================
+\section*{Completeness (\Even{} wins $\Rightarrow$ SAT)}
+
+\begin{theorem}[Completeness]\label{thm:completeness}
+If \Even{} has a winning strategy from $\vinit$ for
+$B_1 \wedge \dots \wedge B_k$, then $M$ is satisfiable.
+\end{theorem}
+
+\paragraph{Idea.} We build one explicit solution of $M$ from \Even{}'s winning
+region $W$, using one attractor (``move closer to $B_k$'') strategy per layer.
+Each layer satisfies $\CNOC^{k}$ because attractor ranks strictly decrease
+outside $B_k$, so every cycle meets $B_k$. The union of the layers has no
+trap, because the vertex of minimum rank in any candidate trap would have to
+leave it.
+
+\subsection*{Setup}
+
+Let $W$ be \Even{}'s winning region for $B_1 \wedge \dots \wedge B_k$; by
+hypothesis $\vinit \in W$.
+
+\begin{fact}[Winning regions]\label{fact:W}
+Every \Odd{} vertex in $W$ has all its successors in $W$, and every \Even{}
+vertex in $W$ has at least one successor in $W$. Hence the restriction $G[W]$
+is an arena with no dead ends, and \Even{} wins
+$B_1 \wedge \dots \wedge B_k$ from every vertex of $G[W]$.
+\end{fact}
+
+\begin{lemma}[Each attractor covers $W$]\label{lem:attr}
+For each $k$, let $A_k$ be \Even{}'s attractor to $B_k \cap W$ inside $G[W]$.
+Then $A_k = W$.
+\end{lemma}
+
+\begin{proof}
+Suppose $U = W \setminus A_k \neq \emptyset$. The complement of an
+\Even{}-attractor is a trap for \Even{}: from $U$, \Odd{} can keep the play in
+$U$ forever. Since $U$ contains no vertex of $B_k$, \Odd{} wins the co-B\"uchi
+condition for $B_k$ from $U$, so \Even{} cannot win
+$B_1 \wedge \dots \wedge B_k$ from $U$. This contradicts $U \subseteq W$ and
+Fact~\ref{fact:W}.
+\end{proof}
+
+\paragraph{Ranks.} By Lemma~\ref{lem:attr}, each $v \in W$ has an attractor
+rank $r_k(v) \in \mathbb{N}$, the number of steps \Even{} needs to force the
+play into $B_k$, with $r_k(v) = 0$ if and only if $v \in B_k$. For
+$v \in W \setminus B_k$:
+\begin{itemize}
+  \item if $v$ is an \Even{} vertex, some successor $w \in W$ has
+    $r_k(w) < r_k(v)$;
+  \item if $v$ is an \Odd{} vertex, every successor $w$ has
+    $r_k(w) < r_k(v)$.
+\end{itemize}
+
+\paragraph{Strategy $\sigma_k$} (positional, on $W$). For an \Even{} vertex
+$v \in W$:
+\begin{itemize}
+  \item if $v \notin B_k$, $\sigma_k(v)$ is a successor of lower rank;
+  \item if $v \in B_k$, $\sigma_k(v)$ is any successor in $W$.
+\end{itemize}
+
+\subsection*{The witness assignment}
+
+For every layer $k$:
+\begin{itemize}
+  \item $V_k[v]$ is true if and only if $v \in W$;
+  \item $E_k[v \to \sigma_k(v)]$ is true for every \Even{} vertex $v \in W$,
+    and all other $E_k$ variables are false.
+\end{itemize}
+Hence $\sel(v) = \{\sigma_1(v), \dots, \sigma_k(v)\} \subseteq W$ for every
+\Even{} vertex $v \in W$, and $|\sel(v)| \le k$.
+
+\begin{lemma}[Each layer's constraints hold]\label{lem:layer}
+For every $k$, the witness satisfies the NOC clauses, the exactly-one
+constraint and $\CNOC^{k}$ of layer $k$.
+\end{lemma}
+
+\begin{proof}
+We check each constraint in turn.
+\begin{itemize}
+  \item \textbf{$V_k[\vinit]$:} $\vinit \in W$.
+  \item \textbf{Exactly-one (\Even{}):} each \Even{} vertex $v \in W$ has
+    exactly one true edge, $E_k[v \to \sigma_k(v)]$; each \Even{} vertex
+    $v \notin W$ has $V_k[v]$ false and all its $E_k$ variables false.
+  \item \textbf{$E_k[v \to w] \rightarrow V_k[w]$:} $\sigma_k(v) \in W$.
+  \item \textbf{\Odd{}, $V_k[v] \rightarrow V_k[w]$:} by Fact~\ref{fact:W}.
+  \item \textbf{$\CNOC^{k}$:} in the graph of layer $k$ ($\sigma_k$ edges at
+    \Even{} vertices and all edges at \Odd{} vertices, inside $W$), every step
+    from a vertex outside $B_k$ strictly lowers $r_k$. A cycle returns to its
+    start, so it cannot lower the rank at every step; hence every cycle meets
+    $B_k$. This is exactly what $\CNOC^{k}$ requires for the B\"uchi
+    condition ($B_k$ with priority $2$, all other vertices with priority $1$).
+    \qedhere
+\end{itemize}
+\end{proof}
+
+\begin{lemma}[No trap]\label{lem:notrap}
+The witness satisfies $\CTrap$.
+\end{lemma}
+
+\begin{proof}
+First, $R \subseteq W$: $\vinit \in W$, selected edges stay in $W$, and
+\Odd{} edges from $W$ stay in $W$ by Fact~\ref{fact:W}. In particular every
+vertex of $R$ has a rank $r_j$ for every $j$.
+
+Suppose $X$ is a non-empty closed set with $X \subseteq R \setminus B_j$.
+Take $v \in X$ with minimum $r_j(v)$. Since $v \notin B_j$, $r_j(v) \ge 1$.
+\begin{itemize}
+  \item If $v$ is an \Even{} vertex, then $\sigma_j(v) \in \sel(v) \subseteq X$
+    because $X$ is closed, and $r_j(\sigma_j(v)) < r_j(v)$.
+  \item If $v$ is an \Odd{} vertex, closedness of $X$ gives a successor
+    $w \in X$, and $r_j(w) < r_j(v)$ since every successor of $v$ has lower
+    rank.
+\end{itemize}
+Either way $X$ contains a vertex of lower rank than $v$, contradicting
+minimality. So no trap exists for any $j$, and $\CTrap$ is satisfied.
+\end{proof}
+
+\begin{proof}[Proof of Theorem~\ref{thm:completeness}]
+The witness assignment satisfies every layer constraint
+(Lemma~\ref{lem:layer}) and $\CTrap$ (Lemma~\ref{lem:notrap}), so $M$ is
+satisfiable.
+\end{proof}
+
+\paragraph{Intuition.} $r_j$ counts the floors above an exit ($B_j$). Any
+closed room has a lowest point, and from there a staircase always goes down:
+\Even{}'s layer-$j$ edge, or every \Odd{} move. So no closed room can avoid the
+exit forever.
+
+\begin{remark}
+\leavevmode
+\begin{itemize}
+  \item The completeness proof uses only attractors and Fact~\ref{fact:W}: it
+    needs neither a positional strategy for \Odd{} nor determinacy.
+    Determinacy is only needed for the step ``UNSAT $\Rightarrow$ \Odd{}
+    wins'' in Corollary~\ref{cor:equiv}.
+  \item $\CNOC^{k}$ matters here only in checking that the witness passes it:
+    the layers filter solutions but never remove every winning one.
+    Soundness does not use $\CNOC^{k}$ at all.
+  \item The witness uses one edge per layer, so it fits the exactly-one
+    constraint and gives $|\sel(v)| \le k$.
+\end{itemize}
+\end{remark}
+
+% To check against the implementation:
+%  - C_NOC_k is exactly "every cycle in layer k meets B_k", including how it
+%    treats TRUE V_k vertices not reachable from init in layer k;
+%  - the at-most-one encoding allows all E_k[v][.] FALSE when V_k[v] is FALSE.
+
+\end{document}
