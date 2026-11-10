@@ -303,7 +303,8 @@ integrated effectively within a general constraint-solving architecture.
 This article substantially extends our preliminary conference
 work~\citep{Hernandez:2026:noc}. In addition to a more detailed presentation
 of the \noc framework and its propagators, we investigate alternative
-constraint formulations and solver back ends, provide an expanded analysis
+constraint formulations and solver back ends, compare against CP and SMT
+encodings of the progress measure, provide an expanded analysis
 of search strategies and the duality between the two players, study resource
 utilisation and scalability on larger instances, and examine how the same
 constraint-based framework can accommodate additional requirements on
@@ -343,7 +344,7 @@ A memoryless or {\em positional strategy} for player Even (player Odd) is a func
 
 Given an initial vertex $v_0$, a strategy is said to be winning from $v_0$ for player~$\even$ (player~$\odd$) if it only generates winning plays for player~$\even$ (player~$\odd$) starting at $v_0$ for all strategies of the other player. It is known that for every vertex~$v\in V$ in a parity game, one of the two players always has a memoryless winning strategy from that vertex~$v$ \citep{Zielonka:1998}. Solving a parity game means deciding, for every vertex~$v\in V$, which player has a memoryless winning strategy from that vertex. In this paper, as in local model checking, we decide the winner from a given initial vertex~$v_0$.
 
-\subsection{Solving parity games using SAT-Modulo-Theories}
+\subsection{Solving parity games using SAT-Modulo-Theories}\label{sec:smt}
 
 Besides dedicated methods for parity games, algorithms have been developed to \textit{encode} a given game into constraint-based formalisms, in order to apply off-the-shelf solvers. One such approach~\citep{Heljanko:2012} uses Satisfiability Modulo Theories (SMT) solvers to do so. 
 The encoding is based on the following observation:
@@ -591,7 +592,7 @@ Remembering cycles is particularly effective in games where the number of cycles
 
 The three versions of the \noc propagator can be used to solve parity games, with \nocmemo requiring the \nocchecker.
 
-\subsection{Solving for $\player$ and $\opponent$ in Parallel}
+\subsection{Solving for $\player$ and $\opponent$ in Parallel}\label{sec:parallel}
 
 As our experiments will demonstrate, solver performance is heavily dependent on the game's underlying structure. A key observation is the asymmetry in computational cost inherent in game structure: properties that challenge $\player$'s solution often simplify $\opponent$'s, and vice versa. This problem duality allows us to transform and simplify the solution. By exploiting this, we can avoid a worst-case scenario for one player by solving the game from the opposite perspective. Consequently, solving the game from both perspectives in parallel significantly improves overall efficiency. This acceleration is largely attributed to the \noc propagator's capacity to rapidly prune the search space by eliminating $\opponent$'s winning options, effectively proving $\player$ has no winning strategy. We execute both perspectives concurrently and use the result obtained by the faster computation.
 
@@ -795,11 +796,12 @@ By coupling decision variable selection directly with reachability, \nocbrancher
 
 \section{Experiments and Evaluation}\label{sec:experiments}
 
-To evaluate our approach, we implemented our method based on \noc propagators using the Constraint Programming (CP) solver Chuffed (version 0.12.1)~\citep{chuffed:2018} and Google OR-Tools (version 9.15)~\citep{Perron:2024}. We used MiniZinc~\citep{DBLP:conf/cp/NethercoteSBBDT07} to model additional constraints across selected experiments.
+To evaluate our approach, we implemented our method based on \noc propagators using the Constraint Programming (CP) solver Chuffed (version 0.12.1)~\citep{chuffed:2018} and Google OR-Tools (version 9.15)~\citep{Perron:2024}. We used MiniZinc~\citep{DBLP:conf/cp/NethercoteSBBDT07} to model a CP baseline based on progress measures (Section~\ref{sec:cp-smt}).
 
 For comparison, we employed several external state-of-the-art solvers: 
 \begin{itemize}
     \item SAT Solvers (Reduction SAT): We used \textbf{CaDiCaL} (v2.1.3) \citep{Biere:Cadical:2024}, \textbf{MiniSat} (v2.2.0) \citep{Een:MiniSat:2003}, \textbf{Kissat} (v4.0.2) \citep{Biere:Kissat:2024}, and zChaff (v2007.3.12) \citep{Moskewicz:zChaff:2001}.
+    \item CP and SMT Solvers (Progress Measure): We solved the MiniZinc progress-measure model with \textbf{Gecode}~\citep{Gecode:2019} and Google \textbf{CP-SAT}~\citep{Perron:2024}, and the SMT difference-logic encoding with \textbf{Z3} (v4.14.1.0)~\citep{deMoura:2008}.
     \item State-of-the-Art (SOTA) Parity Game Solvers: We incorporated Oink (fresh GitHub version) \citep{vanDijk:2018}, which includes several high-performance algorithms like Priority Promotion ($\textbf{PP}$ and $\textbf{PP+}$) and Parys' improvements ($\textbf{PAR}$). We also included the Zielonka Recursive Algorithm ($\textbf{ZRA}$), with an improved attractor strategy as detailed by \citet{Aggarwal:2023}, which offers better performance. 
 \end{itemize}
 
@@ -878,6 +880,34 @@ Table~\ref{tab:biggames} presents the evaluation on large-scale benchmark instan
 Overall, \noc exhibits superior scalability and solves the highest total number of instances across all benchmark suites ($171/172$). Crucially, on \textsf{EquivalenceCh}, \noc is the only method to solve all 36 instances while maintaining runtime performance competitive with \zra. On \textsf{ModelCh}, \noc achieves the best overall runtime ($7.719$\,s). On the \textsf{PGSolver} collection, \noc also delivers top performance, cutting runtimes by over $2\times$ compared to Oink(PAR) and \zra while solving $52/53$ instances (compared to $48/53$ for Oink PP/PP+). Finally, all solvers handle \textsf{RandomG} in under $0.4$ seconds; on this suite \noc is slower than the specialised solvers ($0.383$\,s vs.\ $0.039$\,s for Oink(PP)) but remains sub-second. Overall, these results show that constraint-based propagators can match or outperform dedicated solvers on massive instances with up to 35 million vertices.
 
 The runtime metrics for the \noc and \zra approaches include both the solver execution time and the internal problem-preparation time (excluding I/O operations such as file reading). In contrast, for the SAT-based approaches we report only the solving time. This distinction is made because the preparation phase for the SAT-based methods—particularly the encoding generation—is substantially more expensive and was not a primary target of optimization in this work. 
+
+\subsection{Comparison with CP and SMT encodings of the progress measure}\label{sec:cp-smt}
+
+The comparison above covers SAT-based reductions. To complete the picture of constraint-based approaches, we also compare \noc against encodings that keep the progress measure but hand it to more expressive solvers: a MiniZinc CP model that expresses the progress measure using integer variables and constraints, solved by Gecode and CP-SAT, and the SMT model of Section~\ref{sec:smt} that implements the progress measure in difference logic, solved by Z3. In this experiment, \noc was run with the \nocmemo propagator in Chuffed, and all approaches solved the game from Player~$\even$'s perspective only; that is, \noc did not use the parallel search over both players' perspectives described in Section~\ref{sec:parallel}. We use Jurdziński games, which allow the size of the graph to be varied systematically: $J_{\ell,10}$ has 10 blocks and $\ell \in \{10, 20, \dots, 80\}$ levels.
+
+\begin{table}[ht]
+\centering
+\caption{Solving time (in seconds) on Jurdziński games $J_{\ell,10}$ for \noc and for the progress-measure encodings solved by CP (MiniZinc with Gecode and CP-SAT) and SMT (Z3) solvers. A dash indicates a time exceeding 5 minutes.}
+{\small
+\begin{tabular}{r|rrrr}
+\toprule
+$\ell$ & \textbf{Chuffed}(\nocmemo) & \textbf{MiniZinc}(Gecode) & \textbf{MiniZinc}(CP-SAT) & \textbf{Z3} \\
+\midrule
+10 & \textbf{0.01} & 0.59   & 0.71   & 0.22   \\
+20 & \textbf{0.02} & 3.06   & 2.59   & 0.58   \\
+30 & \textbf{0.03} & 10.57  & 6.15   & 2.64   \\
+40 & \textbf{0.05} & 28.53  & 12.52  & 7.76   \\
+50 & \textbf{0.07} & 63.77  & 22.47  & 18.11  \\
+60 & \textbf{0.10} & 126.88 & 37.41  & 35.76  \\
+70 & \textbf{0.13} & 231.51 & 58.22  & 65.62  \\
+80 & \textbf{0.17} & -      & 88.89  & 111.80 \\
+\bottomrule
+\end{tabular}
+}
+\label{tab:cp-cp}
+\end{table}
+
+Table~\ref{tab:cp-cp} shows that \noc outperforms all three progress-measure approaches by two to three orders of magnitude, and that the gap widens with the size of the game: at 80 levels, \noc needs $0.17$\,s, whereas CP-SAT needs $88.89$\,s, Z3 needs $111.80$\,s, and Gecode exceeds the 5-minute limit. Among the baselines, Z3 is the fastest on small games, but CP-SAT scales better beyond 60 levels. The progress-measure encodings are also expensive in memory: MiniZinc with Gecode used over 256\,GB to complete the larger instances, so, as in the memory experiment of Section~\ref{sec:memory}, these runs were not subject to the 8\,GB limit. Together with Table~\ref{tab:smallgames}, these results show that \noc outperforms SAT-, CP- and SMT-based encodings of the progress measure.
 
 \subsection{Comparison between different versions of \noc}
 \begin{table}[ht]
@@ -1028,10 +1058,10 @@ Across all benchmark suites, problem resolution is overwhelmingly driven by unsa
 \paragraph{Heuristic Specialization.}
 The structural reachability heuristic (\textsf{Reach}) provides the highest per-thread consistency on structured benchmarks: with the Boolean encoding and Chuffed, both the $\even$ and $\odd$ threads solve all \textsf{EquivalenceCh} and \textsf{ModelCh} instances, whereas under \textsf{ValMin} and \textsf{Rand} each thread solves only part of them. Crucially, while refutation via unsatisfiability remains the predominant resolution pathway across all suites, the reachability heuristic significantly enhances the solver's ability to identify direct satisfying assignments ($\textsf{S}$). By guiding search decisions along feasible game transitions rather than relying on arbitrary value orderings, \textsf{Reach} constructs valid winning strategies far more effectively—evident in \textsf{EquivalenceCh} and \textsf{ModelCh} under OR-Tools, where SAT-derived solutions increase noticeably (e.g., reaching $\textsf{S} = 9$ and $\textsf{S} = 13$, compared to $\textsf{S} = 0$ under \textsf{ValMin}). Conversely, with Chuffed, randomized branching (\textsf{Rand}) yields the highest per-thread solved counts on unstructured topologies (\textsf{RandomG}), suggesting that it avoids pathological search traps in dense random graphs where topological reachability offers little guidance.
 
-\subsection{Resource Utilization Analysis}
+\subsection{Resource Utilization Analysis}\label{sec:memory}
 
 A key motivation for developing the \noc propagator was to avoid the resource overhead associated with introducing the Boolean literals and clauses required for the progress measure variables and constraints. %In our experiments, 
-We also evaluated the memory consumption of \noc compared to other methods.
+We also evaluated the memory consumption of \noc compared to other methods. Unlike the runtime experiments, where each instance was limited to 8\,GB of RAM, for this experiment only we lifted the memory limit and allowed each solver to use the entire memory available on the node (268.55\,GB), so that the peak memory usage of the SAT-based approaches could be measured rather than truncated by the limit.
 
 The results of these additional experiments are summarised in Figure~\ref{fig:peakofmemory}. While \noc requires at most 700MB of memory for games with 13 thousand vertices, and \zra up to 17MB, the SAT-based approaches consume significantly more. In particular, we see that CaDiCaL, MiniSat, and Kissat report memory usage exceeding 39~GB for the same instances.
 
